@@ -1,3 +1,4 @@
+#include "TRI_Main.h" //Used for th RunNoChain to Tchain all of the TTrees together
 #include "TRI_Tools.h" //Used for th RunNoChain to Tchain all of the TTrees together
 
 
@@ -21,8 +22,11 @@ Double_t Total_Charge_runlist(TString Run_String="", Int_t cuts_bool=0){
 
 //Tchains the runlist
     const vector<Int_t> RunNoChain=gGet_RunNoChain(Run_String);
-	TChain* T =(TChain*) gGetTree(RunNoChain, "T");
+	//TChain* T =(TChain*) gGetTree(RunNoChain, "T");
 
+	TFile *file = new TFile(Form("/chafs1/work1/tritium/Rootfiles/Bcmreplay_%d.root",RunNoChain[0]),"read");
+	TTree *T;
+	T = (TTree*)file->Get("T");
 //Limitation of the code: Which arm to choose!!
 //Selecting the first run in the runlist and then using the 90000 cut off for run number tp select the arm.
 	//Which arm
@@ -41,8 +45,8 @@ Double_t Total_Charge_runlist(TString Run_String="", Int_t cuts_bool=0){
 
 //Needed pointer for values in the TChain
 	T->ResetBranchAddresses();
-	T->SetBranchAddress(Form("%sBCM.charge_dnew",ARM.Data()),&dnew_ch_ev);
-	T->SetBranchAddress(Form("%sBCM.charge_unew",ARM.Data()),&unew_ch_ev);
+	T->SetBranchAddress(Form("%sBCMev.charge_dnew",ARM.Data()),&dnew_ch_ev);
+	T->SetBranchAddress(Form("%sBCM.charge_dnew",ARM.Data()),&unew_ch_ev);
 	T->SetBranchAddress(Form("%sBCM.current_dnew",ARM.Data()),&dnew_cur_ev);
 	T->SetBranchAddress(Form("%sBCM.current_unew",ARM.Data()),&dnew_cur_ev);
 	T->SetBranchAddress(Form("%sBCM.isrenewed",ARM.Data()),   &isrenewed);
@@ -53,7 +57,7 @@ Double_t Total_Charge_runlist(TString Run_String="", Int_t cuts_bool=0){
 	for(Int_t i=0;i<Total_entries;i++){
 		T->GetEntry(i);
 		//is T-event a new scaler event and if cuts are turned on makes a beam trip cut forcing at least 0.5 uAs
-		if(isrenewed==1 && dnew_cur_ev >= cuts_bool*0.5){ 
+		if((isrenewed==1 && dnew_cur_ev >= cuts_bool*0.5)){ 
 			dnew_ch_total+=dnew_ch_ev;
 			unew_ch_total+=unew_ch_ev;
 		}//End of renewed if
@@ -65,7 +69,7 @@ Double_t Total_Charge_runlist(TString Run_String="", Int_t cuts_bool=0){
            
     Total_Charge=dnew_ch_total;
     
-    
+    cout << unew_ch_total<<endl;
  
 return Total_Charge;
 }

@@ -17,7 +17,7 @@ void corrections(Int_t run = 0){
 	if(run==0){cout << "please enter the run number" <<endl;cin>>run;}
 
 	TString Target,Kin,Run_String;
-	
+	gStyle->SetOptStat(0);
 //	Run_String =TString::Format("%d",run);
 //    const vector<Int_t> RunNoChain=gGet_RunNoChain(Run_String);
 //	TChain* T =(TChain*) gGetTree(RunNoChain, "T");
