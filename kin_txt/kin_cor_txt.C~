@@ -1,0 +1,178 @@
+#include "../inc.h"
+#include "../TRI_Main.h"
+#include "../TRI_Tools.h"
+
+
+void kin_cor_txt(TString filename =""){
+  //Overwrite section
+  int overwrite[20]={0, //Runnumber
+		     0, //Charge
+		     0, //DT
+		     0, //Trigger eff
+		     0, //PID eff
+		     0, //tracking eff
+  };
+
+  
+/////input the name of the kin file and parse it
+  if(filename==""){ cout<<"Input file name:   "; cin>>filename;}
+  filename = "../Runlist/" + filename;
+  ifstream file(filename.Data());
+ 
+  if(!file.good()){cout << filename.Data() << " does not exist! "<<endl; exit(1);}
+  TString content;
+  TString Target,Kin,Run_String;
+  
+  TString kin;
+  for (int ii=0; content.ReadLine(file) && ii<3;ii++ ) {  
+    cout<<"!!!:  "<<content<<endl;
+    if(ii==0)Target = content;
+       if(ii==1){
+           kin = content.Data();
+           Kin = Form("kin%s", kin.Data());
+         }
+    if(ii==2)Run_String = content;         
+  }
+  file.close();
+////////////////////////////////////////////////////////
+
+///Call tri_tools functions and combine root files
+  const vector<Int_t> RunNoChain=gGet_RunNoChain(Run_String);
+
+  TString rootfilePath="/chafs1/work1/tritium/Rootfiles/";
+  TVector RunList(1); vector<int> Oldrun;
+  vector<double> Charge;
+  vector<vector<int>> dtime;
+
+  vector<string>  labels;
+
+  Int_t num_of_runs=0;
+  int first_run = RunNoChain[0];
+  int last_run = RunNoChain[RunNoChain.size()-1];
+  
+  std::fstream list;
+  std::string line_file;
+  list.open (Form("./%s/%s_%s.txt",Kin.Data(),Target.Data(),Kin.Data()), std::fstream::in); 
+  std::string stringrun;std::string::size_type sz;
+  int inrun=0;
+  int status=0;
+  int innum=0;
+  int numint=0;
+  vector<string> vec;
+  while (std::getline(list, line_file, '   ')){
+    vec.emplace_back(line_file);
+    numint++;
+    if(numint==1||numint==2)continue;
+    for(int jj =0; jj<30;jj++){
+      if(line_file[jj]== ' '){break;}
+      stringrun+=line_file[jj];
+    }	
+    inrun=stoi(stringrun,&sz);
+    size_t leng = stringrun.length();
+   
+    Oldrun.push_back(inrun);
+    cout<< Oldrun[innum] <<endl;
+    innum++;
+ for (auto i : vec) // Use regular for loop if you can't use c++11/14
+        cout << i << '\n';
+
+    }
+
+
+ 
+
+  list.close();
+ 
+  TString ARM,arm;
+  if(RunNoChain[0]<90000){ARM="Left"; arm="L";}
+  else{ARM="Right";arm="R";}
+
+
+
+  FILE* kfile =fopen(Form("./%s/%s_%s.txt",Kin.Data(),Target.Data(),Kin.Data()),"w");
+  setvbuf ( kfile , NULL , _IOFBF , 1024 );
+  fprintf(kfile,"%s_%s \n",Target.Data(),Kin.Data());
+  fprintf(kfile,"Run# \t");
+  if(arm=="L"){for(int j=1;j<4;j++){ fprintf(kfile,"DT_%d\t",j+1);} }
+  else{for(int j=5;j<8;j++){ fprintf(kfile,"DT_%d\t",j+1);} }
+  fprintf(kfile,"\n");
+//Start of each run
+	for(int r = 0; r<RunNoChain.size()-1;r++){
+	   int run=RunNoChain[r]; 
+				
+	   cout << "This is the start of run " << run <<endl;
+////////////////////////////////////////////////////////////////////////////////////////
+	   TString rootfilePath="./Rootfiles/";
+
+	   TFile *file = new TFile(Form("%stritium_%d.root",rootfilePath.Data(),run),"read");
+	   if(file->IsZombie()){
+	     cout<<" this rootfile doest not exist: "<<endl;
+	     cout<<"In the future, might force replay or retrieval" <<endl;
+	     continue;
+	   }
+     //==========this to take care the split rootfiles========================
+	   TString file_name = TString::Format("%stritium_%d.root",rootfilePath.Data(),run);
+	   TString basename = TString::Format("%stritium_%d",rootfilePath.Data(),run);
+	   TString rootfile = basename + ".root";
+	   TChain* T = new TChain("T");
+	   Long_t jk=0;
+	   while ( !gSystem->AccessPathName(rootfile.Data()) ) {
+	     T->Add(rootfile.Data());
+	     cout << "ROOT file " << run<< "_"<< jk << " added to TChain." << endl; jk++;
+	     rootfile = basename + "_" + jk + ".root"; 
+	     // if(i>10){break;}
+	   }
+
+////////////////////////////////////////////////////////////////////////////////////////
+	   Double_t DT[10];
+	   if(overwrite[0]==1||overwrite[2]==1){
+	   ///////////////////////////Calculate deadtime;
+	   THaRun *aRun = (THaRun*)file->Get("Run_Data");
+	   THaRunParameters *para=aRun->GetParameters();
+	   TArrayI ps = aRun->GetParameters()->GetPrescales();	
+	
+	   char *rate = new char[500];
+	   char *clkrate = new char[50];
+	   char hname[10][50];
+	   char *hh = new char[50];
+	   Double_t LT[10]; 
+	   int icount[10];  int daqcount[10];
+	   TH1F *his[10];   double PS[8];
+   
+	   for (int k=0; k<8; k++){PS[k]= ps[k];}
+
+	   for (int i=1; i<9; i++){
+	     TCut t_cut = Form("D%s.evtypebits&(1<<%i)",arm.Data(),i);
+	     sprintf(rate,"%sT%i",ARM.Data(), i);
+	     icount[i] = T->GetMaximum(rate);
+	     sprintf(hname[i],"t%i",i);
+	     sprintf(hh,"D%s.evtypebits>>%s", arm.Data(),hname[i]);
+	     his[i] =new TH1F (hname[i], hname[i], 100,0,1000000);
+	     T->Draw(hh,t_cut, "goff");
+	     daqcount[i] = his[i]->GetEntries();
+	     if(PS[i-1]>0){
+		LT[i] = 100.*PS[i-1]*daqcount[i]/icount[i];
+		DT[i] = 100. - LT[i];
+	     }
+	   }
+///////////////////////////Calculate deadtime;
+	   }//overwrite
+
+////////////////Addeding to file
+	   fprintf(kfile,"%d\t",run);
+	   if(arm=="L"){for(int j=1;j<4;j++){fprintf(kfile,"%0.3f\t",DT[j]);}}
+	     else{for(int j=5;j<8;j++){fprintf(kfile,"%0.3f\t",DT[j]);}}
+	   fprintf(kfile,"\n");
+
+
+	   if(r>=0){break;}
+	}
+//End of run
+	fclose(kfile);
+
+
+}
+//End of script
+
+
+
