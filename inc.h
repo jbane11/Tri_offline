@@ -43,4 +43,5 @@
 #include <TLorentzVector.h>
 #include <TMath.h>
 #include <TLatex.h>
+#include <TLegend.h>
 #include <TRandom3.h>

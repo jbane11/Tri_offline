@@ -6,7 +6,7 @@ Limitations/ issues
 
 */
 
-Double_t PID_eff(TString ARM="Left",Int_t =0, Double_t calo_e = 0, Double_t cer_min = 0 ){
+double Pid_eff_macro(TChain *T,TString ARM="Left",Int_t cur_sel=0, Double_t calo_e = 0.55, Double_t cer_min = 500, Double_t beamon_min=1 ){
 	
 	Double_t PID_eff=1; 	//This will be the over all correction value for this run.
 	Double_t PID_e_eff=1;	//This will be the eff of electron acceptance
@@ -35,7 +35,7 @@ Double_t PID_eff(TString ARM="Left",Int_t =0, Double_t calo_e = 0, Double_t cer_
 	int Main_Trigger_Left = 2;
 	int Main_Trigger_Right = 5;
 	double e_sample_int = 3000.0;
-	double e_sample_m = -1.0;
+	double e_sample_m = -3000.0/2300.0;
 	double p_sample_int = 1500.0;
 	double p_sample_m = -1.0;
 /////////////	
@@ -71,8 +71,11 @@ Double_t PID_eff(TString ARM="Left",Int_t =0, Double_t calo_e = 0, Double_t cer_
 	TString target_ph = Form("(%s.tr.tg_ph)>%4.3f && (%s.tr.tg_ph)<%4.3f",Arm.Data(),TG_Phi_Min,Arm.Data(), TG_Phi_Max);
 	TString target_th = Form("(%s.tr.tg_th)>%4.3f &&(%s.tr.tg_th)<%4.3f",Arm.Data(),TG_Theta_Min,Arm.Data(),TG_Theta_Max);
 	TString track_dp = Form("(%s.tr.tg_dp)>%4.3f && (%s.tr.tg_dp)<%4.3f",Arm.Data(),TG_Dp_Min,Arm.Data(),TG_Dp_Max);
-	TString beam_trip = Form("%sBCM.current_dnew >= 2.5*%d",ARM.Data(),1);
-			if(Arm =="R"){beam_trip="1";} //Need to replay right arm after bcm class fix
+	TString beam_trip = Form("%sBCM.BeamUp_time_v1495[%d] >= %f",ARM.Data(),cur_sel,beamon_min);
+	
+	//Form("%sBCM.current_dnew >= 2.5*%d",ARM.Data(),cuts_bool);
+	
+	//		if(Arm =="R"){beam_trip="1";} //Need to replay right arm after bcm class fix
 
 	
 	TString pid = pid_cer+"&&"+pid_cal;
@@ -96,9 +99,10 @@ Double_t PID_eff(TString ARM="Left",Int_t =0, Double_t calo_e = 0, Double_t cer_
 
 // Drawing to test the script. Can remove the / * and * /  to view histograms 
 	TCanvas *c = new TCanvas("c","c");
+	gStyle->SetOptStat(111100);
 	c->Divide(1,3);
 	c->cd(1);
-	T->Draw(Form("%s>>hh1(100,0,4000,100,0,4000)",plot.Data()),Gcut);
+	T->Draw(Form("%s>>hh1(100,0,4000,100,0,4000)",plot.Data()),Gcut,"colz");
 	TLine *Le = new TLine(0,e_sample_int,(0-e_sample_int)/e_sample_m  ,0);
 	TLine *Lp = new TLine(0,p_sample_int,(0-p_sample_int)/p_sample_m  ,0);
 	Le->SetLineColor(2);Le->Draw("same");
@@ -107,11 +111,12 @@ Double_t PID_eff(TString ARM="Left",Int_t =0, Double_t calo_e = 0, Double_t cer_
 	TH2F *h2 =new TH2F("h2","h2",100,0,4000,100,0,4000);
 	TH2F *p2 =new TH2F("p2","p2",100,0,4000,100,0,4000);
 	T->Draw(Form("%s>>h1(100,0,4000,100,0,4000)",plot.Data()),TCut(e_sample_cut));
-	T->Draw(Form("%s>>h2",plot.Data()),TCut(tot_e_cut),"same");
+	T->Draw(Form("%s>>h2",plot.Data()),TCut(pion_sample_cut),"same");
 	h2->SetMarkerColor(2);h2->SetLineColor(2);
+	//h1->SetMarkerColor(4);h2->SetLineColor(4);
 	c->cd(3);
-	T->Draw(Form("%s>>p1(100,0,4000,100,0,4000)",plot.Data()),TCut(pion_sample_cut));
-	T->Draw(Form("%s>>p2",plot.Data()),TCut(tot_p_cut),"goff");
+	T->Draw(Form("%s>>p1(100,0,4000,100,0,4000)",plot.Data()),TCut(tot_e_cut));
+	T->Draw(Form("%s>>p2",plot.Data()),TCut(tot_p_cut),"same");
 	p2->SetMarkerColor(2);p2->SetLineColor(2);
 
 	PID_e_eff = cut_electrons/e_sample;
@@ -122,7 +127,9 @@ Double_t PID_eff(TString ARM="Left",Int_t =0, Double_t calo_e = 0, Double_t cer_
 	cout << "E " << cut_electrons << ": "<<e_sample << " | P " << cut_pions << " : " <<p_sample <<endl;
 	cout << "E " << PID_e_eff <<"\t P " << PID_p_eff <<endl; 
 
-	
+	printf(":%10.10f\t\n",PID_eff);
+
+//	delete(c);	
 	return PID_eff;
 }
 	

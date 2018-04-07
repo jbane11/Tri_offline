@@ -148,6 +148,7 @@ inline TChain* gAddTree(const Int_t aRunNo,TString aTreeName="T")
 	TChain* aTree=new TChain(aTreeName.Data(),"Main Tree");
 	Int_t index=0;
 	TString File_Form=Form("%s_%d.root",ROOTFILES_NAME.Data(),aRunNo);
+	
 	if ( gSystem->FindFile(ROOTFILES_DIR.Data(),File_Form) )
 	{
 		aTree->Add(Form("%s/%s_%d.root",ROOTFILES_DIR.Data(),ROOTFILES_NAME.Data(),aRunNo));
@@ -176,7 +177,16 @@ inline TChain* gGetTree(const vector<Int_t>& aRunNoChain, TString aTreeName="T")
 	TChain* Tree=new TChain(aTreeName.Data(),"Main Tree");
 	for ( unsigned int i=0; i<aRunNoChain.size(); i++ )
 	{
-		Int_t aRunNo=aRunNoChain[i];
+			Int_t aRunNo=aRunNoChain[i];
+			
+	TFile *file = new TFile(Form("%s%s_%d.root",ROOTFILES_DIR.Data(),ROOTFILES_NAME.Data(),aRunNo),"read");
+	if(file->IsZombie()){
+		cout << aRunNo << " does not exist: "<<endl;
+		continue;
+      }
+	
+	
+
 		Int_t index=0;
 		TString File_Form=Form("%s_%d.root",ROOTFILES_NAME.Data(),aRunNo);
 		if ( gSystem->FindFile(ROOTFILES_DIR.Data(),File_Form) )

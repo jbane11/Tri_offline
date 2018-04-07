@@ -1,422 +1,426 @@
-.x PID_eff("Left")
-.x PID_eff.C("Left")
+.x PID_eff_scan.C 
+'
 .q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1722.root")
-.x PID_eff.C("Left")
+.x PID_eff_scan.C 
 .q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1722.root")
-.x PID_eff.C("Left",)
-.x PID_eff.C("Left",1)
-.x PID_eff.C("Left",0)
-.x PID_eff.C("Left",2,0.3,300)
-.x PID_eff.C("Left",2,0.9,300)
+.x PID_eff_scan.C 
 .q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1722.root")
-.x PID_eff.C("Left",2,0.9,300)
-.x PID_eff.C("Left",2,0.9,300)
-.x PID_eff.C("Left",2,0.9,200)
-.x PID_eff.C("Left",2,0.9,100)
-.x PID_eff.C("Left",2,0.2,100)
-.x PID_eff.C("Left",2,0.2,2000)
-1*0.908046
+.x getinfo_new.C
 .q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1722.root")
-.x PID_eff.C("Left",2,0.55,500)
 .q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1722.root")
-.x PID_eff.C("Left",2,0.55,500)
-.x PID_eff.C("Left",2,0.85,700)
+.x getinfo_new.C
 .q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1722.root")
-.x PID_eff.C("Left",2,0.85,700)
-.x PID_eff.C("Left",2,0.85,700)
+.x getinfo_new.C
+.q
+.L rootalias.h 
+.q
+.L rootalias.h++
+.q
+.x getinfo_new.C
+.q
+.x getinfo_new.C
+.q
+.L rootalias.h 
+.q
+.L rootalias.h 
+.q
+.x getinfo_new.C
+.x getinfo_new.C
+.q
+.x getinfo_new.C
+.q
+.x getinfo_new.C
+.q
+.x getinfo_new.C
+.q
+.x getinfo_new.C
+.q
+.x PID_eff_scan
+.q
+.x PID_eff_scan.C 
+.q
+.x PID_eff_scan.C 
+.q
+.x getinfo_new.C 
+.q
+.x getinfo_new.C++
+.q
+.x getinfo_new.C++
+.q
+.x getinfo_new.C
+.q
+.L getinfo_new.C 
+.q
+.x PID_eff_scan.C 
+.x PID_eff_scan.C 
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.q
+TFile *_file0 = TFile::Open("/chafs1/work1/tritium/pass1/tritium_1348.root")
+.x Pid_eff_2.C 
+.x Pid_eff_2.C("Left") 
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+'
+.q
+'
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C("He3_kin5.dat")
+.q
+.x PID_eff_scan.C++("He3_kin5.dat")
+.q
+.q
+.q
+.x getinfo_new1.C 
+.q
+.x getinfo_new1.C 
+.q
+.x PID_eff_scan.C++("He3_kin5.dat")
+.q
+.x PID_eff_scan.C++("He3_kin5.dat")
+.q
+TFile *_file0 = TFile::Open("/chafs1/work1/tritium/pass1/tritium_2290.root")
+.x PID_eff.C 
+.q
+TFile *_file0 = TFile::Open("/chafs1/work1/tritium/pass1/tritium_2290.root")
+.x PID_eff.C 
+.x PID_eff.C 
+.x PID_eff.C 
+.x PID_eff.C 
+.x PID_eff.C("T") 
+.q
+TFile *_file0 = TFile::Open("/chafs1/work1/tritium/pass1/tritium_2290.root")
+.x PID_eff.C(T) 
+.q
+TFile *_file0 = TFile::Open("/chafs1/work1/tritium/pass1/tritium_2290.root")
+.x PID_eff.C 
+.q
+TFile *_file0 = TFile::Open("/chafs1/work1/tritium/pass1/tritium_2290.root")
+.x PID_eff.C 
+.q
+TFile *_file0 = TFile::Open("/chafs1/work1/tritium/pass1/tritium_1598.root")
+.x PID_eff.C 
+.q
+TFile *_file0 = TFile::Open("/chafs1/work1/tritium/pass1/tritium_1598.root")
+.x PID_eff.C 
+.q
+TFile *_file0 = TFile::Open("/chafs1/work1/tritium/pass1/tritium_1398.root")
+.x PID_eff.C 
+.q
+.x PID_eff_scan.C++("He3_kin1.dat")
+.q
+.x PID_eff_scan.C++("He3_kin1.dat")
+TFile *_file0 = TFile::Open("/chafs1/work1/tritium/pass1/tritium_1210.root")
+T->Draw("(L.prl1.e+L.prl2.e)/(L.gold.p*1000.)")
+T->Draw("(L.prl1.e+L.prl2.e)/(L.gold.p*1000.)>>H(1000,-0.1,1.6)")
+T->Draw("(L.prl1.e+L.prl2.e)/(L.gold.p*1000.)>>H(100,-0.1,1.6)")
+T->Draw("L.cer_asum")
+T->Draw("L.cer.asum_c")
+T->Draw("L.cer.asum_c>>HH(1000,0,20000")
+T->Draw("L.cer.asum_c>>HH(1000,0,2000")
+.q
+.q
+.x PID_eff_scan.C++("He3_kin1.dat")
+.q
+.x PID_eff_scan.C++("He3_kin1.dat")
+.q
+.x PID_eff_scan.C++("He3_kin1.dat")
+.q
+.x PID_eff_scan.C++("He3_kin1.dat")
+.q
+.x PID_eff_scan.C++("He3_kin1.dat")
+.1
+.q
+.x PID_eff_scan.C++("He3_kin1.dat")
+.q
+.x PID_eff_scan.C++("He3_kin1.dat")
+.q
+.x PID_eff_scan.C++("DM_kin1.dat")
+.x PID_eff_scan.C++("EM_kin1.dat")
+.q
+.x PID_eff_scan.C++("EM_kin1.dat")
+TMultiGraph
+.q
+.q
+.x PID_eff_scan.C++("EM_kin1.dat")
+.q
+.x PID_eff_scan.C++("EM_kin1.dat")
+.q
+.x PID_eff_scan.C++("EM_kin1.dat")
+.q
+.x PID_eff_scan.C++("EM_kin1.dat")
+.q
+.x PID_eff_scan.C++("EM_kin1.dat")
+.q
+.x PID_eff_scan.C++("EM_kin1.dat")
+.q
+.x PID_eff_scan.C++("EM_kin1.dat")
+LoadRun(2320."T")_
+LoadRun(2320,"T")_
+LoadRun(2320,"T")_;
+LoadRun(2320,"T");
+.q
+LoadRun(2320,"T");
+.q
+.L rootalias1.h 
+LoadRun(2263,"T")
+new TBrowser
+T->Draw("L.cer.asum_c")
+.L Pid_eff_1.C 
+Pid_eff_1("L",0,0.55,500,1)
+Pid_eff_1("Left",0,0.55,500,1)
+.q
+LoadRun(2383,"T")
+.q
+.q
+.q
+LoadRun
+.q
+.q
+LoadRun(2283,"T")
+Pid_eff_1("T","Left",
+.@
+Pid_eff_1("T","Left",0,0.55,500,1)
+Pid_eff_1(T,"Left",0,0.55,500,1)
+.q
+LoadRun(2283,"T")
+.q
+LoadRun(2283,"T")
+Pid_eff_1(T,"Left",0,0.55,500,1)
+Pid_eff_macro(T,"Left",0,0.55,500,1)
+.q
+.q
+kin_root("H3_kin9.dat")
+Pid_eff_macro(T,"Left")
+.q
+.q
+kin_root("H3_kin9.dat")
+Pid_eff_macro(T,"Left")
+.q
+kin_root("H3_kin9.dat")
+Pid_eff_macro(T,"Left")
+.L Pid_eff_macro.C 
+.L Pid_eff_macro.C 
+.q
+Pid_eff_macro(T,"Left")
+LoadRun(2283,"T")
+.q
+kin_root("He3_kin3.dat")
+Pid_eff_macro(T,"Left")
+.L Pid_eff_macro.C 
+Pid_eff_macro(T,"Left")
+kin_root("He3_kin3.dat")
+Pid_eff_macro(T,"Left")
+.q
+.x PID_eff_scan.C++("He3_kin1.dat")
+.q
+.x PID_eff_scan.C++("He3_kin1.dat")
+.q
+.x PID_eff_scan.C++("He3_kin1.dat")
+.x PID_eff_scan.C++("He3_kin1.dat")
+.x PID_eff_scan.C++("He3_kin1.dat")
+.q
+.x PID_eff_scan.C++("He3_kin1.dat")
+kin_root("He3_kin3.dat")
+T->Draw("L.cer_asum_C:((L.prl1.e+L.prl2.e)/(L.gold.p*1000.))")
+T->Draw("L.cer.asum_C:((L.prl1.e+L.prl2.e)/(L.gold.p*1000.))")
+T->Draw("L.cer.asum_c:((L.prl1.e+L.prl2.e)/(L.gold.p*1000.))")
+T->Draw("L.cer.asum_c:((L.prl1.e+L.prl2.e)/(L.gold.p*1000.))>>HH(200,0,1.4,15000,0,15000")
+.
+.q
+kin_root("He3_kin3.dat")
+Pid_eff_macro(T, "Left",0,0,0.55)
+Pid_eff_macro(T, "Left",1,0,0.0,1000)
+.x Pid_eff_2.C(T, "Left",1,0,0.0,1000)
+.q
+kin_root("He3_kin3.dat")
+.x Pid_eff_2.C(T, "Left",1,0,0.0,1000)
+.x Pid_eff_2.C(T, "Left",1,0,0.0,1000)
+T->Draw("L.cer.asum_c")
+T->Draw("L.cer.asum_c>>h(10000,0,10000)")
+.q
+kin_root("He3_kin3.dat")
+.x Pid_eff_2.C(T, "Left",1,0,0.55,)
+.x Pid_eff_2.C(T, "Left",1,0,0.55)
+.x Pid_eff_2.C(T, "Left",1,0,0.55)
+.x Pid_eff_2.C(T, "Left",1,0,0.55)
+.x Pid_eff_2.C(T, "Left",1,0,0.55)
+.x Pid_eff_2.C(T, "Left",1,0,0.55)
+.q
+kin_root("He3_kin3.dat")
+.x Pid_eff_2.C(T, "Left",1,0,0.55)
+.q
+kin_root("He3_kin3.dat")
+.x Pid_eff_2.C(T, "Left",1,0,0.55)
+.q
+kin_root("He3_kin3.dat")
+.x Pid_eff_2.C(T, "Left",1,0,0.55)
+.x Pid_eff_2.C(T, "Left",1,0,0.55)
+.x Pid_eff_2.C(T, "Left",1,0,0.55)
+.q
+kin_root("He3_kin3.dat")
+.x Pid_eff_2.C(T, "Left",1,0,0.55)
+.x Pid_eff_2.C(T, "Left",1,0,0.55)
+.x Pid_eff_2.C(T, "Left",0,0,0.0,1000)
+.q
+kin_root("He3_kin3.dat")
+.q
+LoadRun(1284)
+.x Pid_eff_2.C(T, "Left",0,0,0.0,1000)
+.x Pid_eff_2.C(T, "Left",0,0,1000)
+TCanvas *c2 
+TCanvas *c3 = new TCanvas
+T->Draw("L.cer.asum_c")
+T->Draw("L.cer.asum_c>>hhh11(10000,0,15000)")
+.x Pid_eff_2.C(T, "Left",0,0,1000)
+.x Pid_eff_2.C(T, "Left",0,0,1000)
+.q
+LoadRun(1284)
+.x Pid_eff_2.C(T, "Left",0,0,1000)
+.x Pid_eff_2.C(T, "Left",0,0,1000)
+.q
+.x Pid_eff_2.C(T, "Left",0,0,1000)
+LoadRun(1284)
+.x Pid_eff_2.C(T, "Left",0,0,1000)
+.q
+.q
+LoadRun(1284)
+.x Pid_eff_2.C(T, "Left",0,0,1000)
+.q
+LoadRun(1284)
+.x Pid_eff_2.C(T, "Left",0,0,1000)
+.q
+LoadRun(1284)
+.x Pid_eff_2.C(T, "Left",0,0,1000)
+.x Pid_eff_2.C(T, "Left",0,0,1000)
+LoadRun(1284)
+.x Pid_eff_2.C(T, "Left",0,0,1000)
+.x Pid_eff_2.C(T, "Left",0,0,1000)
+.x Pid_eff_2.C(T, "Left",0,0,)
+.x Pid_eff_2.C(T, "Left",0,0,1000)
+.x Pid_eff_2.C(T, "Left",0,0,0.0,1000)
+.q
+kin_root("He3_kin1.dat")
+.x Pid_eff_2.C(T, "Left",0,0,0.0,1000)
+.x Pid_eff_2.C(T, "Left",0,0,0.0,4000)
+.q
+kin_root("He3_kin1.dat")
+.x Pid_eff_2.C(T, "Left",0,0,0.0,6000)
+kin_root("He3_kin1.dat")
+.x Pid_eff_2.C(T, "Left",1,0,0.55,0)
+.x Pid_eff_2.C(T, "Left",1,0,0.55,0)
+.q
+kin_root("He3_kin1.dat")
+.x Pid_eff_2.C(T, "Left",1,0,0.55,0)
+.x Pid_eff_2.C(T, "Left",1,0,0.55,0)
+.q
+.x PID_eff_scan.C 
+.q
+.x PID_eff_scan.C 
+.q
+.x PID_eff_scan.C++("He3_kin1.dat") 
+.q
+.x PID_eff_scan.C++("He3_kin1.dat") 
+.q
+.x PID_eff_scan.C++("He3_kin1.dat") 
+.q
+.x PID_eff_scan.C++("He3_kin1.dat") 
+.q
+.x PID_eff_scan.C++("He3_kin1.dat") 
+.q
+.x PID_eff_scan.C++("He3_kin1.dat") 
+.q
+.x PID_eff_scan.C++("He3_kin1.dat") 
+.x PID_eff_scan.C++("He3_kin1.dat") 
 ,q
 .q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1722.root")
+.x PID_eff_scan.C++("He3_kin1.dat") 
 .q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1554.root")
-.x PID_eff.C("Left",2,0.85,700)
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1613.root")
-.x PID_eff.C("Left",2,0.85,700)
-.q
-.q
-.x corrections.C(1691)
-.q
-.x corrections.C(1691)
-.q
-.x corrections.C(1691)
-.q
-.x corrections.C(1691)
-.q
-.x corrections.C(1691)
-new TBrowser
-T->Draw("EKL.x_bj>>h(1000,0,1)")
-T->Draw("EKL.x_bj>>h(100,0,1)")
-T->Draw("EKLx.x_bj>>h1(100,0,1)","same")
-T->Draw("EKLx.x_bj>>h1(100,0,1)"," ","same")
-T->Draw("EKLx.x_bj>>h1(100,0,1)","","same")
-T->Draw("EKLc.x_bj>>h2(100,0,1)","","same")
-h2->SetLineColor(2)
-h1->SetLineColor(2)
-h1->SetLineColor(6)
-h1->SetLineWidth(2)
-T->Draw("EKLx.x_bj>>hc1(200,0,1)","(DL.evtypebits>>(2&1))*pid_eff*(1/DT_trigger[2])"
-.q
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Bane_dat/tri_cor_1691.root")
-T->Draw("EKLx.x_bj>>hc1(200,0,1)","(DL.evtypebits>>(2&1))*pid_eff*(1/DT_trigger[2])")
-T->Draw("EKLx.x_bj>>hc1(200,0,1)","(DL.evtypebits>>(2&1))*pid_eff*(1/DT_trigger[2])/TotalCharge")
-T->Draw("EKLx.x_bj>>hc1(200,0,1)","(DL.evtypebits>>(2&1)&&(L.prl1.e+L.prl2.e)/(L.gold.p*1000.)>0.55)*pid_eff*(1/DT_trigger[2])/TotalCharge")
-T->Draw("EKLx.x_bj>>hc1(200,0,1)","(DL.evtypebits>>(2&1)&&(L.prl1.e+L.prl2.e)/(L.gold.p*1000.)>0.65)*pid_eff*(1/DT_trigger[2])/TotalCharge")
-T->Draw("EKLx.x_bj>>hc21(200,0,1)","(DL.evtypebits>>(2&1)&&(L.prl1.e+L.prl2.e)/(L.gold.p*1000.)>0.65)/TotalCharge")
-hc21->SetLineColor(2)
-hc1->SetLineWidht(2)
-hc1->SetLineWid(2)
-.q
-.q
-.x Total_Charge_runlist.C
-.q
-.x Total_Charge_runlist.C
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1804.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1804.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1804.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1804.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1804.root")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1804.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1804.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1804.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1804.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1704.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1604.root")
-.x trigger_eff.C("Left")
-.q
-.x corrections.C
-.q
-.x corrections.C
-.a
-.q
-.x corrections.C 1691
-.x corrections.C (1691)
-.q
-.x corrections.C (1691)
-.q
-.x corrections.C (1691)
-pow(2,6)
-.q
-.x corrections.C (1691)
-.q
-.x corrections.C (1691)
-.q
-.x corrections.C (1691)
-.q
-.x corrections.C (1691)
-pow(2,4)
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1811.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1811.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1611.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1611.root")
-.x trigger_eff.C("Left")
-.q
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.x trigger_eff.C("Left")
-tri1->GetMaximum()
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-tri1->GetMaximum()
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90965.root")
-.x trigger_eff.C("Right")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90965.root")
-.x trigger_eff.C("Right")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90965.root")
-.x trigger_eff.C("Right")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90887.root")
-.x trigger_eff.C("Right")
-]
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90887.root")
-.x trigger_eff.C("Right")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90887.root")
-.x trigger_eff.C("Right")
-65+32+16
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90887.root")
-.x trigger_eff.C("Right")
-log(4)/log(2)
-log(40.)/log(2.0)
-log(4.0)/log(2.0)
-.x trigger_eff.C("Right")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.x trigger_eff.C("Right")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.x trigger_eff.C("Left")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90965.root")
-.x trigger_eff.C("Right")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90887.root")
-.x trigger_eff.C("Right")
-.q
-.x corrections.C 
-.q
-.x corrections.C 
-.q
-.x corrections.C 
-.q
-.x corrections.C 
-.q
-.x corrections.C 
-.q
-.x corrections.C 
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90965.root")
-.x PID_eff.C("Right") 
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90965.root")
-.x PID_eff.C("Right") 
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90965.root")
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90965.root")
-.x PID_eff.C("Right") 
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90965.root")
-.x PID_eff.C("Right") 
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90965.root")
-.x PID_eff.C("Right") 
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90887.root")
-.x PID_eff.C("Right") 
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90887.root")
-.x PID_eff.C("Right") 
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_90887.root")
-.x PID_eff.C("Right") 
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_1578.root")
-.x PID_eff.C("Left") 
-.q
-.q
-.x corrections.C 
-.x corrections.C 
-.q
-.x corrections.C(1691)
-.q
-.x corrections.C(90887)
-.q
-.x corrections.C(91060)
-.q
-.x corrections.C(91060)
-new TBri
-new TBrowser
-new TBrowser
-new TBrowser
-.q
-TFile *_file0 = TFile::Open("/chafs1/work1/tritium/Rootfiles/tritium_91136.root")
-new TBrowser
-.q
-.x corrections.C(91136)
-.q
-.x histo_compare.C
-.q
-.x histo_compare.C
-.q
-.x histo_compare.C
-,.q
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.x histo_compare.C("tr.vz",90950,91166)
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.x histo_compare.C("tr.vz",90950,91166)
-.x histo_compare.C("tr.vz",90950,91166)
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-histo1->GetMaximum()
-histo2->GetMaximum()
-0.063086/0.086110
-0.086110/0.063086
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90950,91166)
-.q
-.x histo_compare.C("tr.vz",90951,91167)
-.q
-.x histo_compare.C("tr.vz",90947,91167)
-.q
-.x histo_compare.C("tr.vz",90948,91167)
-.q
-.x histo_compare.C("tr.vz",90948,90949)
-.q
-.x histo_compare.C("tr.vz",90948,91167)
-.q
+.x PID_eff_scan.C++("He3_kin1.dat") 
