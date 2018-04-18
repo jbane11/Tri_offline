@@ -1,4 +1,4 @@
-#include "./inc.h"
+/*#include "./inc.h"
 #include "./TRI_Main.h"
 #include "./TRI_Tools.h"
 
@@ -28,4 +28,4 @@ void kin_root(TString filename=""){
     TChain *T = gGetTree(RunNoChain,"T");
     
     
-}
+}*/

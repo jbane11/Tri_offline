@@ -128,7 +128,7 @@ double Pid_eff_1(TChain *T,TString ARM="L",Int_t cur_sel=0, Double_t calo_e = 0,
 
 	printf(":%10.10f\t\n",PID_eff);
 
-//	delete(c);	
+	delete(c);	
 	return PID_eff;
 }
 	

@@ -33,7 +33,7 @@ void data_type::set_values(double a, int b, std::string str){
 /////////////////////////////////////////////////////////////
 
 
-void kin_cor_txt(TString filename ="", int ow = 0, int debug =0){
+void kin_cor_txt_multi(TString filename ="", int ow = 0, int debug =0){
   //Overwrite section
   int overwrite[20]={ow, //Runnumber -0
 		     0, //Charge -1
@@ -391,7 +391,7 @@ void kin_cor_txt(TString filename ="", int ow = 0, int debug =0){
 	   fprintf(kfile,"%5.3f\t",Charge);
 	   if(arm=="L"){for(int j=1;j<4;j++){fprintf(kfile,"%0.3f\t",DT[j]);}}
 	     else{for(int j=5;j<8;j++){fprintf(kfile,"%0.3f\t",DT[j]);}}
-	   fprintf(kfile,"%10.5f\t",Pid_eff);
+	   fprintf(kfile,"%0.5f\t",Pid_eff);
 	   fprintf(kfile,"\n");
 
 
@@ -404,7 +404,7 @@ void kin_cor_txt(TString filename ="", int ow = 0, int debug =0){
 //End of run
 	fclose(kfile);
 
-
+	exit(1);
 }
 //End of script
 

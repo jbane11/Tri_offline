@@ -121,6 +121,7 @@ TChain* LoadRun(Int_t run, const char* tree = "T")
     return tt;
 }
 
+
 // Return PS of a given run
 TArrayI GetPS(TTree* tt)
 {
@@ -186,4 +187,110 @@ TString GetPath(Int_t run)
 
     return rootpath;
 }
+vector<TString> Tokens1(TString aline,TString aDelim=",")
+{
+	Int_t i;
+	TObjArray* InObjArray;
+	TObjString* os;
+	TString s;
+	vector<TString> OutStringVec;
+	OutStringVec.clear();
+
+	InObjArray=aline.Tokenize(aDelim);
+	for ( i=0; i<InObjArray->GetEntriesFast(); i++ )
+	{
+		os=(TObjString*)InObjArray->At(i);
+		s=os->GetString();
+		OutStringVec.push_back(s);
+	}
+	return OutStringVec;
+}
+
+
+
+vector<Int_t> gGet_RunNoChain1(const TString& aString)
+{
+	vector<Int_t> output;
+	vector<TString> input=Tokens1(aString,",");
+	unsigned int i;
+	for ( i=0; i<input.size(); i++ )
+	{
+		if ( isdigit(*input[i].Data()) || input[i].BeginsWith("-") )
+		{
+			vector<TString> tmp=Tokens1(input[i],'-');
+			if ( tmp.size()<=2 )
+			{
+				// Int_t FirstRunNo;
+				Int_t LastRunNo;
+				Int_t thisrunno;
+				size_t index=input[i].First('-');
+				if ( index<input[i].Length() ){
+					thisrunno=tmp[0].Atoi();
+					LastRunNo=tmp[1].Atoi();
+				}else{
+					thisrunno=tmp[0].Atoi();
+					LastRunNo=thisrunno;
+				}
+				if ( thisrunno>LastRunNo ){
+					thisrunno ^= LastRunNo;
+					LastRunNo ^= thisrunno;
+					thisrunno ^= LastRunNo;
+				}
+				while ( thisrunno<=LastRunNo ){
+                                    output.push_back(thisrunno);
+                                    thisrunno++;
+				}
+			}
+		}
+	}
+	for ( i=0; i<output.size(); i++ )
+	{
+		if ( i==0 && output.size()>1 ){
+			cerr<<"      RunNoChain is "<<output[i];
+		}
+		else if ( i==0 && i==(output.size()-1) ){
+			cerr<<"      RunNoChain is "<<output[i]<<endl;
+		}
+		else if ( i==(output.size()-1) ){
+			cerr<<" "<<output[i]<<endl;
+		}
+		else{
+			cerr<<" "<<output[i];
+		}
+	}
+	return output;
+}
+
+
+// Load TTree trees from all the runs in a kin.dat file
+TChain* LoadKin(TString filename, const char* tree = "T")
+{
+	filename = "./Runlist/" + filename;
+    ifstream file(filename.Data());
+    if(!file.good()){cout << filename.Data() << " does not exist! "<<endl; exit(1);}
+    TString content;
+    TString Target,Kin,Run_String;
+    const char* kin;
+    for (int ii=0; content.ReadLine(file) && ii<3;ii++ ) {  
+    	//cout<<"!!!:  "<<content<<endl;
+        if(ii==0)Target = content;
+        if(ii==1){
+           kin = content.Data();
+           Kin = Form("Kin%s", kin);
+         }
+        if(ii==2)Run_String = content;         
+      }
+      file.close();
+    const vector<Int_t> RunNoChain=gGet_RunNoChain1(Run_String);
+	TChain* tt=new TChain("tt","Main Tree");
+	for ( unsigned int i=0; i<RunNoChain.size(); i++ )
+	{
+			Int_t aRunNo=RunNoChain[i];
+			LoadRun(aRunNo,tree);
+	}
+			
+	return tt;
+}
+
+
 

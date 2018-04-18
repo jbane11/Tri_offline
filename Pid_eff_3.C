@@ -6,7 +6,7 @@ Limitations/ issues
 
 */
 
-vector<Double_t> Pid_eff_2(TChain *T,TString ARM, int flag=0, Int_t cur_sel=0, Double_t calo_e = 0, Double_t cer_min = 0, Double_t beamon_min=1 , int debug=1){
+vector<Double_t> Pid_eff_3(TChain *T,TString ARM, int flag=0, Int_t cur_sel=0, Double_t calo_e = 0, Double_t cer_min = 0, Double_t beamon_min=1 , int debug=1){
 	//TVector Pid_eff_2(TChain *T ,TString ARM,Int_t cur_sel=0, Double_t calo_e = 0, Double_t cer_min = 0, Double_t beamon_min=1 ){
 	
 	Double_t PID_eff	=1; 	//This will be the over all correction value for this run.
@@ -163,9 +163,9 @@ string_e_sample = Form("%4.1f<%s.cer.asum_c&&%s.cer.asum_c<%4.1f",GC_e_sample_mi
 	//		if(Arm =="R"){beam_trip="1";} //Need to replay right arm after bcm class fix
 
 	
-	//TString pid =pid_cal +"&&"+ pid_cer;
-	if(flag==1){pid = pid_cal;}
-	if(flag==0){pid = pid_cer;}
+	TString pid =pid_cal +"&&"+ pid_cer;
+	//if(flag==1){pid = pid_cal;}
+	//if(flag==0){pid = pid_cer;}
 	
 	TString target = target_z+"&&"+target_ph+"&&"+target_th;
 	TString track = one_track+"&&"+track_dp;
