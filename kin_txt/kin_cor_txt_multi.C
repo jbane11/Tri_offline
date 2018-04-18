@@ -1,4 +1,4 @@
-#include "../inc.h"
+#include "../inc1.h"
 #include "../TRI_Main.h"
 #include "../TRI_Tools.h"
 #include "THaRun.h"
@@ -8,7 +8,7 @@
 #include "../rootalias1.h"
 
 
-
+/*
 /////Function to determine if a input is a number!
 bool is_number(const std::string& s)
 {
@@ -31,7 +31,7 @@ void data_type::set_values(double a, int b, std::string str){
 	type =str;
 	}
 /////////////////////////////////////////////////////////////
-
+*/
 
 void kin_cor_txt_multi(TString filename ="", int ow = 0, int debug =0){
   //Overwrite section
@@ -44,10 +44,11 @@ void kin_cor_txt_multi(TString filename ="", int ow = 0, int debug =0){
   };
 
 
-  
+
 /////input the name of the kin file and parse it
   if(filename==""){ cout<<"Input file name:   "; cin>>filename;}
   filename = "../Runlist/" + filename;
+/*
   ifstream file(filename.Data());
  
   if(!file.good()){cout << filename.Data() << " does not exist! "<<endl; exit(1);}
@@ -65,120 +66,43 @@ void kin_cor_txt_multi(TString filename ="", int ow = 0, int debug =0){
     if(ii==2)Run_String = content;         
   }
   file.close();
-////////////////////////////////////////////////////////
-
+////////////////////////////////////////////////////
+*/
+	kin_file KinFile;
+	KinFile.set_file(filename.Data(),1);
+	TString tgt 	= 	TString::Format("%s",KinFile.target.c_str());
+	TString kin 	= 	TString::Format("%s",KinFile.kin_num.c_str());
+	TString Kin 	=	TString::Format("kin%s",kin.Data());
+	TString Run_String =	TString::Format("%s",KinFile.run_string.c_str());
+	if(KinFile.run_file_status==0){cout << "error @ Runlist"<<endl;return;}
 ///Call tri_tools function to get the runs
   const vector<Int_t> RunNoChain=gGet_RunNoChain(Run_String);
-
-  TString rootfilePath="/chafs1/work1/tritium/Rootfiles/";
-  TVector RunList(1); vector<int> Oldrun;
-
-  //Read in the old txt file..................................
-//  vector<double> Charge;
-//  vector<vector<int>> dtime;
-
-  vector<string>  labels;
-  vector<data_type> d_type;
-  d_type.reserve(100);
- 
-  Int_t num_of_runs=0;
-  int first_run = RunNoChain[0];
-  int last_run = RunNoChain[RunNoChain.size()-1];
-  
-
-  std::fstream list;
-  std::string line_file;
-  list.open (Form("./%s/%s_%s.txt",Kin.Data(),Target.Data(),Kin.Data()), std::fstream::in); 
-  std::string stringrun;std::string::size_type sz;
-  int inrun=0;
-  int status=0;
-  int innum=0;
-  int numint=0;
-  int num_of_inputs=0;
-  vector<string> vec;
-  std::vector< std::vector< float > > input_vec;
-  std::vector <float> col;
-  std::string delimiter = "\t";
-  
-
-  while (std::getline(list, line_file)){
-    
-	vec.push_back(line_file);
-    size_t pos = 0;
-    size_t pos1 = 0;
-    int columns=1;
-    std::string token;
-
-    //cout << line_file <<"::"<<endl;
-    while ((pos = vec[numint].find(delimiter)) != std::string::npos) {
-
-      token = vec[numint].substr(0, pos);
-  //    std::cout << token << " "<< columns<<" "<< numint<<std::endl;
-      vec[numint].erase(0, pos + delimiter.length());
-  	  
-
-	  if(numint==1){labels.push_back(token);}
-  	  double in_num;
-  	  
-  	 //cout <<token <<endl;
-  	 
-  	  if(is_number(token)) {
-  	  	 num_of_inputs++;
-  	  	 in_num=stod(token);  		  
-  	     col.push_back (in_num);
-// cout<<"vec "<<columns<<" " << col[columns-1]<<" "<< token<< " "<<endl;
-  	   	 d_type.resize(num_of_inputs);
-
-  	   	 d_type[num_of_inputs-1].set_values(in_num,columns,labels[columns-1]);
-//cout << d_type[num_of_inputs-1].type<< " : "<<endl;
-     	  }
-	
-   	  columns++;
-   	   
-   	   
-   	      
-    }
-     
-
-     input_vec.push_back(col);
-     col.clear();
-     //	cout<< input_vec.size()<< endl;
- 
-    
-    //std::cout << line_file << std::endl;
-    numint++;
-    if(numint==1||numint==2)continue;
-    for(int jj =0; jj<10;jj++){
-      if(line_file[jj]== ' '){break;}
-      stringrun+=line_file[jj];
-    }	
-    inrun=stoi(stringrun,&sz);
-    size_t leng = stringrun.length();
-   
-    Oldrun.push_back(inrun);
-    //cout<< Oldrun[innum] <<endl;
-    innum++;
-// for (auto i : vec) cout << i << '\n';
-     }
   list.close();
   
- // cout << innum<<endl;
   
   
-  //Read in the old txt file..................................
-//  cout << "Number of entries " <<d_type.size()<< " " <<endl;
-//  cout <<d_type.size()<< " "<<d_type[23].column<< " "<<d_type[23].value<< " "<<d_type[23].type<<" "<<endl;
- // cout << input_vec[2][0]<<endl;
   if(labels.size()<1||input_vec.size()<2){overwrite[0]=1;}
- 
+	
+	corrections cor_table;
+	cor_table.Read_Table(tgt.Data(),kin.Data());
+	vector<std::string> labels;
+	labels = cor_table.Labels;
+	vector<vector<double>> input_vec;
+	input_vec = cor_table.CT;
+	vector<int> Oldrun;
+	Oldrun = cor_table.ORs;
+	int C_status = cor_table.CS;
+	
+
+	if(labels.size()<1||input_vec.size()<2){overwrite[0]=1;}
 //  cout << "check " <<endl;
   TString ARM,arm;
   if(RunNoChain[0]<90000){ARM="Left"; arm="L";}
   else{ARM="Right";arm="R";}
 
-  FILE* kfile =fopen(Form("./%s/%s_%s.txt",Kin.Data(),Target.Data(),Kin.Data()),"w");
+  FILE* kfile =fopen(Form("./%s/%s_%s.txt",Kin.Data(),tgt.Data(),Kin.Data()),"w");
   setvbuf ( kfile , NULL , _IOFBF , 1024 );
-  fprintf(kfile,"%s_%s \n",Target.Data(),Kin.Data());
+  fprintf(kfile,"%s_%s \n",tgt.Data(),Kin.Data());
   
   //Use this when all inputs are defined
   //for(int i =0;i<labels.size();i++){fprintf(kfile,"%s\t",labels[i].c_str());}
@@ -243,7 +167,10 @@ void kin_cor_txt_multi(TString filename ="", int ow = 0, int debug =0){
 ////////////////////////////////Charge/////////////////////////////////////
 	   Double_t Charge=0;
 	   bool run_in_file = 0;
-	   if(innum>0){run_in_file = std::binary_search (Oldrun.begin(), Oldrun.end(), run);}
+	   int num_inputs=0;
+	   if(C_status==1){
+		num_inputs  = input_vec.size();
+		run_in_file = std::binary_search (Oldrun.begin(), Oldrun.end(), run);}
 	   
 	   if(run_in_file==0||(overwrite[0]==1||overwrite[1]==1)){
 ////////////////////////////////
