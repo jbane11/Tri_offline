@@ -1,0 +1,16 @@
+
+#/bin/bash
+
+if [ $# -eq 0 ] 
+then
+	
+	git fetch origin master
+	
+	git merge FETCH_HEAD
+	
+
+else 
+	git fetch $1 master
+	
+	git merge FETCH_HEAD
+fi
