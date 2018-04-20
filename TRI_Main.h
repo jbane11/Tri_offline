@@ -68,8 +68,9 @@
 using namespace std;
 
 /*Customization{{{*/
+TString ROOTFILES_DIR = "/v/lustre2/expphy/volatile/halla/triton/Marathon_Rootfiles/pass1";
 //TString ROOTFILES_DIR = "/volatile/halla/triton/Tritium_Rootfiles/";
-TString ROOTFILES_DIR = "/chafs1/work1/tritium/pass1/";
+//TString ROOTFILES_DIR = "/chafs1/work1/tritium/pass1/";
 //TString ROOTFILES_DIR = "./Rootfiles/";
 const TString ROOTFILES_NAME =  "tritium";
 /*}}}*/

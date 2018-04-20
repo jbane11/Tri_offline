@@ -47,9 +47,9 @@
 #include <TLatex.h>
 #include <TLegend.h>
 #include <TRandom3.h>
-
+using namespace std;
 //	string kin_cor_loc = "/adaqfs/home/a-onl/tritium_work/Bane/Tri_offline/kin_txt/";
-	string kin_cor_loc = "/home/jbane/tritium/Tri_offline/kin_txt/";
+	std::string kin_cor_loc = "/home/jbane/tritium/Tri_offline/kin_txt/";
 			///Varibles defined for cuts	
 	double TG_Theta_Max_inc = 0.04;//40mrad
 	double TG_Theta_Min_inc =-0.04;//40mrad
@@ -105,12 +105,12 @@ return( strspn( s.c_str(), "-.0123456789" ) == s.size() );
 //Class to open up a kin file and create strings for the information inside. 
 class kin_file {
 	public:
-		std::string target;vector<int> Oldrun;
+		std::string target;std::vector<int> Oldrun;
 		std::string kin_num;
 		std::string run_string;
 		     int run_file_status=0;
 	void set_file(std::string name, int debug = 0){
-		ifstream file(name);
+		std::ifstream file(name);
   		if(file.fail()){cout << "Run list file does not exist !"<<endl; return;}
 		run_file_status=1;
 		TString content;
@@ -138,7 +138,7 @@ class  corrections{
 	
 //};
 
-void Read_Table(std::string kin_target, std::string kin_num) {
+void Read_Table(std::string kin_target, std::string kin_num, int debug=0) {
 	//vectors to be used
 	vector< vector <string > > table;
 	vector< string > labels ;
@@ -146,7 +146,6 @@ void Read_Table(std::string kin_target, std::string kin_num) {
 	vector<string> vec; vector<int> Oldrun;
   	vector< vector< double > > input_vec;
 	vector <double> col;
-	
 	//input file
 	std::fstream list;
   	std::string line_file;
@@ -166,11 +165,12 @@ void Read_Table(std::string kin_target, std::string kin_num) {
 		size_t pos = 0;	size_t pos1 = 0; 
 		int columns=1;
 		std::string token;
-
+		
+		if(debug==1)cout <<numint<<" :  "<< innum << " "<< line_file <<endl;
     		while ((pos = vec[numint].find(delimiter)) != std::string::npos) {
 			token = vec[numint].substr(0, pos);
 			vec[numint].erase(0, pos + delimiter.length());
-  	  		if(numint==1){labels.push_back(token);}
+  	  		if(numint==1){labels.push_back(token); cout << token <<" :: \t";}
   	  		double in_num;
 			if(is_number(token)) {
   	  			num_of_inputs++;
@@ -178,30 +178,35 @@ void Read_Table(std::string kin_target, std::string kin_num) {
 				col.push_back (in_num);
 				d_type.resize(num_of_inputs);
 				d_type[num_of_inputs-1].set_values(in_num,columns,labels[columns-1]);
+
+				if(debug==1)cout <<" : "<< token << "  : ";
      	  		}
 			columns++;
+			if(debug==1)cout<<endl;
 		}
 		input_vec.push_back(col);
      		col.clear();
     		numint++;
+		stringrun="";
     		if(numint==1||numint==2)continue;
     		for(int jj =0; jj<10;jj++){
-      			if(line_file[jj]== ' '){break;}
+      			if(line_file[jj]== '\t'){break;}
       			stringrun+=line_file[jj];
-    		}	
+    		}
+		
     		inrun=stoi(stringrun,&sz);
     		size_t leng = stringrun.length();
        		Oldrun.push_back(inrun);
+		if(debug==1)cout<< "old run num : " <<inrun <<endl;
     		innum++;
      	}
   	list.close();
-	input_vec.erase(input_vec.begin());
-	input_vec.erase(input_vec.begin());
+	if(input_vec.size()>2)input_vec.erase(input_vec.begin());
+	if(input_vec.size()>1)input_vec.erase(input_vec.begin());
 	
 	ORs=Oldrun;
 	Labels=labels;
 	CT=input_vec;
-
 }
 };	
 /*

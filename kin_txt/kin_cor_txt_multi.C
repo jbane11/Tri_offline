@@ -3,9 +3,17 @@
 #include "../TRI_Tools.h"
 #include "THaRun.h"
 #include "THaRunParameters.h"
-#include "../Pid_eff_1.C"
 #include "../Pid_eff_3.C"
 #include "../rootalias1.h"
+
+
+
+//#include "stacktrace.cxx"
+//#define BACKWARD_HAS_BFD 1
+
+//#include "../backward.hpp"
+
+
 
 
 /*
@@ -33,58 +41,39 @@ void data_type::set_values(double a, int b, std::string str){
 /////////////////////////////////////////////////////////////
 */
 
-void kin_cor_txt_multi(TString filename ="", int ow = 0, int debug =0){
+void kin_cor_txt_multi(TString filename ="", int ow = 1, int debug =0){
   //Overwrite section
   int overwrite[20]={ow, //Runnumber -0
 		     0, //Charge -1
 		     0, //DT -2
 		     0, //Trigger eff -3
-		     1, //PID eff -4
+		     0, //PID eff -4
 		     0, //tracking eff -5
   };
 
 
-
+//string trace=Backtrace();
+if(debug==1){
+cout<<endl<<endl;
+for(int i=0;i<=5;i++){cout<<overwrite[i] <<" :\t";}
+cout<<endl<<endl;
+}
 /////input the name of the kin file and parse it
   if(filename==""){ cout<<"Input file name:   "; cin>>filename;}
   filename = "../Runlist/" + filename;
-/*
-  ifstream file(filename.Data());
- 
-  if(!file.good()){cout << filename.Data() << " does not exist! "<<endl; exit(1);}
-  TString content;
-  TString Target,Kin,Run_String;
-  
-  TString kin;
-  for (int ii=0; content.ReadLine(file) && ii<3;ii++ ) {  
-    cout<<"!!!:  "<<content<<endl;
-    if(ii==0)Target = content;
-       if(ii==1){
-           kin = content.Data();
-           Kin = Form("kin%s", kin.Data());
-         }
-    if(ii==2)Run_String = content;         
-  }
-  file.close();
 ////////////////////////////////////////////////////
-*/
 	kin_file KinFile;
-	KinFile.set_file(filename.Data(),1);
+	KinFile.set_file(filename.Data(),debug);
 	TString tgt 	= 	TString::Format("%s",KinFile.target.c_str());
 	TString kin 	= 	TString::Format("%s",KinFile.kin_num.c_str());
 	TString Kin 	=	TString::Format("kin%s",kin.Data());
 	TString Run_String =	TString::Format("%s",KinFile.run_string.c_str());
-	if(KinFile.run_file_status==0){cout << "error @ Runlist"<<endl;return;}
+	if(KinFile.run_file_status==0){cout << "error @ Runlist"<<endl;return ;}
 ///Call tri_tools function to get the runs
   const vector<Int_t> RunNoChain=gGet_RunNoChain(Run_String);
-  list.close();
   
-  
-  
-  if(labels.size()<1||input_vec.size()<2){overwrite[0]=1;}
-	
 	corrections cor_table;
-	cor_table.Read_Table(tgt.Data(),kin.Data());
+	cor_table.Read_Table(tgt.Data(),kin.Data(),debug);
 	vector<std::string> labels;
 	labels = cor_table.Labels;
 	vector<vector<double>> input_vec;
@@ -92,17 +81,29 @@ void kin_cor_txt_multi(TString filename ="", int ow = 0, int debug =0){
 	vector<int> Oldrun;
 	Oldrun = cor_table.ORs;
 	int C_status = cor_table.CS;
-	
+	if(debug==1){
+		cout <<"how many labels "<<labels.size() <<endl;
+		cout <<"how many runs   "<<input_vec.size() <<endl;	
+	}
 
-	if(labels.size()<1||input_vec.size()<2){overwrite[0]=1;}
-//  cout << "check " <<endl;
-  TString ARM,arm;
-  if(RunNoChain[0]<90000){ARM="Left"; arm="L";}
-  else{ARM="Right";arm="R";}
+	if(C_status==0){overwrite[0]=1;}
+  	TString ARM,arm;
+	if(RunNoChain[0]<90000){ARM="Left"; arm="L";}
+	else{ARM="Right";arm="R";}
 
-  FILE* kfile =fopen(Form("./%s/%s_%s.txt",Kin.Data(),tgt.Data(),Kin.Data()),"w");
-  setvbuf ( kfile , NULL , _IOFBF , 1024 );
-  fprintf(kfile,"%s_%s \n",tgt.Data(),Kin.Data());
+  	FILE* kfile =fopen(Form("./%s/%s_%s.txt",Kin.Data(),tgt.Data(),Kin.Data()),"w");
+	if(kfile== nullptr){cout << " File not open " <<endl;
+		cout << "making dir " <<endl;
+//		TDirectory *dir = new TDirectory("kin2","kin2"); 
+		gSystem->Exec(Form("mkdir %s",Kin.Data()));
+		cout << "debug :dir" <<endl;
+//		dir->mkdir("kin2");
+		cout << "made sub dir : " << Kin <<endl;
+		kfile =fopen(Form("./%s/%s_%s.txt",Kin.Data(),tgt.Data(),Kin.Data()),"w");
+		if(kfile== nullptr){cout << " File not open, 2nd " <<endl; return;}		
+	}
+  	setvbuf ( kfile , NULL , _IOFBF , 1024 );
+  	fprintf(kfile,"%s_%s \n",tgt.Data(),Kin.Data());
   
   //Use this when all inputs are defined
   //for(int i =0;i<labels.size();i++){fprintf(kfile,"%s\t",labels[i].c_str());}
@@ -118,35 +119,11 @@ void kin_cor_txt_multi(TString filename ="", int ow = 0, int debug =0){
 //////////////////////////////////////////////  
 //Start of each run
 	for(int r = 0; r<RunNoChain.size();r++){
-	   int run=RunNoChain[r]; 
+	         int run=RunNoChain[r]; 
 				
-	   cout << "This is the start of run " << run <<endl;
-////////////////////////////////////////////////////////////////////////////////////////
-
-	   TString rootfilePath="./Rootfiles/";
-
-	   TFile *file = new TFile(Form("%stritium_%d.root",rootfilePath.Data(),run),"read");
-	   if(file->IsZombie()){
-	     cout<<" this rootfile doest not exist: "<<endl;
-	     cout<<"In the future, might force replay or retrieval" <<endl;
-	     continue;
-	   }
-/*
-     //==========this to take care the split rootfiles========================
-	   TString file_name = TString::Format("%stritium_%d.root",rootfilePath.Data(),run);
-	   TString basename = TString::Format("%stritium_%d",rootfilePath.Data(),run);
-	   TString rootfile = basename + ".root";
-	   TChain* T = new TChain("T");
-	   Long_t jk=0;
-	   while ( !gSystem->AccessPathName(rootfile.Data()) ) {
-	     T->Add(rootfile.Data());
-	     cout << "ROOT file " << run<< "_"<< jk << " added to TChain." << endl; jk++;
-	     rootfile = basename + "_" + jk + ".root"; 
-	     // if(i>10){break;}
-	   }
-*/
-		 TChain* T = LoadRun(run,"T");
-		
+	   	cout << "This is the start of run " << run <<endl;
+		TChain* T = LoadRun(run,"T");
+		if(T==nullptr){cout << "skipping run " <<run <<endl; continue;}		
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
@@ -160,8 +137,8 @@ void kin_cor_txt_multi(TString filename ="", int ow = 0, int debug =0){
 		else if(avg_cur>=10.0){cur_sel=2;}
 		else if(avg_cur>=5.0){cur_sel=1;}
 		else{cur_sel=0;}
-
-//		cout << avg_cur << " "<< cur_sel <<endl;	
+		delete cur;
+		if(debug==1)cout << avg_cur << " "<< cur_sel <<endl;	
 
 	////////////////////////////////
 ////////////////////////////////Charge/////////////////////////////////////
@@ -169,13 +146,16 @@ void kin_cor_txt_multi(TString filename ="", int ow = 0, int debug =0){
 	   bool run_in_file = 0;
 	   int num_inputs=0;
 	   if(C_status==1){
+		cout << "check : search for run1" <<endl;
 		num_inputs  = input_vec.size();
-		run_in_file = std::binary_search (Oldrun.begin(), Oldrun.end(), run);}
-	   
+		run_in_file = std::binary_search (Oldrun.begin(), Oldrun.end(), run);
+		cout << run << " "<< run_in_file <<endl;	
+		cout << "check : search for run2 " <<endl;
+		}
+cout << "debug : check charge ow "<<  (run_in_file==0) <<" "<< (overwrite[0]==1) <<" "<< (overwrite[1]==1) <<endl;	   
 	   if(run_in_file==0||(overwrite[0]==1||overwrite[1]==1)){
 ////////////////////////////////
 	   	if(debug==1){cout << "OW Charge" <<endl;}
-
 	   	//Total number of events to loop through.	
 		Int_t Total_entries = T->GetEntries();
 //Values used in charge calculations
@@ -209,22 +189,19 @@ void kin_cor_txt_multi(TString filename ="", int ow = 0, int debug =0){
 			if(isrenewed==1 && BeamUp[cur_sel] >= 5.0 ){ 	
 				dnew_ch_total+=dnew_ch_ev;
 				unew_ch_total+=unew_ch_ev;
-				}//End of renewed if
-
-
-		//	if(isrenewed)cout<<i<<" " << dnew_ch_total<<"\t"<< dnew_u_ch_total*gain<<endl;
-
-				dnew_u_ch_ev_old=dnew_u_ch_ev;
-				dnew_ch_ev=0, unew_ch_ev=0; dnew_u_ch_ev=0;//reset;
+			}//End of renewed if
+			dnew_u_ch_ev_old=dnew_u_ch_ev;
+			dnew_ch_ev=0, unew_ch_ev=0; dnew_u_ch_ev=0;//reset;
 			}// End of for loop of events in the tchain.   
 	   	   	
 	   	Charge=dnew_ch_total;
 	   	}//end of charge overwrite
 		else{
-		Charge=input_vec[r+2][1];
+	   	if(debug==1){cout << "No OW Charge : " << input_vec[r][1]<<endl;}
+		Charge=input_vec[r][1];
 		}
 
-  cout << "check " <<endl;
+  		cout << "End of Charge " <<endl;
 ////////////////////////////End of Charge//////////////////////////////////
 
 ///////////////////////////Calculate deadtime;
@@ -239,10 +216,10 @@ void kin_cor_txt_multi(TString filename ="", int ow = 0, int debug =0){
 	   if(run_in_file==0||(overwrite[0]==1||overwrite[2]==1)){
 	   	if(debug==1){cout << "OW DT" <<endl;}
 
-	   THaRun *aRun = (THaRun*)file->Get("Run_Data");
+	  // THaRun *aRun = (THaRun*)file->Get("Run_Data");
 	   //THaRunParameters *para=aRun->GetParameters();
-	   TArrayI ps = aRun->GetParameters()->GetPrescales();	
-	
+	   TArrayI ps = GetPS(T);//aRun->GetParameters()->GetPrescales();	
+	   	
 	   char *rate = new char[500];
 	   char *clkrate = new char[50];
 	   char hname[10][50];
@@ -267,6 +244,7 @@ void kin_cor_txt_multi(TString filename ="", int ow = 0, int debug =0){
 		DT[i] = 100. - LT[i];
 		//cout << DT[i]<< " " << daqcount[i] <<" "<< icount[i] <<endl;
 	     }
+	     delete his[i];
 	   }
 	
 	   }//overwrite
@@ -276,15 +254,14 @@ void kin_cor_txt_multi(TString filename ="", int ow = 0, int debug =0){
 	   		//cout << "check "<< r <<" "<< i <<endl;
 	   		if(arm=="L"){i_col=i;}
 	   			else{i_col=i+3;}
-	   		DT[i_col]= input_vec[r+2][i+1];
+	   		DT[i_col]= input_vec[r][i+1];
 			}
 	   		
 	   }
 ///////////////////////////////////////////////////Calculate deadtime;   
 
 //////////////////////PID eff...///////////////////////////////////////////
-		Double_t Pid_eff=0.0001000000;
-		printf(":%5.5f\t\n",Pid_eff);
+		Double_t Pid_eff=0.000000000;
 		if(run_in_file==0||(overwrite[0]==1||overwrite[4]==1)){
 			   	if(debug==1){cout << "OW PID" <<endl;}
 		
@@ -295,16 +272,18 @@ void kin_cor_txt_multi(TString filename ="", int ow = 0, int debug =0){
 		//Pid_eff = Pid_eff_1(T,ARM,cur_sel,calo_thres,cer_thres,1.0);
 		
 		vector<Double_t> in_put =Pid_eff_3(T,ARM,1,cur_sel,calo_thres,cer_thres,1.0,1);
-		vector<Double_t> in_put1=Pid_eff_3(T,ARM.Data(),0,cur_sel,calo_thres,cer_thres,1.0,1);
+		if(debug==1)cout<<"PID 1/2 done" <<endl;
+		vector<Double_t> in_put1=Pid_eff_3(T,ARM,0,cur_sel,calo_thres,cer_thres,1.0,1);
 		
+		if(debug==1)cout<<"PID 2/2 done" <<endl;
 		Pid_eff = in_put[2]/in_put[0] * in_put1[2]/in_put1[0] ;
 		
 		
-		printf(":%5.5f\t\n",Pid_eff);
+		if(debug==1)printf("PID : %5.5f\t\n",Pid_eff);
 		//return;
 		}
 		else{
-		Pid_eff = input_vec[r+2][5];
+		Pid_eff = input_vec[r][5];
 		}
 ///////////////////////////////////////////////////////////////////////////	
 
@@ -332,6 +311,7 @@ void kin_cor_txt_multi(TString filename ="", int ow = 0, int debug =0){
 	fclose(kfile);
 
 	exit(1);
+	return ;
 }
 //End of script
 

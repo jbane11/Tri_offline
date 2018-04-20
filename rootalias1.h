@@ -10,12 +10,13 @@ struct target
 
 
 const char* PATHS[] = {
+	
+      	"/volatile/halla/triton/Marathon_Rootfiles/pass1/",
 	"/chafs1/work1/tritium/pass1/",
-	"/volatile/halla/triton/shujie/replay/Rootfiles/",
-    "/chafs1/work1/tritium/Rootfiles/",
+	"/chafs1/work1/tritium/Rootfiles/",
    	"/chafs1/work1/tritium/Tritium_Rootfiles/",
   	"/volatile/halla/triton/Tritium_Rootfiles/",
-  //     "/volatile/halla/triton/Marathon_Rootfiles/pass1/",
+  //    "/volatile/halla/triton/Marathon_Rootfiles/pass1/",
   "./",
   0
 };
