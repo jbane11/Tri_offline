@@ -41,7 +41,7 @@ void data_type::set_values(double a, int b, std::string str){
 /////////////////////////////////////////////////////////////
 */
 
-void kin_cor_txt_multi(TString filename ="", int ow = 1, int debug =0){
+void Corrections_table(TString filename ="", int ow = 1, int debug =0){
   //Overwrite section
   int overwrite[20]={ow, //Runnumber -0
 		     0, //Charge -1
