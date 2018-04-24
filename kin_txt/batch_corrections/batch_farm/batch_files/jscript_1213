@@ -1,0 +1,8 @@
+PROJECT     triton
+COMMAND     /work/halla/triton/tjhague/replay_tritium/batch_farm/batch_files/batch_1213
+JOBNAME     H3.1kinreplay1213
+TRACK       analysis
+TIME        180
+MEMORY      3000 MB
+OS          centos7
+SINGLE_JOB:    true

@@ -1,0 +1,17 @@
+#!/bin/sh
+source /apps/root/6.10.02/setroot_CUE.bash
+export ANALYZER=/work/halla/triton/MARATHON_Replay/analyzer1.6
+export DB_DIR=/work/halla/triton/tjhague/replay_tritium/replay/DB
+export LD_LIBRARY_PATH=${ANALYZER}::$ROOTSYS/lib:${LD_LIBRARY_PATH}
+export PATH=${ROOTSYS}/bin:${ANALYZER}:${PATH}
+export CALIBRATION_RUN=yes
+export OUT_DIR=pass1_calib
+cd /work/halla/triton/tjhague/replay_tritium/replay
+rm -f /volatile/halla/triton/Marathon_Rootfiles/pass1/triton_1225*.root
+ 
+./fullReplay 1225
+cd /volatile/halla/triton/Marathon_Rootfiles/pass1_calib/
+for f in tritium_1225*.root; do
+  swif outfile /volatile/halla/triton/Marathon_Rootfiles/pass1/$f mss:/mss/halla/triton/prod/pass1_calibration/kin1/$f
+  echo "Found "$f
+done

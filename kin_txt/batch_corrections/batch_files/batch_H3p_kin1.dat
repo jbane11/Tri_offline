@@ -1,0 +1,6 @@
+#!/bin/sh
+export ANALYZER=/work/halla/triton/MARATHON_Replay/analyzer1.6
+export PATH=${ROOTSYS}/bin:${ANALYZER}:${PATH}
+cd /work/halla/triton/Bane/Tri_offline/kin_txt/
+ 
+analyzer -l -b .x 'Corrections_table.C++("H3p_kin1.dat",1,0)'>err_H3p_kin1.dat.txt

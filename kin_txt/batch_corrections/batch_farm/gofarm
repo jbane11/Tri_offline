@@ -1,0 +1,126 @@
+#!/bin/sh
+
+# Usage: farm_list
+#
+# This script creates batch_krun and jscript_krun in batch_files directory
+# and submits the job to the farms
+#
+# Feb. 22, 2011 Zhihong Ye
+# Feb. 20, 2018 updated for Triton
+#
+RAWDIR=/mss/halla/triton/raw/
+CACHEDIR=/cache/mss/halla/triton/raw/
+home=/work/halla/triton/MARATHON_Replay
+#home=$(PWD)                    # The directory where replay_script is
+
+# Event you want to start with,gtotal=-1 means to replay all
+gstart=1
+#gtotal=100000
+gtotal=-1
+
+
+username=${USER}@jlab.org    # email which will be notify when the job is done
+
+#
+# Function to check if input is an integer
+#
+is_integer() {
+	case $1 in
+		*[!0-9]*) return 1;;
+		*) return 0;;
+	esac
+}
+
+#
+# Verify if batch_files and .tmp.REPLAY exist
+#
+if ! [ -d batch_files ]
+then 
+	echo "----------------------------------------------------------------"
+	echo "I need batch_files directory. I am going to create it"
+	echo  
+	mkdir batch_files
+fi
+#
+# Ask for file name
+#
+echo "----------------------------------------------------------------"
+echo "Input the file name. It needs a list of run numbers(ex, runlist.dat)"
+echo 
+echo -n "File name: "
+read fname
+echo
+
+mv -f auto_run.log auto_run.log.old
+mv -f runlist_waiting.txt runlist_waiting.txt.old
+
+echo
+
+## Default are the runs from HRS-L
+#krun=1205
+#kend=2500
+#ARM=$1
+#if [ "$ARM"=="R" ]; then
+#    krun=90838
+#    kend=92000
+#fi
+
+#while [ $krun -lt $kend ]; do
+while read krun; do
+
+	echo "Working on run "${krun}
+	echo "---------------------"
+
+	#The run is already in /mss/...?
+	COUNT=0
+	if [ -e $RAWDIR"/triton_"$krun".dat."$COUNT ]; then
+		if [ -e $home"/replay/Rootfiles/tritium_"$krun".root" ];then
+			echo "Rootfile exists, skip ..."
+		else 
+			echo "No Rootfile found, start a new replay!" >> auto_run.log
+
+			#In /cache/mss/...?
+			if [ -e $CACHEDIR"/triton_"$krun".dat."$COUNT ]; then
+				echo "OK. The raw file is in the Cache, start to submit a job to do its full replay"
+				echo "OK. The raw file is in the Cache, start to submit a job to do its full replay">> auto_run.log
+				#Submit Jobs to batch farm
+				./genjob $krun
+
+				#Not yet in /cache/mss, need to submit a job to cache it
+			else
+				echo "Woops! We need to cache the raw file ..."
+				echo "Woops! We need to cache the raw file ...">> auto_run.log
+				#Splitted raw data files should not be larger than 10,normally.
+				while [ $COUNT -lt 10 ]; do
+					if [ -e $RAWDIR"/triton_"$krun".dat."$COUNT ]; then		
+						jcache get $RAWDIR"/triton_"$krun".dat."$COUNT
+						CACHE=-1
+						echo "         ===== cache the raw file triton_"$krun".dat."$COUNT
+						echo "         ===== cache the raw file triton_"$krun".dat."$COUNT >> auto_run.log
+						let COUNT=COUNT+1
+					else
+						COUNT=10
+					fi
+				done
+				echo "Done! Let's wait for 10mins till the raw file in the cache"
+				echo "Done! Let's wait for 10mins till the raw file in the cache">> auto_run.log
+				echo $krun >> runlist_waiting.txt
+			fi
+		fi
+
+		#No in MSS? Could be a bad run
+	else
+		echo "===================================>" >> auto_run.log
+		echo `date` ":   We have BAD run! "$krun >> atuo_run.log
+		echo "===================================>"
+		echo `date` ":   We have BAD run! "$krun 
+	fi
+	#sleep 2
+    
+    #let krun=krun+1
+#done
+done < $fname
+
+echo
+echo "***** Good Bye and thank you for using the script *****"
+echo

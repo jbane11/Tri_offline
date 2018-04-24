@@ -1,0 +1,10 @@
+TRITIUM BATCH REPLAY JOB GENERATION
+-----------------------------------
+Code authors:
+Zhihong Ye
+Evan McClellan
+Tyler Hague
+
+genjob - This file generates replay jobs based on an input file of run numbers. By default, it will output a 'skinny' replay into replay/t2root/pass1_skinny/. If the 'calibration' argument is given, it will output a full calibration replay into replay/t2root/pass1_calib/.
+  The program will automatically add the jobs to a workflow titled h3_{runlist_file}replay. You must manually start the workflow with: `swif run -workflow {workflow_name}`
+  usage: genjob runlist_file [calibration]

@@ -1,0 +1,88 @@
+#!/bin/sh
+
+### This script is used to waite for new data transfered from adaq local disk to silo,
+### and run the full replay immediately.
+
+### Zhihong Ye 04. 22, 2011
+
+RAWDIR=/w/mss/halla/triton/raw
+CACHEDIR=/w/cache/mss/halla/triton/raw
+
+start_never=0
+stop_never=10000
+#Range of Run number you want to check
+kstart=1205
+kend=2500
+
+ARM=$1
+if [ "$ARM" == "R" ]; then
+    krun=90838
+    kend=92000
+fi
+
+krun=$kstart
+WAIT=0
+CACHE=0
+
+while [ $start_never -lt $stop_never ]; do
+#while [ $krun -lt $kend ]; do
+    
+    COUNT=0
+    #The run is already in /mss/...?
+    if [ -e $RAWDIR"/triton_"$krun".dat."$COUNT ]; then
+	if [ $CACHE -eq 0 ]; then
+	    echo "===================================>" >> auto_run.log
+	    echo `date` ":   We have new data in! "$krun >> auto_run.log
+	    echo `date` ":   We have new data in! "$krun
+	fi
+
+	#In /cache/mss/...?
+	if [ -e $CACHEDIR"/triton_"$krun".dat."$COUNT ]; then
+	    echo "OK. The raw file is in the Cache, start to submit a job to do its full replay"
+	    echo "OK. The raw file is in the Cache, start to submit a job to do its full replay">> auto_run.log
+	    #Submit Jobs to batch farm
+	    ./genjob $krun
+	    let krun=krun+1
+	    CACHE=0
+	    WAIT=0
+	#Not yet in /cache/mss, need to submit a job to cache it
+	else
+   #If the cache job has been submited, don't need to submit again
+	    if [ $CACHE -eq 0 ]; then
+		echo "Woops! We need to cache the raw file ..."
+		echo "Woops! We need to cache the raw file ...">> auto_run.log
+                #Splitted raw data files should not be larger than 10,normally.
+		while [ $COUNT -lt 10 ]; do
+		    if [ -e $RAWDIR"/triton_"$krun".dat."$COUNT ]; then		
+			jcache get $RAWDIR"/triton_"$krun".dat."$COUNT
+			CACHE=-1
+			echo "         ===== cache the raw file triton_"$krun".dat."$COUNT
+			echo "         ===== cache the raw file triton_"$krun".dat."$COUNT >> auto_run.log
+			let COUNT=COUNT+1
+		    else
+			COUNT=10
+		    fi
+		done
+		echo "Done! Let's wait for 10mins till the raw file in the cache"
+		echo "Done! Let's wait for 10mins till the raw file in the cache">> auto_run.log
+		sleep 600
+            else
+		echo `date` " Still waiting for the cache job finished ..."
+		sleep 300
+	    fi
+	fi
+    fi
+    echo `date` ": Still Waiting ..."
+    sleep 120
+    
+#If one run number is missing due to a CODA crash, wait for 5 hours and go to next
+    let WAIT=WAIT+120
+    if [ $WAIT -gt 18000 ];then
+	WAIT=0
+	echo "I have been waiting "$krun" for 5 hours, so I am going to check next one ..."
+	echo `date` " =========>>>> I have been waiting "$krun" for 5 hours, so I am going to check next one ...">> auto_run.log
+	echo `date` " Can not replay this run: "$krun >> bad_run.dat
+	let krun=krun+1
+    fi
+    
+done

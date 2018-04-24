@@ -1,0 +1,55 @@
+#!/bin/sh
+
+### This script is used to submit jasmine request to jcache rawdata from silo to cache
+### Zhihong Ye Sep. 20 2009
+### -- Updated on Feb. 20 2018 for Tritium
+
+RAWDIR=/mss/halla/triton/raw
+RCACHE=/cache/mss/halla/triton/raw
+#
+# Ask for file name
+#
+echo "Input the file name. It gives the list of Run# that needed to be cached!"
+echo
+echo -n "File name: "
+read fname
+
+## For HRS-L runs
+#krun=1205 # just a guess
+#kend=2500 # just a guess
+
+## For HRS-R runs
+#if [ "$ARM"=="R" ]; then
+    #krun=90000 # just a guess
+    #kend=95000 # just a guess
+#fi
+
+while read krun
+#while [ $krun -lt $kend ]; do
+  do
+   #The run is already in /mss/...?
+  COUNT=0
+  if [ -e $RCACHE"/triton_"$krun".dat."$COUNT ]; then
+	echo "Run#"$krun" RAW Data exists, skip ..."
+  else
+      COUNT=0
+      while [ $COUNT -lt 10 ]; do
+	  if [ -e $RAWDIR"/triton_"$krun".dat."$COUNT ]; then
+	      jcache get $RAWDIR"/triton_"$krun".dat."$COUNT
+	      echo "         ===== cache the raw file triton_"$krun".dat."$COUNT
+              let COUNT=COUNT+1
+	  else
+	      COUNT=10
+	  fi
+      done
+      
+      echo "Finish request job "$krun
+      sleep 2
+  fi      
+
+  let krun=krun+1
+
+#done
+done < $fname
+
+echo "All Requests have been submited!"

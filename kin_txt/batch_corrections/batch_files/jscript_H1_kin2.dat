@@ -1,0 +1,9 @@
+PROJECT     triton
+COMMAND     /work/halla/triton/Bane/Tri_offline/kin_txt/batch_corrections/batch_files/batch_H1_kin2.dat
+JOBNAME     H3_corrections_H1_kin2.dat
+TRACK       analysis
+TIME        60
+MEMORY      3000 MB
+OS          centos7
+SINGLE_JOB: true
+MAIL:       jbane@jlab.org

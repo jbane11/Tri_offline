@@ -1,0 +1,31 @@
+#!/bin/sh
+
+### This script is used to submit jasmine request to jcache rawdata from silo to cache
+### Zhihong Ye Sep. 20 2009
+### -- updated on Feb. 21 2018 for Tritium
+
+RAWDIR=/mss/halla/triton/raw
+#
+# Ask for file name
+#
+krun=1205
+kend=2500
+
+ARM=$1
+if [ "$1" == "R" ]; then
+    krun=90838
+    kend=92000
+fi
+cp -pf "tritium_"$ARM".dat" "tritium_"$ARM".dat.old"
+rm -f "tritium_"$ARM".dat"
+touch "tritium_"$ARM".dat"
+
+while [ $krun -lt $kend ]; do
+    if [ -e $RAWDIR"/triton_"$krun".dat.0" ]; then
+        echo " Found Run#"$krun". Next ..."
+        echo $krun >> "tritium_"$ARM".dat"
+    fi
+    let krun=krun+1
+done
+
+echo "The Raw data files have been scaned !"
