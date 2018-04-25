@@ -6,9 +6,11 @@ pwd=$PWD
 cd /work/halla/triton/Runlist/ 
 array=($(ls *kin$1.dat)) 
 cd $pwd
-
+j=0
 for i in "${array[@]}"
 do
-	echo "./genjob ${i} $1"
+	runfile=${array[$j]:0:-4}	
+	./genjob ${runfile} $1
+	j=$j+1	
 done
 

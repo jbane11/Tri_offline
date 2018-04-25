@@ -17,6 +17,11 @@ kin_file=$1
 kin=$2
 echo $runfile
 
+if ! [ -e ${list_dir}/${kin_file}.dat ]
+then
+		echo "${kin_file} does not exist "
+	
+else
 #
     if ! [ -d batch_files ]
 	then 
@@ -34,7 +39,7 @@ echo $runfile
 	echo "export PATH=\${ROOTSYS}/bin:\${ANALYZER}:\${PATH}" >>batch_files/batch_${kin_file}
    	echo "cd ${out_dir}" >>batch_files/batch_${kin_file}
     	echo " ">>batch_files/batch_${kin_file}
-    	echo "analyzer -l -b .x 'Corrections_table.C++(\"${kin_file}\",1,0)'>err_${kin_file}.txt" >>batch_files/batch_${kin_file}
+    	echo "analyzer -b .x 'Corrections_table.C(\"${kin_file}.dat\",1,1)'>./batch_corrections/batch_outfiles/${kin_file}.err" >>batch_files/batch_${kin_file}
 	echo "swif outfile ${out_file}\$f " >>batch_files/batch_${krun}
   
     	chmod +x batch_files/batch_${kin_file}
@@ -55,7 +60,6 @@ echo $runfile
     echo "MEMORY      3000 MB" >>batch_files/jscript_${kin_file}
     echo "OS          centos7" >>batch_files/jscript_${kin_file}
     echo "SINGLE_JOB: true" >>batch_files/jscript_${kin_file}
-    echo "MAIL:       jbane@jlab.org" >>batch_files/jscript_${kin_file}
 	   
     echo "batch_files/jscript_"${kin_file}" has been created."
     echo " " 
@@ -64,7 +68,7 @@ echo $runfile
 ################################
 #    Submit job to the farm    #  
 ################################
-    swif add-jsub -workflow h3_corrections_${kin} -create -script ./batch_files/jscript_${kin_file}
+   swif add-jsub -workflow h3_corrections_${kin} -create -script ./batch_files/jscript_${kin_file}
 ################################
 ################################
 
@@ -73,7 +77,7 @@ echo $runfile
     echo
 #
     
-
+fi
 
 echo
 echo "***** Good Bye and thank you for using the script *****"

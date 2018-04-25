@@ -106,8 +106,8 @@ void Corrections_table(TString filename ="", int ow = 1, int debug =0){
 
   fprintf(kfile,"Run#\t");
   fprintf(kfile,"Charge_dnew\t");
-  if(arm=="L"){for(int j=1;j<4;j++){ fprintf(kfile,"DT_%d\t",j+1);} }
-  else{for(int j=5;j<8;j++){ fprintf(kfile,"DT_%d\t",j+1);} }
+  if(arm=="L"){for(int j=1;j<4;j++){ fprintf(kfile,"DT_%d\t",j);} }
+  else{for(int j=4;j<7;j++){ fprintf(kfile,"DT_%d\t",j);} }
 	fprintf(kfile,"PID_eff\t");
   fprintf(kfile,"\n");
   
@@ -283,7 +283,7 @@ if(debug==1)cout << "debug : check charge ow "<<  (run_in_file==0) <<" "<< (over
 	   fprintf(kfile,"%d\t",run);
 	   fprintf(kfile,"%5.3f\t",Charge);
 	   if(arm=="L"){for(int j=1;j<4;j++){fprintf(kfile,"%0.3f\t",DT[j]);}}
-	     else{for(int j=5;j<8;j++){fprintf(kfile,"%0.3f\t",DT[j]);}}
+	     else{for(int j=4;j<7;j++){fprintf(kfile,"%0.3f\t",DT[j]);}}
 	   fprintf(kfile,"%0.5f\t",Pid_eff);
 	   fprintf(kfile,"\n");
 

@@ -34,6 +34,8 @@ vector<Double_t> Pid_eff_3(TChain *T,TString ARM, int flag=0, Int_t cur_sel=0, D
 	else{
 		T->SetBranchStatus("R.ps.e"		,1);
 		T->SetBranchStatus("R.sh.e" 		,1);
+		T->SetBranchStatus("R.sh.asum_c" 	,1);
+		T->SetBranchStatus("R.ps.asum_c"	,1);
 	}
 	
 	
