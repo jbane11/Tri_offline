@@ -2,3 +2,5 @@
 **/*.so
 **/*.d
 **/*.pcm
+./kin_txt/batch_corrections/batch_files/*
+./kin_txt/batch_corrections/batch_output/*
