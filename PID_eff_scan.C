@@ -1,12 +1,10 @@
 
-#include "./inc.h"
-//#include "./rootalias1.h"
-
-#include "./TRI_Main.h"
-#include "./TRI_Tools.h"
-#include "./Pid_eff_2.C"
+#include "/home/jbane/HEADERS/inc1.h"
+#include "/home/jbane/HEADERS/TRI_Main.h"
+#include "/home/jbane/HEADERS/TRI_Tools.h"
+#include "/home/jbane/HEADERS/rootalias1.h"
 #include "./Pid_eff_3.C"
-
+#include "./efficencies/Pid_eff_seperate_macro.C"
 /*This script will calculate the the efficency of a PID cut scan;
 	Need to supply the kin runlist to use;
 
@@ -25,10 +23,10 @@ void PID_eff_scan(TString filename=""){
 	filename = "./Runlist/" + filename;
     ifstream file(filename.Data());
     if(!file.good()){cout << filename.Data() << " does not exist! "<<endl; exit(1);}
-    time_t start_time; time(&start_time):
+    time_t start_time; time(&start_time);
     TString content;
     TString Target,Kin,Run_String;
-    const char* kin;
+    const char* kin="";
     for (int ii=0; content.ReadLine(file) && ii<3;ii++ ) {  
     	cout<<"!!!:  "<<content<<endl;
         if(ii==0)Target = content;
@@ -92,10 +90,10 @@ void PID_eff_scan(TString filename=""){
 	
 	for(int i =0; i<num_calo; i++){
 		Double_t calo_thres = i*calo_step+min_calo;
-		vector<Double_t> in_put=Pid_eff_2(T,ARM.Data(),1,0,calo_thres,0.0,1.0,0);
+		vector<Double_t> in_put=Pid_eff_seperate(T,ARM.Data(),1,0,calo_thres);
 		
-		calo_e.ResizeTo(i+1);			calo_e[i]=calo_thres;
-		x1_error.ResizeTo(i+1);			x1_error[i]=0.0;
+		calo_e.ResizeTo(i+1);		calo_e[i]=calo_thres;
+		x1_error.ResizeTo(i+1);		x1_error[i]=0.0;
 		PID_e_eff_calo.ResizeTo(i+1);	PID_p_eff_calo.ResizeTo(i+1);
 		PID_e_er_calo.ResizeTo(i+1);	PID_p_er_calo.ResizeTo(i+1);
 		PID_e_er_calo[i]=in_put[1] ;	PID_p_er_calo[i]=in_put[3];
@@ -107,7 +105,7 @@ void PID_eff_scan(TString filename=""){
 	//for(int i =0; i<num_cer; i++){
 		
 		Double_t cer_thres = i*cer_step+min_cer; 
-		vector<Double_t> in_put1=Pid_eff_2(T,ARM.Data(),0,0,0.0,cer_thres,1.0,0);
+		vector<Double_t> in_put1=Pid_eff_seperate(T,ARM.Data(),0,cer_thres,0.0,1);
 		
 		cer_min.ResizeTo(i+1);		cer_min[i]=cer_thres;
 		x2_error.ResizeTo(i+1);		x2_error[i]=0.0;
@@ -117,7 +115,7 @@ void PID_eff_scan(TString filename=""){
 		PID_e_eff_cer[i]=in_put1[0]; PID_p_eff_cer[i]=in_put1[2];
 	
 	
-		vector<Double_t> in_cor =Pid_eff_3(T,ARM,0,cur_sel,calo_thres,cer_thres,1.0,1);
+		vector<Double_t> in_cor =Pid_eff_3(T,ARM,0,0,calo_thres,cer_thres,1.0,1);
 			
 		PID_e_eff_cor.ResizeTo(i+1);	PID_p_eff_cor.ResizeTo(i+1);
 		PID_e_er_cor.ResizeTo(i+1);		PID_p_er_cor.ResizeTo(i+1);		
@@ -126,7 +124,7 @@ void PID_eff_scan(TString filename=""){
 		
 		
 		
-		time_t current_time; time(&current_time):
+		time_t current_time; time(&current_time);
 		double time_seconds = difftime(current_time,start_time);
 		cout << i << " " << calo_thres <<" " << cer_thres<< "  "<< time_seconds/60.0 <<endl;
 		}		
@@ -178,7 +176,7 @@ void PID_eff_scan(TString filename=""){
 		C->Print(Form("/chafs1/work1/tritium/Bane_dat/images/PID_eff_%s_kin%s.png", Target.Data(),kin));
 		C->Print("temp.png");
 		C->Print("temp.gif");
-		time_t end_time; time(&end_time):
+		time_t end_time; time(&end_time);
 		double time_min = difftime(end_time,start_time)/60.0;
 		cout << "This took " << time_min <<" minutes to run!" <<endl;
 		
