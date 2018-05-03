@@ -1,0 +1,6 @@
+This is a dir to contain macros:
+
+These should be used within an interactive root session or througha another code. 
+These will mainly be self reliate execpt for the arguments needed. Usally first will be the Root Tree.
+
+

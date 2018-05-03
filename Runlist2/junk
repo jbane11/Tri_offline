@@ -1,0 +1,9 @@
+#!/bin/bash
+if [ $1 -lt 50000 ]
+then
+printf $1 >> /adaqfs/home/a-onl/tritium_work/Runlist/junk_runsL.dat
+echo 'Run-Number '$1' has been added to the junk-list on HRS-L!'
+else
+printf $1 >> /adaqfs/home/a-onl/tritium_work/Runlist/junk_runsR.dat
+echo 'Run-Number '$1' has been added to the junk-list on HRS-R!'
+fi

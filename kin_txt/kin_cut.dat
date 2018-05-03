@@ -37,4 +37,41 @@
 	double beamon_min_inc=21;
 ----
 
+---- He3_kin15
+                        ///Varibles defined for cuts
+        double TG_Theta_Max_inc =0.04;//40mrad
+        double TG_Theta_Min_inc =-0.04;//40mrad
+        double TG_Phi_Max_inc =0.030;//25mrad
+        double TG_Phi_Min_inc =-0.030;//25mrad
+        double TG_Dp_Max_inc =0.04;//4%mrad
+        double TG_Dp_Min_inc =-0.04;//4%mrad
+        double TG_VZ_Max_inc =0.1200;//4%mrad
+        double TG_VZ_Min_inc =-0.1200;//4%mrad
+        double P0_inc =3.100; //GeV/c
+        double GC_Cut_inc =2000.;
+        double EP_Cut_inc=0.75;
+        int Main_Trigger_Left_inc =2;
+        int Main_Trigger_Right_inc =5;
+        int cur_sel_inc=0;
+        double beamon_min_inc=1;
+----
+
+---- H3_kin15
+                        ///Varibles defined for cuts
+        double TG_Theta_Max_inc =0.04;//40mrad
+        double TG_Theta_Min_inc =-0.04;//40mrad
+        double TG_Phi_Max_inc =0.030;//25mrad
+        double TG_Phi_Min_inc =-0.030;//25mrad
+        double TG_Dp_Max_inc =0.04;//4%mrad
+        double TG_Dp_Min_inc =-0.04;//4%mrad
+        double TG_VZ_Max_inc =0.1200;//4%mrad
+        double TG_VZ_Min_inc =-0.1200;//4%mrad
+        double P0_inc =3.100; //GeV/c
+        double GC_Cut_inc =2000.;
+        double EP_Cut_inc=0.75;
+        int Main_Trigger_Left_inc =2;
+        int Main_Trigger_Right_inc =5;
+        int cur_sel_inc=0;
+        double beamon_min_inc=1;
+----
 

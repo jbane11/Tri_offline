@@ -1,0 +1,764 @@
+  ************************************************
+  *                                              *
+  *            W E L C O M E  to  the            *
+  *       H A L L A   C++  A N A L Y Z E R       *
+  *                                              *
+  *  Release      1.6.0-beta4        Mar 12 2018 *
+  *  Based on ROOT  6.08/00           Nov 4 2016 *
+  *                                              *
+  *            For information visit             *
+  *        http://hallaweb.jlab.org/podd/        *
+  *                                              *
+  ************************************************
+
+Processing run.cc("He3_kin15.dat",1,1)...
+
+
+1 :	0 :	0 :	0 :	0 :	0 :	
+
+!!!:  He3
+!!!:  15
+!!!:  1841,1842,1843,1844,1845,1846,1847,1849,1850,1851,1857,1868,1869,1870,1871,1872,1874,1875,1876,1896,1897,1898,1899,1900,1917,1926,1927,1928,1929,1930,1931,1938,1939,1941,1942,1943,1944,1955,1957,1958,1960,1961,1962,1983,1984,1985,1986,1987,1995,1996,1997,1998,1999,2000,2011,2012,2013,2014,2015,2033,2034,2035,2045,2046,2054,2055,2058,2059,2060,2061,2069,2070,2071,2072,2073,2083,2084,2085,2086,2087,2097,2098,2099,2100,2101,2116,2117,2118,2119,2120,2129,2130,2131,2132,2133,2141,2142,2143,2144,2145,2152,2153,2154,2155,2156,2164,2165,2166,2167,2168,2169,2181,2182,2183,2184,2185,2186,2193,2194,2195,2196,2198,2206,2207,2208,2209,2210,2220,2221,2222,2223,2224,2225,2233,2234,2235,2236,2237,2255,2256,2257,2258,2259,2260,2268,2269,2270,2272,2277,2278,2279,2280,2281
+ Corrections file does not exist 
+how many labels 0
+how many runs   0
+
+This is the start of run 1841
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1841.root added to T tree
+16.4929 3
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.192734 20714 20754
+0.17301 4039 4046
+0.38942 31974 32099
+OW PID
+PID
+E 47: 48 | P 0 : 1
+E 0.979167	 P 1
+PID 1/2 done
+PID
+E 73: 73 | P 0 : 15
+E 1	 P 1
+PID 2/2 done
+PID : 1.02128	
+
+This is the start of run 1842
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1842.root added to T tree
+20.4584 4
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.25777 47207 47329
+0.157356 10152 10168
+0.454676 72687 73019
+OW PID
+PID
+E 138: 158 | P 0 : 7
+E 0.873418	 P 1
+PID 1/2 done
+PID
+E 247: 248 | P 0 : 59
+E 0.995968	 P 1
+PID 2/2 done
+PID : 1.14956	
+
+This is the start of run 1843
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1843.root added to T tree
+21.5134 4
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.25417 12558 12590
+0.180343 2214 2218
+0.484112 19323 19417
+OW PID
+PID
+E 18: 21 | P 0 : 1
+E 0.857143	 P 1
+PID 1/2 done
+PID
+E 40: 40 | P 0 : 7
+E 1	 P 1
+PID 2/2 done
+PID : 1.16667	
+
+This is the start of run 1844
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1844.root added to T tree
+20.681 4
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.408873 42382 42556
+0.321248 8688 8716
+0.567192 65039 65410
+OW PID
+PID
+E 122: 130 | P 0 : 9
+E 0.938462	 P 1
+PID 1/2 done
+PID
+E 241: 242 | P 0 : 39
+E 0.995868	 P 1
+PID 2/2 done
+PID : 1.07000	
+
+This is the start of run 1845
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1845.root added to T tree
+21.5225 4
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.258381 45937 46056
+0.210695 9946 9967
+0.46564 70754 71085
+OW PID
+PID
+E 145: 159 | P 0 : 12
+E 0.91195	 P 1
+PID 1/2 done
+PID
+E 243: 244 | P 0 : 69
+E 0.995902	 P 1
+PID 2/2 done
+PID : 1.10106	
+
+This is the start of run 1846
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1846.root added to T tree
+17.113 3
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.689445 9795 9863
+0.714796 1389 1399
+0.699583 14762 14866
+OW PID
+PID
+E 6: 7 | P 0 : 1
+E 0.857143	 P 1
+PID 1/2 done
+PID
+E 16: 16 | P 0 : 3
+E 1	 P 1
+PID 2/2 done
+PID : 1.16667	
+
+This is the start of run 1847
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1847.root added to T tree
+20.4861 4
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+6.04886 2423 2579
+7.53564 454 491
+6.1665 3652 3892
+OW PID
+PID
+E 6: 9 | P 0 : 0
+E 0.666667	 P -nan
+PID 1/2 done
+PID
+E 10: 10 | P 0 : 3
+E 1	 P 1
+PID 2/2 done
+PID :  -nan	
+
+This is the start of run 1849
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1849.root added to T tree
+18.9851 4
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.487697 8978 9022
+0.717131 1246 1255
+0.737563 13189 13287
+OW PID
+PID
+E 6: 6 | P 0 : 1
+E 1	 P 1
+PID 1/2 done
+PID
+E 12: 12 | P 0 : 1
+E 1	 P 1
+PID 2/2 done
+PID : 1.00000	
+
+This is the start of run 1850
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1850.root added to T tree
+17.9245 3
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.145722 26039 26077
+0.0663423 4519 4522
+0.331923 39336 39467
+OW PID
+PID
+E 37: 41 | P 0 : 2
+E 0.902439	 P 1
+PID 1/2 done
+PID
+E 61: 61 | P 0 : 16
+E 1	 P 1
+PID 2/2 done
+PID : 1.10811	
+
+This is the start of run 1851
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1851.root added to T tree
+20.5071 4
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.220192 36705 36786
+0.119872 7499 7508
+0.387754 56517 56737
+OW PID
+PID
+E 109: 113 | P 0 : 8
+E 0.964602	 P 1
+PID 1/2 done
+PID
+E 176: 176 | P 0 : 43
+E 1	 P 1
+PID 2/2 done
+PID : 1.03670	
+
+This is the start of run 1857
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1857.root added to T tree
+21.1315 4
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.435344 47799 48008
+0.406307 10295 10337
+0.508831 74301 74681
+OW PID
+PID
+E 133: 150 | P 0 : 10
+E 0.886667	 P 1
+PID 1/2 done
+PID
+E 245: 247 | P 0 : 71
+E 0.991903	 P 1
+PID 2/2 done
+PID : 1.13703	
+
+This is the start of run 1868
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1868.root added to T tree
+21.442 4
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.489864 45503 45727
+0.571662 9740 9796
+0.650071 70760 71223
+OW PID
+PID
+E 151: 162 | P 0 : 10
+E 0.932099	 P 1
+PID 1/2 done
+PID
+E 259: 259 | P 0 : 54
+E 1	 P 1
+PID 2/2 done
+PID : 1.07285	
+
+This is the start of run 1869
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1869.root added to T tree
+20.9137 4
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.519558 33316 33490
+0.551003 7039 7078
+0.743116 50756 51136
+OW PID
+PID
+E 102: 116 | P 0 : 9
+E 0.87931	 P 1
+PID 1/2 done
+PID
+E 185: 187 | P 0 : 65
+E 0.989305	 P 1
+PID 2/2 done
+PID : 1.14955	
+
+This is the start of run 1870
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1870.root added to T tree
+20.7481 4
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.217894 37093 37174
+0.19084 7322 7336
+0.378667 56037 56250
+OW PID
+PID
+E 96: 105 | P 0 : 6
+E 0.914286	 P 1
+PID 1/2 done
+PID
+E 191: 192 | P 0 : 44
+E 0.994792	 P 1
+PID 2/2 done
+PID : 1.09948	
+
+This is the start of run 1871
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1871.root added to T tree
+18.5043 4
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.0726782 38498 38526
+0.0806127 7437 7443
+0.206902 58843 58965
+OW PID
+PID
+E 89: 97 | P 0 : 4
+E 0.917526	 P 1
+PID 1/2 done
+PID
+E 185: 186 | P 0 : 42
+E 0.994624	 P 1
+PID 2/2 done
+PID : 1.09578	
+
+This is the start of run 1872
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1872.root added to T tree
+17.4425 3
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.755567 7487 7544
+0.58873 1182 1189
+0.862145 11269 11367
+OW PID
+PID
+E 13: 14 | P 0 : 0
+E 0.928571	 P -nan
+PID 1/2 done
+PID
+E 17: 17 | P 0 : 5
+E 1	 P 1
+PID 2/2 done
+PID :  -nan	
+
+This is the start of run 1874
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1874.root added to T tree
+17.7158 3
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.0416947 43153 43171
+0.0731261 8199 8205
+0.208608 65058 65194
+OW PID
+PID
+E 107: 118 | P 0 : 9
+E 0.90678	 P 1
+PID 1/2 done
+PID
+E 198: 200 | P 0 : 44
+E 0.99	 P 1
+PID 2/2 done
+PID : 1.11394	
+
+This is the start of run 1875
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1875.root added to T tree
+15.8172 3
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+-0.0107766 27841 27838
+0 4713 4713
+0.122523 41574 41625
+OW PID
+PID
+E 33: 39 | P 0 : 4
+E 0.846154	 P 1
+PID 1/2 done
+PID
+E 68: 73 | P 0 : 25
+E 0.931507	 P 1
+PID 2/2 done
+PID : 1.26872	
+
+This is the start of run 1876
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1876.root added to T tree
+18.2226 4
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.20132 44615 44705
+0.191076 8880 8897
+0.32409 67970 68191
+OW PID
+PID
+E 118: 125 | P 0 : 12
+E 0.944	 P 1
+PID 1/2 done
+PID
+E 201: 201 | P 0 : 49
+E 1	 P 1
+PID 2/2 done
+PID : 1.05932	
+
+This is the start of run 1896
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1896.root added to T tree
+18.3228 4
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.409187 51598 51810
+0.463889 10943 10994
+0.537744 78424 78848
+OW PID
+PID
+E 90: 99 | P 0 : 10
+E 0.909091	 P 1
+PID 1/2 done
+PID
+E 182: 184 | P 0 : 34
+E 0.98913	 P 1
+PID 2/2 done
+PID : 1.11209	
+
+This is the start of run 1897
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1897.root added to T tree
+14.1269 2
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.376237 51634 51829
+0.451025 10153 10199
+0.494272 77306 77690
+OW PID
+PID
+E 128: 142 | P 0 : 7
+E 0.901408	 P 1
+PID 1/2 done
+PID
+E 211: 214 | P 0 : 55
+E 0.985981	 P 1
+PID 2/2 done
+PID : 1.12515	
+
+This is the start of run 1898
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1898.root added to T tree
+16.729 3
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.363706 52050 52240
+0.292451 10910 10942
+0.528371 77940 78354
+OW PID
+PID
+E 152: 170 | P 0 : 6
+E 0.894118	 P 1
+PID 1/2 done
+PID
+E 272: 273 | P 0 : 62
+E 0.996337	 P 1
+PID 2/2 done
+PID : 1.12253	
+
+This is the start of run 1899
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1899.root added to T tree
+16.7873 3
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.455411 48088 48308
+0.347878 10026 10061
+0.515364 71617 71988
+OW PID
+PID
+E 149: 170 | P 0 : 7
+E 0.876471	 P 1
+PID 1/2 done
+PID
+E 288: 289 | P 0 : 70
+E 0.99654	 P 1
+PID 2/2 done
+PID : 1.14490	
+
+This is the start of run 1900
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1900.root added to T tree
+16.7364 3
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+1.05071 4332 4378
+0.398406 750 753
+1.21166 6441 6520
+OW PID
+PID
+E 11: 11 | P 0 : 0
+E 1	 P -nan
+PID 1/2 done
+PID
+E 16: 16 | P 0 : 2
+E 1	 P 1
+PID 2/2 done
+PID :  -nan	
+
+This is the start of run 1917
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1917.root added to T tree
+20.8698 4
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.220821 52867 52984
+0.185316 11311 11332
+0.417605 81792 82135
+OW PID
+PID
+E 150: 165 | P 0 : 12
+E 0.909091	 P 1
+PID 1/2 done
+PID
+E 252: 255 | P 0 : 60
+E 0.988235	 P 1
+PID 2/2 done
+PID : 1.11310	
+
+This is the start of run 1926
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1926.root added to T tree
+19.2581 4
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.321917 30035 30132
+0.241235 6203 6218
+0.451186 46334 46544
+OW PID
+PID
+E 86: 92 | P 0 : 8
+E 0.934783	 P 1
+PID 1/2 done
+PID
+E 148: 148 | P 0 : 39
+E 1	 P 1
+PID 2/2 done
+PID : 1.06977	
+  ************************************************
+  *                                              *
+  *            W E L C O M E  to  the            *
+  *       H A L L A   C++  A N A L Y Z E R       *
+  *                                              *
+  *  Release      1.6.0-beta4        Mar 12 2018 *
+  *  Based on ROOT  6.08/00           Nov 4 2016 *
+  *                                              *
+  *            For information visit             *
+  *        http://hallaweb.jlab.org/podd/        *
+  *                                              *
+  ************************************************
+
+Processing run.cc("He3_kin3.dat",1,1)...
+
+
+1 :	0 :	0 :	0 :	0 :	0 :	
+
+!!!:  He3
+!!!:  3
+!!!:  1282,1283,1284,1285,1297,1298,1299
+0 :  0 He3_kin3 
+1 :  0 Run#	Charge_dnew	DT_2	DT_3	DT_4	PID_eff	
+Run# :: 	
+Charge_dnew :: 	
+DT_2 :: 	
+DT_3 :: 	
+DT_4 :: 	
+PID_eff :: 	
+2 :  0 1282	13359.035	1.26079	1.19207	1.28265	1.0000000000	
+ : 1282  : 
+ : 13359.035  : 
+ : 1.26079  : 
+ : 1.19207  : 
+ : 1.28265  : 
+ : 1.0000000000  : 
+old run num : 1282
+how many labels 6
+how many runs   1
+
+This is the start of run 1282
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1282.root added to T tree
+18.0745 4
+1282 1
+debug : check charge ow 0 1 0
+OW Charge
+End of Charge 
+OW DT
+1.26079 337304 341611
+1.19207 55949 56624
+1.28265 83044 84123
+OW PID
+PID
+E 5387: 5521 | P 0 : 340
+E 0.975729	 P 1
+PID 1/2 done
+PID
+E 9658: 9705 | P 0 : 733
+E 0.995157	 P 1
+PID 2/2 done
+PID : 1.02986	
+
+This is the start of run 1283
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1283.root added to T tree
+18.8938 4
+1283 0
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+1.49248 772294 783995
+1.44252 128652 130535
+1.58452 178320 181191
+OW PID
+PID
+E 12385: 12699 | P 0 : 765
+E 0.975274	 P 1
+PID 1/2 done
+PID
+E 22769: 22916 | P 0 : 1771
+E 0.993585	 P 1
+PID 2/2 done
+PID : 1.03197	
+
+This is the start of run 1284
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1284.root added to T tree
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1284_1.root added to T tree
+18.8175 4
+1284 0
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+1.56987 1160258 1178763
+1.56259 192769 195829
+1.66789 264476 268962
+OW PID
+PID
+E 18783: 19287 | P 0 : 1202
+E 0.973868	 P 1
+PID 1/2 done
+PID
+E 34344: 34545 | P 0 : 2642
+E 0.994182	 P 1
+PID 2/2 done
+PID : 1.03284	
+
+This is the start of run 1285
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1285.root added to T tree
+18.6315 4
+1285 0
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+1.87985 816082 831717
+1.89044 135453 138063
+1.99428 186745 190545
+OW PID
+PID
+E 13178: 13528 | P 0 : 779
+E 0.974128	 P 1
+PID 1/2 done
+PID
+E 24043: 24196 | P 0 : 1772
+E 0.993677	 P 1
+PID 2/2 done
+PID : 1.03309	
+
+This is the start of run 1297
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1297.root added to T tree
+19.1415 4
+1297 0
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+1.96661 693995 707917
+1.97838 115146 117470
+2.06096 157960 161284
+OW PID
+PID
+E 11364: 11690 | P 0 : 650
+E 0.972113	 P 1
+PID 1/2 done
+PID
+E 20734: 20840 | P 0 : 1568
+E 0.994914	 P 1
+PID 2/2 done
+PID : 1.03395	
+
+This is the start of run 1298
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1298.root added to T tree
+18.8879 4
+1298 0
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+1.73844 650465 661973
+1.76796 108180 110127
+1.85657 149496 152324
+OW PID
+PID
+E 10552: 10863 | P 0 : 637
+E 0.971371	 P 1
+PID 1/2 done
+PID
+E 19226: 19339 | P 0 : 1457
+E 0.994157	 P 1
+PID 2/2 done
+PID : 1.03552	
+
+This is the start of run 1299
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1299.root added to T tree
+17.1789 3
+1299 0
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+2.17498 597615 610902
+2.15957 98766 100946
+2.13709 144109 147256
+OW PID
+PID
+E 9081: 9338 | P 0 : 585
+E 0.972478	 P 1
+PID 1/2 done
+PID
+E 16655: 16753 | P 1 : 1301
+E 0.99415	 P 0.999231
+PID 2/2 done
+PID : 1.03356	

@@ -1,3 +1,5 @@
+#include "THaRun.h"
+#include "THaRunParameters.h"
 // The paths to store ROOT files
 // adapted from Ou,Longwu's GMp code
 // -shujie 03,2018
@@ -28,12 +30,12 @@ const char* PATHS[] = {
 //----------------------------------------- 
 TString GetTarget(TChain *tree2){
   TString targname;
-  target t2={33106235,"Tritium"};
-  target d2={29367355,"Deuterium"};
-  target h={25610043,"Hydrogen"};
-  target he3={21875520,"Helium3"};
-  target empty={18119995,"Empty Cell"};
-  target dummy={15175217,"Dummy"};
+  target t2={33106235,"H3"};
+  target d2={29367355,"D2"};
+  target h={25610043,"H2"};
+  target he3={21875520,"He3"};
+  target empty={18119995,"EM"};
+  target dummy={15175217,"DM"};
   target optics={14394929,"Multifoils"};
   target hole={13108119,"Carbon Hole"};
   target raster={12444209,"Raster Target"};
@@ -65,9 +67,60 @@ TString GetTarget(TChain *tree2){
   else if(abs(pos-ti.pos)<50)     targname=ti.name;
   else if(abs(pos-beo.pos)<50)    targname=beo.name;
 
-  cout<<pos<<"  "<<targname<<endl;
+ // cout<<pos<<"  "<<targname<<endl;
   return targname;
 }
+
+int GetKin(TChain *T)
+{	
+	TChain *Tree=T;
+	int KIN=0;
+	double kin_table[20][2] ={	{0  ,12.589},
+					{1  ,17.577},
+					{2  ,19.115},
+					{3  ,20.578},
+					{4  ,0.0},
+					{5  ,23.213},
+					{6  ,0.0},
+					{7  ,25.594},	
+					{8  ,0.0},
+					{9  ,27.778},
+					{10 ,0.0},
+					{11 ,29.917},
+					{12 ,0.0},
+					{13 ,31.732},	
+					{14 ,0.0},
+					{15 ,33.562},
+					{16 ,36.12},
+					{17 ,0.0},
+					{18 ,0.0},	
+					{19 ,0.0},
+						};
+
+	double angle_sep=0;
+	Double_t int_angle=0;
+	TString Arm="L";
+ //way to check which Arm, if the tree is already open:
+ 	TBranch *ArmCheck = T->FindBranch(Form("%s.tr.n",Arm.Data()));
+        if(ArmCheck==nullptr){
+        	if(Arm=="L")Arm="R";
+	        if(Arm=="R")Arm="L";
+		}                              
+ //
+
+	Tree->SetBranchAddress(Form("Hac%s_alignAGL",Arm.Data()), &int_angle);
+	Tree->GetEntry(1);
+//	cout << "Debug: angle  : "<< int_angle<< " arm " << Arm <<endl;
+	for(int i =0; i<20;i++){
+		angle_sep = abs(int_angle-kin_table[i][1]); 
+		if(angle_sep<=0.09){KIN=kin_table[i][0];}
+		}
+
+	return KIN;
+}
+
+
+
 
 TChain* LoadRun(Int_t run, const char* path, const char* tree, Int_t debug)
 {

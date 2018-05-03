@@ -7,7 +7,7 @@ Limitations/ issues
 
 */
 
-vector<Double_t> Pid_eff_seperate(TChain *T,TString ARM, int flag=0, Double_t cer_min = 0,  Double_t calo_e = 0, int debug=1){
+vector<Double_t> Pid_eff_seperate_macro(TChain *T,TString ARM, int flag=0, Double_t cer_min = 0,  Double_t calo_e = 0, int debug=1){
 	
 	Double_t PID_eff	=1; 	//This will be the over all correction value for this run.
 	Double_t PID_e_eff	=1;	//This will be the eff of electron acceptance
@@ -199,16 +199,11 @@ string_e_sample = Form("%4.1f<%s.cer.asum_c&&%s.cer.asum_c<%4.1f",GC_e_sample_mi
 
 	if(debug==0){
 		delete c;
-		if(flag==0){
-			delete h1; 		delete h2;
-			delete p1; 		delete p2;
-			delete hh1;
-		}
-		else{
-			delete h_1; 	delete h_2;
-			delete p_1; 	delete p_2;
-			delete hh_1; 	
-		}
+		delete h1; 	delete h2;
+		delete p1; 	delete p2;
+		delete hh1;	delete hh_1;
+		delete h_1; 	delete h_2;
+		delete p_1; 	delete p_2;
 	}
 	return PID_effs;
 }

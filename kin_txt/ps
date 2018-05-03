@@ -1,0 +1,295 @@
+// The paths to store ROOT files
+// adapted from Ou,Longwu's GMp code
+// -shujie 03,2018
+
+struct target
+{
+  Double_t pos;
+  TString name;
+};
+
+
+const char* PATHS[] = {
+        "/volatile/halla/triton/Marathon_Rootfiles/pass1/",
+	"/chafs1/work1/tritium/pass1/",
+	"/chafs1/work1/tritium/Rootfiles/",
+   	"/chafs1/work1/tritium/Tritium_Rootfiles/",
+  	"/volatile/halla/triton/Tritium_Rootfiles/",
+  "./",
+  0
+};
+
+//-------------------------------------------
+//get target info from epics encoder position
+// check if target moved during the run
+// works for tritium snice 2018.1
+//----------------------------------------- 
+TString GetTarget(TChain *tree2){
+  TString targname;
+  target t2={33106235,"Tritium"};
+  target d2={29367355,"Deuterium"};
+  target h={25610043,"Hydrogen"};
+  target he3={21875520,"Helium3"};
+  target empty={18119995,"Empty Cell"};
+  target dummy={15175217,"Dummy"};
+  target optics={14394929,"Multifoils"};
+  target hole={13108119,"Carbon Hole"};
+  target raster={12444209,"Raster Target"};
+  target al={11728945,"Thick Aluminum"};
+  target single={11013681,"Single Carbon Foil"};
+  target ti={10298417,"Titanium"};
+  target beo={9583153,"BeO"};
+
+  Double_t pos,pos1;
+  tree2->SetBranchAddress("haBDSPOS",&pos);
+  Int_t nn=tree2->GetEntries(); 
+  tree2->GetEntry(Int_t(1+nn/100)); 
+  pos1=pos;
+  tree2->GetEntry(Int_t(nn-1)); 
+  if (pos1!=pos) targname="target moved during the run"; 
+  else if(abs(pos)<= 0.000000001 ) {targname =" Unkown - Please double check logbook ";}
+  else if(abs(pos)<50) targname="HOME";
+  else if(abs(pos-t2.pos)<20000)     targname=t2.name;
+  else if(abs(pos-d2.pos)<20000)     targname=d2.name;
+  else if(abs(pos-h.pos)<20000)      targname=h.name;
+  else if(abs(pos-he3.pos)<20000)    targname=he3.name;
+  else if(abs(pos-empty.pos)<20000)  targname=empty.name;
+  else if(abs(pos-dummy.pos)<50)  targname=dummy.name;
+  else if(abs(pos-optics.pos)<50) targname=optics.name;
+  else if(abs(pos-hole.pos)<50)   targname=hole.name;
+  else if(abs(pos-raster.pos)<50) targname=raster.name;
+  else if(abs(pos-al.pos)<50)     targname=al.name;
+  else if(abs(pos-single.pos)<50) targname=single.name;
+  else if(abs(pos-ti.pos)<50)     targname=ti.name;
+  else if(abs(pos-beo.pos)<50)    targname=beo.name;
+
+  cout<<pos<<"  "<<targname<<endl;
+  return targname;
+}
+
+TChain* LoadRun(Int_t run, const char* path, const char* tree, Int_t debug)
+{
+    TChain* tt = new TChain(tree);
+
+    TString basename = Form("tritium_%d",run);
+    TString rootfile = basename + ".root";
+    
+    TString dir = path;
+    if (!dir.EndsWith("/")) dir.Append("/");
+
+    rootfile.Prepend(dir.Data());
+
+    Long_t split = 0;
+
+    while ( !gSystem->AccessPathName(rootfile.Data()) ) {
+	tt->Add(rootfile.Data());
+	cout << "ROOT file " << rootfile << " added to " << tree<<" tree"<<endl;
+	split++;
+	rootfile = basename + "_" + split + ".root";
+	rootfile.Prepend(dir.Data());
+
+    }
+
+    if (split<=0) {
+	if (debug>0) cerr << "Can not find ROOT file for run " << run << endl;
+	delete tt;
+	tt = 0;
+    }
+
+    return tt;
+}
+
+// Load TTree "tree" form all the ROOT files generated from a specific run
+// The ROOT files are searched for from the given "PATHS" array given at the beginning of the file
+//      run  --- run number
+//      tree --- The name of the tree to be loaded
+TChain* LoadRun(Int_t run, const char* tree = "T")
+{
+    Int_t i=0;
+
+    TChain* tt = 0;
+    while (PATHS[i]) {
+	tt = LoadRun(run,PATHS[i++],tree,1);
+
+	if (tt) break;
+    }
+   
+    if (!tt)
+	cerr << "Can not find ROOT file for run " << run << endl;
+
+    return tt;
+}
+
+
+// Return PS of a given run
+TArrayI GetPS(TTree* tt)
+{
+  //  TDatime run_time("2018-01-01 00:00:00");
+ 
+    THaRun* run = 0;
+    if (!tt->GetDirectory()) tt->LoadTree(0); // Necessary if T is a TChain
+    TArrayI ps;
+    TDirectory* fDir = tt->GetDirectory();
+    if (fDir) fDir->GetObject("Run_Data",run);
+    if (run) {
+      ps = run->GetParameters()->GetPrescales();
+      delete run;
+    }
+
+    return ps;
+}
+
+Int_t GetPS(TTree* tt,Int_t trigger)
+{
+  //  TDatime run_time("2018-01-01 00:00:00");
+
+    THaRun* run = 0;
+    Int_t ps;
+    if (!tt->GetDirectory()) tt->LoadTree(0); // Necessary if T is a TChain
+    TDirectory* fDir = tt->GetDirectory();
+    if (fDir) fDir->GetObject("Run_Data",run);
+    if (run) {
+       ps = run->GetParameters()->GetPrescales()[trigger-1];
+      delete run;
+    }
+    return ps;
+}
+
+
+TString GetTarget(Int_t run)
+{
+  TChain* etree=LoadRun(run,"E");
+  TString targname=GetTarget(etree);
+  return targname;
+  
+}
+
+
+// get rootfile path
+
+TString GetPath(Int_t run)
+{
+    Int_t i=0;
+    TString rootpath="unknown";
+
+    TChain* T = 0;
+    while (PATHS[i]) {
+	T = LoadRun(run,PATHS[i++],"T",0);
+	if (T) {
+	 rootpath=PATHS[i-1];
+	  return rootpath;
+	}
+    }
+
+    if (!T)
+	cerr << "Can not find ROOT file for run " << run << endl;
+
+    return rootpath;
+}
+vector<TString> Tokens1(TString aline,TString aDelim=",")
+{
+	Int_t i;
+	TObjArray* InObjArray;
+	TObjString* os;
+	TString s;
+	vector<TString> OutStringVec;
+	OutStringVec.clear();
+
+	InObjArray=aline.Tokenize(aDelim);
+	for ( i=0; i<InObjArray->GetEntriesFast(); i++ )
+	{
+		os=(TObjString*)InObjArray->At(i);
+		s=os->GetString();
+		OutStringVec.push_back(s);
+	}
+	return OutStringVec;
+}
+
+
+
+vector<Int_t> gGet_RunNoChain1(const TString& aString)
+{
+	vector<Int_t> output;
+	vector<TString> input=Tokens1(aString,",");
+	unsigned int i;
+	for ( i=0; i<input.size(); i++ )
+	{
+		if ( isdigit(*input[i].Data()) || input[i].BeginsWith("-") )
+		{
+			vector<TString> tmp=Tokens1(input[i],'-');
+			if ( tmp.size()<=2 )
+			{
+				// Int_t FirstRunNo;
+				Int_t LastRunNo;
+				Int_t thisrunno;
+				size_t index=input[i].First('-');
+				if ( index<input[i].Length() ){
+					thisrunno=tmp[0].Atoi();
+					LastRunNo=tmp[1].Atoi();
+				}else{
+					thisrunno=tmp[0].Atoi();
+					LastRunNo=thisrunno;
+				}
+				if ( thisrunno>LastRunNo ){
+					thisrunno ^= LastRunNo;
+					LastRunNo ^= thisrunno;
+					thisrunno ^= LastRunNo;
+				}
+				while ( thisrunno<=LastRunNo ){
+                                    output.push_back(thisrunno);
+                                    thisrunno++;
+				}
+			}
+		}
+	}
+	for ( i=0; i<output.size(); i++ )
+	{
+		if ( i==0 && output.size()>1 ){
+			cerr<<"      RunNoChain is "<<output[i];
+		}
+		else if ( i==0 && i==(output.size()-1) ){
+			cerr<<"      RunNoChain is "<<output[i]<<endl;
+		}
+		else if ( i==(output.size()-1) ){
+			cerr<<" "<<output[i]<<endl;
+		}
+		else{
+			cerr<<" "<<output[i];
+		}
+	}
+	return output;
+}
+
+
+// Load TTree trees from all the runs in a kin.dat file
+TChain* LoadKin(TString filename, const char* tree = "T")
+{
+	filename = "./Runlist/" + filename;
+    ifstream file(filename.Data());
+    if(!file.good()){cout << filename.Data() << " does not exist! "<<endl; exit(1);}
+    TString content;
+    TString Target,Kin,Run_String;
+    const char* kin;
+    for (int ii=0; content.ReadLine(file) && ii<3;ii++ ) {  
+    	//cout<<"!!!:  "<<content<<endl;
+        if(ii==0)Target = content;
+        if(ii==1){
+           kin = content.Data();
+           Kin = Form("Kin%s", kin);
+         }
+        if(ii==2)Run_String = content;         
+      }
+      file.close();
+    const vector<Int_t> RunNoChain=gGet_RunNoChain1(Run_String);
+	TChain* tt=new TChain("tt","Main Tree");
+	for ( unsigned int i=0; i<RunNoChain.size(); i++ )
+	{
+			Int_t aRunNo=RunNoChain[i];
+			LoadRun(aRunNo,tree);
+	}
+			
+	return tt;
+}
+
+
+

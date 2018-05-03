@@ -1,0 +1,30 @@
+  ************************************************
+  *                                              *
+  *            W E L C O M E  to  the            *
+  *       H A L L A   C++  A N A L Y Z E R       *
+  *                                              *
+  *  Release      1.6.0-beta4        Mar 12 2018 *
+  *  Based on ROOT  6.08/00           Nov 4 2016 *
+  *                                              *
+  *            For information visit             *
+  *        http://hallaweb.jlab.org/podd/        *
+  *                                              *
+  ************************************************
+
+Processing run.cc("DM_kin9.dat",1,1)...
+
+
+1 :	0 :	0 :	0 :	0 :	0 :	
+
+!!!:  DM
+!!!:  9
+!!!:  1397,1470
+how many labels 0
+how many runs   0
+
+This is the start of run 1397
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1397.root added to T tree
+20.5275 4
+1397 0
+debug : check charge ow 1 1 0
+OW Charge

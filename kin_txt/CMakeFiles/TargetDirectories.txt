@@ -1,0 +1,3 @@
+/home/jbane/tritium/Tri_offline/kin_txt/CMakeFiles/rebuild_cache.dir
+/home/jbane/tritium/Tri_offline/kin_txt/CMakeFiles/edit_cache.dir
+/home/jbane/tritium/Tri_offline/kin_txt/CMakeFiles/CTable.dir

@@ -57,11 +57,11 @@ vector<Double_t> Pid_eff_3(TChain *T,TString ARM, int flag=0, Int_t cur_sel=0, D
 	int Main_Trigger_Right = 5;
 	double e_sample_int = 3000.0;
 	double e_sample_m = -3000.0/2300.0;
-	double p_sample_int = 1500.0;
+	double p_sample_int = 1000.0;
 	double p_sample_m = -1.0;
-	double GC_e_sample_min=4000;
-	double GC_e_sample_max=6000;
-	double GC_p_sample = 1000;
+	double GC_e_sample_min=3500;
+	double GC_e_sample_max=6500;
+	double GC_p_sample = 400;
 	
 /////////////	
 	TString Arm,arm;

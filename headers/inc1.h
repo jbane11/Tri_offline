@@ -246,7 +246,7 @@ inline vector<std::string> corrections_label(std::string kin_target, std::string
 }			
 */		
 
-inline TString Good_Electron_Cuts(TString ARM_inc="Left")
+inline TString Good_Electron_Cuts(TString ARM_inc="Left", int PID =1,int trigger=1, int tg_acc=1, int track=1, int beam=1)
 {
 //Need to use set_limits to set before hand. 		
 /*		///Varibles defined for cuts	
@@ -270,15 +270,19 @@ inline TString Good_Electron_Cuts(TString ARM_inc="Left")
 	TString Arm_inc,arm_inc;
 	Int_t Main_Trigger_inc;
 	TString cal_det_inc;
+	TString cal_det_inc1;
 	if(ARM_inc=="Left"){
 		Arm_inc ="L";arm_inc="l";
 		Main_Trigger_inc = Main_Trigger_Left_inc;
 		cal_det_inc = "(L.prl1.e+L.prl2.e)/(L.gold.p*1000.)";
+		cal_det_inc1 = "(L.prl1.e+L.prl2.e)/(HacL_D1_P0rb*1000.)";
+		//cal_det_inc2 = "L.prl1.asum_c
 		}
 	else{
 		Arm_inc="R";arm_inc="r";
 		Main_Trigger_inc = Main_Trigger_Right_inc;
 		cal_det_inc = "(R.ps.e+R.sh.e)/(R.gold.p*1000.)";
+		cal_det_inc1 = "(R.ps.e+R.sh.e)/(HacR_D1_P0rb*1000.)";
 		}
 
 
@@ -287,19 +291,31 @@ inline TString Good_Electron_Cuts(TString ARM_inc="Left")
 	TString one_track_inc =Form("%s.tr.n==1",Arm_inc.Data());
 	TString pid_cer_inc = Form("%s.cer.asum_c>%4.1f",Arm_inc.Data(),GC_Cut_inc);
 	TString pid_cal_inc = Form("%s>%3.2f",cal_det_inc.Data(),EP_Cut_inc);
+	TString pid_cal_inc1 = Form("%s>%3.2f",cal_det_inc1.Data(),EP_Cut_inc);
 	TString target_z_inc = Form("rp%s.z>%4.3f && rp%s.z<%4.3f ",arm_inc.Data(),TG_VZ_Min_inc,arm_inc.Data(),TG_VZ_Max_inc);
 	TString target_ph_inc = Form("(%s.tr.tg_ph)>%4.3f && (%s.tr.tg_ph)<%4.3f",Arm_inc.Data(),TG_Phi_Min_inc,Arm_inc.Data(), TG_Phi_Max_inc);
 	TString target_th_inc = Form("(%s.tr.tg_th)>%4.3f &&(%s.tr.tg_th)<%4.3f",Arm_inc.Data(),TG_Theta_Min_inc,Arm_inc.Data(),TG_Theta_Max_inc);
 	TString track_dp_inc = Form("(%s.tr.tg_dp)>%4.3f && (%s.tr.tg_dp)<%4.3f",Arm_inc.Data(),TG_Dp_Min_inc,Arm_inc.Data(),TG_Dp_Max_inc);
 	TString beam_trip_inc = Form("%sBCM.BeamUp_time_v1495[%d] >= %f",ARM_inc.Data(),cur_sel_inc,beamon_min_inc);
 	
-	TString cuts = Trigger_inc+"&&"+one_track_inc+"&&"+pid_cer_inc+"&&"+pid_cal_inc+"&&"+target_z_inc+"&&"+target_ph_inc;
-	cuts += +"&&"+target_th_inc+"&&"+track_dp_inc+"&&"+beam_trip_inc;
+	TString cuts ="";
+	if(trigger)cuts = Trigger_inc;
+	if(PID==1)cuts+="&&"+pid_cer_inc+"&&"+pid_cal_inc;
+		else if(PID==2)cuts+="&&"+pid_cer_inc+"&&"+pid_cal_inc1;
+		else if(PID==3)cuts+="&&"+pid_cal_inc1;
+	if(tg_acc)cuts+="&&"+target_z_inc+"&&"+target_ph_inc+"&&"+target_th_inc+"&&"+track_dp_inc;
+	if(track)cuts+="&&"+one_track_inc;
+	if(beam) cuts+="&&"+beam_trip_inc;	
+
+	TSubString sub = cuts.operator()(0,2);
+	if(sub=="&&")cuts.Remove(0,2);
 	
+
 	return cuts;
 }
 inline void set_limits(TString kin_tgt)
 {
+
 	//open file 
 	TString cor_kin = "---- "+kin_tgt;
 	std::fstream limits_file;
@@ -331,6 +347,7 @@ inline void set_limits(TString kin_tgt)
 			}//end of correct kin
 		j++;} //end of input file
 
+	if(db_num.size()<=1){return;}
 	TG_Theta_Max_inc	=db_num[0];	//mrad
 	TG_Theta_Min_inc 	=db_num[1];	//mrad
 	TG_Phi_Max_inc 		=db_num[2];	//mrad
@@ -349,7 +366,7 @@ inline void set_limits(TString kin_tgt)
  }// End of set limit function
 
 
-inline bool GOOD_Event(TChain *T , int Event, TString ARM_inc = "Left")
+inline bool GOOD_Event(TChain *T , int Event, TString ARM_inc = "Left", int PID =1, int tg_acc=1, int track=1, int beam=1)
  {
   	bool GE = 0; //Is this a good electron event                         	
 	double react_z, cal1, cal2, cer_asum, gold_p;
@@ -404,17 +421,14 @@ inline bool GOOD_Event(TChain *T , int Event, TString ARM_inc = "Left")
  	if(dp_inc 	<= TG_Dp_Min_inc || dp_inc >= TG_Dp_Max_inc) 		return GE; //p acc
  	if(dtheta_inc <= TG_Theta_Min_inc || dtheta_inc >= TG_Theta_Max_inc) 	return GE; //theta acc	
  	if(dphi_inc <= TG_Phi_Min_inc || dphi_inc >= TG_Phi_Max_inc) 		return GE; //phi acc	 
-
- 	
-
-	  	
- 	
- 	
- 	
 	return GE;
 }
 
 
+double Bino_Err(double p, int n)
+{
+	return sqrt(p*(1-p)/(n*1.0));
+}
 
 
 

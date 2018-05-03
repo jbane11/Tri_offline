@@ -3,4 +3,4 @@ export ANALYZER=/work/halla/triton/MARATHON_Replay/analyzer1.6
 export PATH=${ROOTSYS}/bin:${ANALYZER}:${PATH}
 cd /work/halla/triton/Bane/Tri_offline/kin_txt/
  
-analyzer -l -b .x 'Corrections_table.C++("DM_kin9.dat",1,0)'>err_DM_kin9.txt
+analyzer -b .x 'run.cc("DM_kin9.dat",1,1)'&>./batch_corrections/batch_outfiles/DM_kin9.out

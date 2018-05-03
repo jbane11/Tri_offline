@@ -90,7 +90,7 @@ void PID_eff_scan(TString filename=""){
 	
 	for(int i =0; i<num_calo; i++){
 		Double_t calo_thres = i*calo_step+min_calo;
-		vector<Double_t> in_put=Pid_eff_seperate(T,ARM.Data(),1,0,calo_thres);
+		vector<Double_t> in_put=Pid_eff_seperate_macro(T,ARM.Data(),1,0,calo_thres,0);
 		
 		calo_e.ResizeTo(i+1);		calo_e[i]=calo_thres;
 		x1_error.ResizeTo(i+1);		x1_error[i]=0.0;
@@ -105,7 +105,7 @@ void PID_eff_scan(TString filename=""){
 	//for(int i =0; i<num_cer; i++){
 		
 		Double_t cer_thres = i*cer_step+min_cer; 
-		vector<Double_t> in_put1=Pid_eff_seperate(T,ARM.Data(),0,cer_thres,0.0,1);
+		vector<Double_t> in_put1=Pid_eff_seperate_macro(T,ARM.Data(),0,cer_thres,0.0,0);
 		
 		cer_min.ResizeTo(i+1);		cer_min[i]=cer_thres;
 		x2_error.ResizeTo(i+1);		x2_error[i]=0.0;
@@ -129,8 +129,21 @@ void PID_eff_scan(TString filename=""){
 		cout << i << " " << calo_thres <<" " << cer_thres<< "  "<< time_seconds/60.0 <<endl;
 		}		
 		
-		
-		
+	TCanvas *com = new TCanvas("com","com",0,0,1920,1080);
+	TMultiGraph *mg_com = new TMultiGraph();
+        mg_com->SetTitle(Form("PID eff scan on %s for kin%s", Target.Data(),kin));	
+	TGraphErrors *com_e = new TGraphErrors(calo_e,PID_e_eff_cor,x1_error,PID_e_er_cor);	
+	TGraphErrors *com_p = new TGraphErrors(calo_e,PID_p_eff_cor,x1_error,PID_p_er_cor);	
+	com_e->SetMarkerStyle(33);
+	com_e->SetMarkerColor(2);
+	com_e->GetXaxis()->SetTitle("E/P cut value");
+	
+
+	mg_com->Add(com_e);
+	mg_com->Add(com_p);
+	mg_com->Draw("ap");
+
+
 		TCanvas *C = new TCanvas("C","C",0,0,1920,1080);
 		C->Divide(1,2);
 		C->cd(1);
@@ -173,7 +186,7 @@ void PID_eff_scan(TString filename=""){
 		mg_cer->Draw("ap");	
 		Leg->Draw("same");	
 		
-		C->Print(Form("/chafs1/work1/tritium/Bane_dat/images/PID_eff_%s_kin%s.png", Target.Data(),kin));
+		C->Print(Form("PID_eff_%s_kin%s.png", Target.Data(),kin));
 		C->Print("temp.png");
 		C->Print("temp.gif");
 		time_t end_time; time(&end_time);

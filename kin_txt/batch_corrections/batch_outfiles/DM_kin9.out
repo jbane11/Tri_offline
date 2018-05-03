@@ -1,0 +1,68 @@
+  ************************************************
+  *                                              *
+  *            W E L C O M E  to  the            *
+  *       H A L L A   C++  A N A L Y Z E R       *
+  *                                              *
+  *  Release      1.6.0-beta4        Mar 12 2018 *
+  *  Based on ROOT  6.08/00           Nov 4 2016 *
+  *                                              *
+  *            For information visit             *
+  *        http://hallaweb.jlab.org/podd/        *
+  *                                              *
+  ************************************************
+
+Processing run.cc("DM_kin9.dat",1,1)...
+
+
+1 :	0 :	0 :	0 :	0 :	0 :	
+
+!!!:  DM
+!!!:  9
+!!!:  1397,1470
+      RunNoChain is 1397 1470
+how many labels 0
+how many runs   0
+
+This is the start of run 1397
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1397.root added to T tree
+20.5275 4
+1397 0
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+1.44251 172517 175042
+1.56468 35985 36557
+1.78393 105267 107179
+OW PID
+PID
+E 575: 623 | P 0 : 80
+E 0.922953	 P 1
+PID 1/2 done
+PID
+E 1037: 1042 | P 0 : 230
+E 0.995202	 P 1
+PID 2/2 done
+PID : 1.08870	
+
+This is the start of run 1470
+ROOT file /volatile/halla/triton/Marathon_Rootfiles/pass1/tritium_1470.root added to T tree
+21.3258 4
+1470 0
+debug : check charge ow 1 1 0
+OW Charge
+End of Charge 
+OW DT
+0.621781 135854 136704
+0.577044 28429 28594
+0.970371 84092 84916
+OW PID
+PID
+E 448: 503 | P 0 : 70
+E 0.890656	 P 1
+PID 1/2 done
+PID
+E 811: 812 | P 0 : 209
+E 0.998768	 P 1
+PID 2/2 done
+PID : 1.12415	

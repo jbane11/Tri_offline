@@ -1,0 +1,6 @@
+#!/bin/sh
+export ANALYZER=/work/halla/triton/MARATHON_Replay/analyzer1.6
+export PATH=${ROOTSYS}/bin:${ANALYZER}:${PATH}
+cd /work/halla/triton/Bane/Tri_offline/kin_txt/
+ 
+analyzer -b .x 'run.cc("He3_kin15.dat",1,1)'&>./batch_corrections/batch_outfiles/He3_kin15.out
