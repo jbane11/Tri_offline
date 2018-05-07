@@ -1,8 +1,7 @@
-
-#include "/home/jbane/HEADERS/inc1.h"
-#include "/home/jbane/HEADERS/TRI_Main.h"
-#include "/home/jbane/HEADERS/TRI_Tools.h"
-#include "/home/jbane/HEADERS/rootalias1.h"
+#include "./headers/inc1.h"
+#include "./headers/TRI_Main.h"
+#include "./headers/TRI_Tools.h"
+#include "./headers/rootalias1.h"
 #include "./Pid_eff_3.C"
 #include "./efficencies/Pid_eff_seperate_macro.C"
 /*This script will calculate the the efficency of a PID cut scan;
@@ -148,7 +147,7 @@ void PID_eff_scan(TString filename=""){
 		C->Divide(1,2);
 		C->cd(1);
 		TMultiGraph *mg_calo = new TMultiGraph();
-		mg_calo->SetTitle(Form("PID eff scan for the Calorimeters on %s for kin%s", Target.Data(),kin));
+		mg_calo->SetTitle(Form("PID eff scan for the Calorimeters on %s for %s", Target.Data(),Kin.Data()));
 		
 		TGraphErrors *Ge_calo = new TGraphErrors(calo_e,PID_e_eff_calo,x1_error,PID_e_er_calo);
 		Ge_calo->SetMarkerStyle(33);
@@ -186,7 +185,7 @@ void PID_eff_scan(TString filename=""){
 		mg_cer->Draw("ap");	
 		Leg->Draw("same");	
 		
-		C->Print(Form("PID_eff_%s_kin%s.png", Target.Data(),kin));
+		C->Print(Form("PID_eff_%s_%s.png", Target.Data(),Kin.Data()));
 		C->Print("temp.png");
 		C->Print("temp.gif");
 		time_t end_time; time(&end_time);
