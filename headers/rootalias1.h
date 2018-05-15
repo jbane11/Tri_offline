@@ -103,8 +103,7 @@ int GetKin(TChain *T)
  //way to check which Arm, if the tree is already open:
  	TBranch *ArmCheck = T->FindBranch(Form("%s.tr.n",Arm.Data()));
         if(ArmCheck==nullptr){
-        	if(Arm=="L")Arm="R";
-	        if(Arm=="R")Arm="L";
+        	if(Arm=="L"){Arm="R";}
 		}                              
  //
 
@@ -319,9 +318,10 @@ vector<Int_t> gGet_RunNoChain1(const TString& aString)
 // Load TTree trees from all the runs in a kin.dat file
 TChain* LoadKin(TString filename, const char* tree = "T")
 {
-	filename = "./Runlist/" + filename;
+	filename = "/work/halla/triton/Runlist/" + filename;
     ifstream file(filename.Data());
-    if(!file.good()){cout << filename.Data() << " does not exist! "<<endl; exit(1);}
+    TChain *null;
+    if(!file.good()){cout << filename.Data() << " does not exist! "<<endl;return(null);}
     TString content;
     TString Target,Kin,Run_String;
     const char* kin;
@@ -337,9 +337,9 @@ TChain* LoadKin(TString filename, const char* tree = "T")
       file.close();
     const vector<Int_t> RunNoChain=gGet_RunNoChain1(Run_String);
 	TChain* tt=new TChain("tt","Main Tree");
-	for ( unsigned int i=0; i<RunNoChain.size(); i++ )
+	for ( unsigned int iii=0; iii<RunNoChain.size(); iii++ )
 	{
-			Int_t aRunNo=RunNoChain[i];
+			Int_t aRunNo=RunNoChain[iii];
 			LoadRun(aRunNo,tree);
 	}
 			
