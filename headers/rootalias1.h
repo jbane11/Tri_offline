@@ -104,7 +104,7 @@ int GetKin(TChain *T)
  	TBranch *ArmCheck = T->FindBranch(Form("%s.tr.n",Arm.Data()));
         if(ArmCheck==nullptr){
         	if(Arm=="L")Arm="R";
-	        if(Arm=="R")Arm="L";
+		else{Arm=="L";}
 		}                              
  //
 
