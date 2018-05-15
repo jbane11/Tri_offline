@@ -103,7 +103,8 @@ int GetKin(TChain *T)
  //way to check which Arm, if the tree is already open:
  	TBranch *ArmCheck = T->FindBranch(Form("%s.tr.n",Arm.Data()));
         if(ArmCheck==nullptr){
-        	if(Arm=="L"){Arm="R";}
+        	if(Arm=="L")Arm="R";
+		else{Arm=="L";}
 		}                              
  //
 
