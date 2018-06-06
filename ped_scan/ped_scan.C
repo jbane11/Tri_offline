@@ -4,7 +4,7 @@
 
 
 
-vector< vector<string>> ped_scan( int run = 0 , int debug=0, int single_det=-1){
+void ped_scan( int run = 0 , int debug=0, int single_det=-1){
 	if(run==0){cout << "Please Enter run number" <<endl; cin >> run;}
 
 	gStyle->SetOptStat(0);
@@ -34,8 +34,12 @@ vector< vector<string>> ped_scan( int run = 0 , int debug=0, int single_det=-1){
 		exit(0);
 	}
 	////////////////////////////////////
-	
 
+	ofstream output(Form("ped_table/%d.csv",run));
+	if(!output.is_open()){
+		cout<<"Ped table not open!"<<endl;
+		exit(0);}	
+		
 	//Find the correct name for the detector to ploti
 	string det_array[] ={".s0",".s2",".prl1",".prl2",".cer",".sh",".ps"};
 	string suffix_array[] = {".a",".la",".ra"};
@@ -44,6 +48,7 @@ vector< vector<string>> ped_scan( int run = 0 , int debug=0, int single_det=-1){
 	vector<string> detector;
 	vector<int> num_of_channels;
 	Temp->GetEntry(10);
+	int max_channel=0;
 	for(unsigned int det_l =0; det_l<det_vector.size();det_l++)//start of short loop through suffix
 
 		for(unsigned int suf =0; suf<suffix.size();suf++)//start of short loop through suffix
@@ -65,13 +70,20 @@ vector< vector<string>> ped_scan( int run = 0 , int debug=0, int single_det=-1){
 			TB =nullptr; 
 			TBN=nullptr;
 			if(debug)cout<<endl;
+			if(tbn>max_channel)max_channel=tbn;
+			
 		}//end of suffix loop
 	///////////////////////
 	////////	
 
 	if(debug)cout<< "Found " << detector.size() << " applical(sp) dets!" <<endl;
+	if(debug)cout<< "The maximum number of channels is " <<max_channel<<endl;
 
-//return ped_scan;
+
+	vector <string> oneD; oneD.push_back("Detector/PMT#");
+	for(int j=0;j<max_channel;j++){oneD.push_back(to_string(j));}
+	ped_scan.push_back(oneD);
+	oneD.clear();
 	
 	//2D Vector of pedstals for each PMT for each run!!
 	vector<string> pedestals;
@@ -113,7 +125,7 @@ vector< vector<string>> ped_scan( int run = 0 , int debug=0, int single_det=-1){
 			if(debug)cout << "there are "<< (num_of_channels[dets]-(noc*12)) <<" left"<< endl;
 		
 		}
-		
+		oneD.push_back(Form("%s",detector[dets].c_str()));
 
 		//Array of 1d hist, one for each pmt
 		TH1F *hist[num_of_channels[dets]];
@@ -230,7 +242,9 @@ vector< vector<string>> ped_scan( int run = 0 , int debug=0, int single_det=-1){
 				cout << peaks[0]<<" "<<peaks[1] <<endl;
 			}
 			
-			
+		
+			oneD.push_back(to_string(F1[pmt]->GetParameter(1)));
+	
 			if(debug)cout<<endl;
 			//////////////////////////////////
 			//write the ped and draw legend//
@@ -247,7 +261,12 @@ vector< vector<string>> ped_scan( int run = 0 , int debug=0, int single_det=-1){
 			pad++; //pad for drawing on canvas
 		}//End of PMT loop
 			
-		//Add the canvas to a pd
+		ped_scan.push_back(oneD);
+		cout << "Push back "<< oneD[0]<<" "<< ped_scan[dets+1][0]<<endl;
+		oneD.clear();
+
+
+		//Add the canvas to a pdf
 		for(int noc=0;noc<num_of_Cs;noc++){
 			string opt="";
 			if(noc==0&&num_of_Cs>1)opt="(";
@@ -263,7 +282,21 @@ vector< vector<string>> ped_scan( int run = 0 , int debug=0, int single_det=-1){
 	}//End of suffix loop of diff dets
 			
 	//Clean up the TChain!
-	return ped_scan;
+
+cout << ped_scan[1][0] << " "<< ped_scan[2][0]<<endl;
+
+	
+	for(int k = 0; k<=detector.size();k++){
+		for(int m=0;m<ped_scan[k].size();m++){
+			output<<ped_scan[k][m]<<",";
+			cout<<ped_scan[k][m]<<",";
+			}
+		output<<endl;
+		cout<<endl;
+	}
+
+	output.close();
+
 }//end of program
 
 
