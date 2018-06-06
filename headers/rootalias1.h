@@ -23,6 +23,27 @@ const char* PATHS[] = {
   0
 };
 
+const char* PATHS_2[] = {
+	"/volatile/halla/triton/Marathon_Rootfiles/pass1_calibration/",
+	"/cache/halla/triton/prod/pass1_calibration/kin1",
+	"/cache/halla/triton/prod/pass1_calibration/kin2",
+	"/cache/halla/triton/prod/pass1_calibration/kin3",
+	"/cache/halla/triton/prod/pass1_calibration/kin4",
+	"/cache/halla/triton/prod/pass1_calibration/kin5",
+	"/cache/halla/triton/prod/pass1_calibration/kin6",
+	"/cache/halla/triton/prod/pass1_calibration/kin7",
+	"/cache/halla/triton/prod/pass1_calibration/kin8",
+	"/cache/halla/triton/prod/pass1_calibration/kin9",
+	"/cache/halla/triton/prod/pass1_calibration/kin10",
+	"/cache/halla/triton/prod/pass1_calibration/kin11",
+	"/cache/halla/triton/prod/pass1_calibration/kin12",
+	"/cache/halla/triton/prod/pass1_calibration/kin13",
+	"/cache/halla/triton/prod/pass1_calibration/kin14",
+	"/cache/halla/triton/prod/pass1_calibration/kin15",
+	"/cache/halla/triton/prod/pass1_calibration/kin16",
+	0
+};
+
 //-------------------------------------------
 //get target info from epics encoder position
 // check if target moved during the run
@@ -104,7 +125,6 @@ int GetKin(TChain *T)
  	TBranch *ArmCheck = T->FindBranch(Form("%s.tr.n",Arm.Data()));
         if(ArmCheck==nullptr){
         	if(Arm=="L")Arm="R";
-		else{Arm=="L";}
 		}                              
  //
 
@@ -138,7 +158,7 @@ TChain* LoadRun(Int_t run, const char* path, const char* tree, Int_t debug)
 
     while ( !gSystem->AccessPathName(rootfile.Data()) ) {
 	tt->Add(rootfile.Data());
-	cout << "ROOT file " << rootfile << " added to " << tree<<" tree"<<endl;
+if(!debug)cout << "ROOT file " << rootfile << " added to " << tree<<" tree"<<endl;
 	split++;
 	rootfile = basename + "_" + split + ".root";
 	rootfile.Prepend(dir.Data());
@@ -174,6 +194,22 @@ TChain* LoadRun(Int_t run, const char* tree = "T")
 
     return tt;
 }
+TChain* LoadCalib(Int_t run, const char* tree = "T")
+{
+    Int_t i=0;
+
+    TChain* tt = 0;
+    while (PATHS_2[i]) {
+        tt = LoadRun(run,PATHS_2[i++],tree,1);
+
+        if (tt) break;
+    }
+
+    if (!tt)
+        cerr << "Can not find ROOT file for run " << run << endl;
+
+    return tt;
+}
 
 
 // Return PS of a given run
@@ -197,7 +233,7 @@ TArrayI GetPS(TTree* tt)
 Int_t GetPS(TTree* tt,Int_t trigger)
 {
   //  TDatime run_time("2018-01-01 00:00:00");
-
+    if(trigger<=0){return 0;}
     THaRun* run = 0;
     Int_t ps;
     if (!tt->GetDirectory()) tt->LoadTree(0); // Necessary if T is a TChain

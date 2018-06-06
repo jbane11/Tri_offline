@@ -34,6 +34,7 @@
 #include <TGraph.h>
 #include <TGraphErrors.h>
 #include <TCanvas.h>
+#include <TMultiGraph.h>
 #include <TDatime.h>
 #include <TError.h>
 #include <TVirtualFitter.h>
@@ -48,6 +49,7 @@
 #include <TLatex.h>
 #include <TLegend.h>
 #include <TRandom3.h>
+#include <TSpectrum.h>
 using namespace std;
 //	string kin_cor_loc = "/adaqfs/home/a-onl/tritium_work/Bane/Tri_offline/kin_txt/";
 	std::string kin_cor_loc = "/home/jbane/tritium/Tri_offline/kin_txt/";
