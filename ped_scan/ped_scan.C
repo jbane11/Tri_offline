@@ -280,19 +280,15 @@ void ped_scan( int run = 0 , int debug=0, int single_det=-1){
 		if(dets>20)break;	
 		if(!debug||single_det==-1)for(int noc=0;noc<num_of_Cs;noc++){delete C[noc];}
 	}//End of suffix loop of diff dets
-			
-	//Clean up the TChain!
-
-cout << ped_scan[1][0] << " "<< ped_scan[2][0]<<endl;
 
 	
-	for(int k = 0; k<=detector.size();k++){
-		for(int m=0;m<ped_scan[k].size();m++){
+	for(unsigned int k = 0; k<=detector.size();k++){
+		for(unsigned int m=0;m<ped_scan[k].size();m++){
 			output<<ped_scan[k][m]<<",";
-			cout<<ped_scan[k][m]<<",";
+			if(debug)cout<<ped_scan[k][m]<<",";
 			}
 		output<<endl;
-		cout<<endl;
+		if(debug)cout<<endl;
 	}
 
 	output.close();
