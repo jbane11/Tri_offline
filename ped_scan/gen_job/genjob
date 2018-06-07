@@ -9,7 +9,12 @@ list_dir=/work/halla/triton/Bane/Tri_offline/
 #
 
 run=$1
-#kin=$2
+if [ $# -lt 2 ]
+then 
+	debug=0
+else
+	debug=$2
+fi
 #
     if ! [ -d batch_files ]
 	then 
@@ -42,7 +47,7 @@ run=$1
 	echo "export PATH=\${ROOTSYS}/bin:\${ANALYZER}:\${PATH}" >>batch_files/batch_${run}
    	echo "cd ${list_dir}/ped_scan" >>batch_files/batch_${run}
     	echo " ">>batch_files/batch_${run}
-   	echo "analyzer -b -q -l -n .x '/work/halla/triton/Bane/Tri_offline/ped_scan/batch_ped_scan.C(${run})'>>./batch_corrections/batch_outfiles/${run}.out" >>batch_files/batch_${run}
+   	echo "analyzer -b -q -l -n .x '/work/halla/triton/Bane/Tri_offline/ped_scan/batch_ped_scan.C(${run},${debug})'>>./batch_corrections/batch_outfiles/${run}.out" >>batch_files/batch_${run}
   
     	chmod +x batch_files/batch_${run}
     
@@ -71,7 +76,7 @@ run=$1
     echo "PROJECT     triton" > batch_files/jscript_${run}
     echo "COMMAND     ${home}/batch_files/batch_"${run} >>batch_files/jscript_${run}
     echo "JOBNAME     H3_ped_scan_"${run}>>batch_files/jscript_${run}
-    echo "TRACK       debug" >> batch_files/jscript_${run}
+    echo "TRACK       test" >> batch_files/jscript_${run}
     echo "TIME        10" >>batch_files/jscript_${run}
     echo "MEMORY      1000 MB" >>batch_files/jscript_${run}
     echo "OS          centos7" >>batch_files/jscript_${run}

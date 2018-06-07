@@ -7,8 +7,8 @@
 /////////////////////////////////////////
 
 
-void batch_ped_scan(int run){
+void batch_ped_scan(int run, int debug=0){
 
 	gROOT->LoadMacro("ped_scan_C.so");
-	gROOT->ProcessLine(Form("ped_scan(%d)",run));
+	gROOT->ProcessLine(Form("ped_scan(%d,%d)",run,debug));
 }
