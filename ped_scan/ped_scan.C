@@ -10,7 +10,7 @@ void ped_scan( int run = 0 , int debug=0, int single_det=-1){
 	gStyle->SetOptStat(0);
 	vector< vector<string>> ped_scan;
 
-	string image = "./det";
+	string image = "./";
 	//Correct arm varribles
 	string Arm="",ARM="",arm="";
 	int first_run=0, last_run=0;
@@ -35,7 +35,7 @@ void ped_scan( int run = 0 , int debug=0, int single_det=-1){
 	}
 	////////////////////////////////////
 
-	ofstream output(Form("ped_table/%d.csv",run));
+	ofstream output(Form("./%d.csv",run));
 	if(!output.is_open()){
 		cout<<"Ped table not open!"<<endl;
 		exit(0);}	
