@@ -53,7 +53,7 @@ void search_runlist(string Arm ="L",int debug=0){
 	std::ofstream file("total_runlist.dat",ios::out);
 //	FILE * file =fopen("total_runlist.dat","w");	
 //	 setvbuf ( file , NULL , _IOFBF ,56 );
-	vector<<int>> in_runs;
+	vector<vector<int>> in_runs;
 	for(int i =0; i<Kins.size();i++)
 	{
 		vector<int> tmp_runs=gGet_RunNoChain(Kins[i].run_string);
