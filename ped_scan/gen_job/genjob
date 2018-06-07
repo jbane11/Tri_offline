@@ -1,0 +1,82 @@
+#!/bin/sh
+
+home=/work/halla/triton/Bane/Tri_offline/ped_scan/gen_job
+image_dir=/work/halla/triton/Bane/Tri_offline/ped_scan/det
+out_dir=/work/halla/triton/Bane/Tri_offline/ped_scan/ped_table
+list_dir=/work/halla/triton/Bane/Tri_offline/
+#
+# Function to check if input is an integer
+#
+
+run=$1
+#kin=$2
+#
+    if ! [ -d batch_files ]
+	then 
+	echo "----------------------------------------------------------------"
+	echo "I need batch_files directory. I am going to create it"
+	echo  
+	mkdir batch_files
+    fi
+    
+#
+#
+    	rm -f batch_files/batch_${batch_run}
+	rm -f ./batch_corrections/batch_outfiles/${run}.out
+    	echo "#!/bin/sh" >> batch_files/batch_${run}
+    	echo "export ANALYZER=/work/halla/triton/MARATHON_Replay/analyzer1.6" >>batch_files/batch_${run}
+	echo "export PATH=\${ROOTSYS}/bin:\${ANALYZER}:\${PATH}" >>batch_files/batch_${run}
+   	echo "cd ${list_dir}/ped_scan" >>batch_files/batch_${run}
+    	echo " ">>batch_files/batch_${run}
+   	echo "analyzer -b -q -l -n .x 'batch_ped_scan.C(${run})'>>./batch_corrections/batch_outfiles/${run}.out" >>batch_files/batch_${run}
+  
+    	chmod +x batch_files/batch_${run}
+    
+
+	echo "batch_files/batch_"${run}" has been created!"
+   	echo " "
+    
+#
+# Write the jsub script
+#
+	INPUT=/mss/halla/triton/prod/pass1_calibration
+	kin="$(root -b -l -n -q 'which_kin.C(1271)')"
+	KIN=${kin}
+
+echo ": "
+echo "${kin}"
+
+echo ":::  $KIN"
+
+exit
+    rm -f batch_files/jscript_${run}
+    echo "PROJECT     triton" > batch_files/jscript_${run}
+    echo "COMMAND     ${home}/batch_files/batch_"${run} >>batch_files/jscript_${run}
+    echo "JOBNAME     H3_ped_scan_"${run}>>batch_files/jscript_${run}
+    echo "TRACK       debug" >> batch_files/jscript_${run}
+    echo "TIME        10" >>batch_files/jscript_${run}
+    echo "MEMORY      1000 MB" >>batch_files/jscript_${run}
+    echo "OS          centos7" >>batch_files/jscript_${run}
+    echo "INPUT_FILES: ${INPUT}/kin${kin}/tritium_${run}_*.root" >>batch_files/jscript_${run}
+    echo "SINGLE_JOB: true" >>batch_files/jscript_${run}
+	   
+    echo "batch_files/jscript_"${run}" has been created."
+    echo " " 
+    echo "Now, let us wait for the farms..."
+    echo " "
+################################
+#    Submit job to the farm    #  
+################################
+#   swif add-jsub -workflow h3_ped_scan -create -script ./batch_files/jscript_${run}
+################################
+################################
+
+    echo "Job "${run} "has been submited to workflow h3_ped_scan!"
+    echo
+    echo
+#
+    
+
+echo
+echo "***** Good Bye and thank you for using the script *****"
+echo
