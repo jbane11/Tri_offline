@@ -6,7 +6,7 @@
 #include <dirent.h> 
 void search_runlist(string Arm ="L",int debug=0){
 
-	int first_run=1000, last_run=3000;
+	int first_run=1000, last_run=93000;
         string ARM="",arm="";
 	/*if(Arm=="L"){
                 ARM="Left";
@@ -67,7 +67,9 @@ void search_runlist(string Arm ="L",int debug=0){
 //	int buff=0;
 	for(int run=first_run; run <= last_run; run++)
 	{
-		if(run/100==run/100.0){cout <<"  : " <<endl;cin>>arm;if(arm=="~")break;}		
+		if(debug){if(run/500==run/500.0){cout <<"  : " <<endl;cin>>arm;
+					if(arm=="~")break;}
+		}		
 		string runs = to_string(run);
 		runs=runs;
 		
@@ -89,7 +91,8 @@ void search_runlist(string Arm ="L",int debug=0){
 			//	fprintf(file,"%d\t%s",run,kin1.c_str());
 			
 			break;
-			}	
+			}
+		if(run==3200)run=90000;	
 		}//cout <<endl<<endl;
 	}
 	file.close();
