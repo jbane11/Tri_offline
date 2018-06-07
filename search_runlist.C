@@ -1,12 +1,14 @@
 #include "./headers/inc1.h"
 #include "./headers/rootalias1.h"
+#include "./headers/TRI_Main.h"
+#include "./headers/TRI_Tools.h"
 #include <sys/types.h> 
 #include <dirent.h> 
-void search_runlist(string Arm ="L",int debug=1){
+void search_runlist(string Arm ="L",int debug=0){
 
-	int first_run=0, last_run=0;
+	int first_run=1000, last_run=3000;
         string ARM="",arm="";
-	if(Arm=="L"){
+	/*if(Arm=="L"){
                 ARM="Left";
                 arm="l";
                 first_run =1000;
@@ -18,7 +20,7 @@ void search_runlist(string Arm ="L",int debug=1){
                 first_run =90000;
                 last_run  =99000;
                 }
-
+*/
 	vector<kin_file> Kins;
 	DIR *dir = opendir("./Runlist");
 	if(dir)
@@ -46,42 +48,52 @@ void search_runlist(string Arm ="L",int debug=1){
 		}
 	
 	}
-	vector <vector<string>> found;	
-	std::ofstream file("total_runlist.dat");
+	closedir(dir);
+
+	std::ofstream file("total_runlist.dat",ios::out);
+//	FILE * file =fopen("total_runlist.dat","w");	
+//	 setvbuf ( file , NULL , _IOFBF ,56 );
+	vector<<int>> in_runs;
+	for(int i =0; i<Kins.size();i++)
+	{
+		vector<int> tmp_runs=gGet_RunNoChain(Kins[i].run_string);
+		in_runs.push_back(tmp_runs);
+		tmp_runs.clear();
+	}
 	
-	vector <string> tmp_v;
-	int did_f=0;
+
+	std::vector<int>::iterator f_pos;
+//	char *buffer = new char[256];
+//	int buff=0;
 	for(int run=first_run; run <= last_run; run++)
 	{
-		
+		if(run/100==run/100.0){cout <<"  : " <<endl;cin>>arm;if(arm=="~")break;}		
 		string runs = to_string(run);
-		runs=","+runs;
+		runs=runs;
+		
 		for(int i =0; i<Kins.size();i++)
 		{
-			int ff=-1; ff = Kins[i].run_string.find(runs);
-			int lf=-1; lf = Kins[i].run_string.length();
-			if(ff>-1)
-			{
-				string kin = Kins[i].target+"_"+Kins[i].kin_num;
-				did_f++;
-			cout << "Found :" <<endl;	
-			cout << Kins[i].run_string <<endl<<endl;
-			cout << ff<<"  "<< lf<<endl;
-		//		if(debug) cout << ff<<" "<< lf <<endl;		
-				tmp_v.push_back(runs);
-				tmp_v.push_back(kin);
-		//		if(debug) cout << runs << "\t" << kin <<endl;
-				file << run<< "\t" << kin <<endl;
-				found.push_back(tmp_v);
+			//in_runs.clear();
+			//in_runs=gGet_RunNoChain(Kins[i].run_string);
+//			cout <<in_runs.size()<<"  ";		
+			f_pos = std::find(in_runs[i].begin(), in_runs[i].end(), run);
+		
+			if(f_pos != in_runs[i].end()){
+				string kin1 = Kins[i].target+"_"+Kins[i].kin_num;
+			cout<<run <<" " << f_pos - in_runs[i].begin()<<" " <<kin1 <<endl;
+			file <<run<<"\t"<<kin1<<endl;
+			file.flush();
 			
-				tmp_v.clear();
-			}
-		}
-		cout << did_f<<endl;
-		did_f=0;	
-	}	
-	file.close();
+		
 
+			//	fprintf(file,"%d\t%s",run,kin1.c_str());
+			
+			break;
+			}	
+		}//cout <<endl<<endl;
+	}
+	file.close();
+//	fclose(file);
 
 }//end of program	
 

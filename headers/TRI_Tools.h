@@ -123,7 +123,7 @@ inline vector<Int_t> gGet_RunNoChain(const TString& aString)
 			}
 		}
 	}
-	for ( i=0; i<output.size(); i++ )
+	/*for ( i=0; i<output.size(); i++ )
 	{
 		if ( i==0 && output.size()>1 ){
 			cerr<<"      RunNoChain is "<<output[i];
@@ -137,7 +137,7 @@ inline vector<Int_t> gGet_RunNoChain(const TString& aString)
 		else{
 			cerr<<" "<<output[i];
 		}
-	}
+	}*/
 	return output;
 }
 /*}}}*/
