@@ -6,11 +6,12 @@
 
 void ped_scan( int run = 0 , int debug=0, int single_det=-1){
 	if(run==0){cout << "Please Enter run number" <<endl; cin >> run;}
-
+	if(debug) cout << "Debug is turn on: if you supply a run number this will be the first statment printed!! "<<endl<<endl;
 	gStyle->SetOptStat(0);
 	vector< vector<string>> ped_scan;
 
-	string image = "./";
+	ped_scan.reserve(7);
+	string image = "./det";
 	//Correct arm varribles
 	string Arm="",ARM="",arm="";
 	int first_run=0, last_run=0;
@@ -35,7 +36,7 @@ void ped_scan( int run = 0 , int debug=0, int single_det=-1){
 	}
 	////////////////////////////////////
 
-	ofstream output(Form("./%d.csv",run));
+	ofstream output(Form("./ped_table/%d.csv",run));
 	if(!output.is_open()){
 		cout<<"Ped table not open!"<<endl;
 		exit(0);}	
