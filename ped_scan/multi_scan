@@ -1,0 +1,93 @@
+#!/bin/bash
+
+the_command ()	{
+
+	run=$1
+	debug=1
+	analyzer -b -q -l -n .x "batch_ped_scan.C( ${run} , ${debug} )">>stdout/${run}.out
+	
+	return 0
+}
+
+
+
+
+
+
+
+
+vola=/volatile/halla/triton/Marathon_Rootfiles/pass1_calibration/
+cache=/cache/halla/triton/prod/pass1_calibration/
+mss=/mss/halla/triton/prod/pass1_calibration/
+
+if [ $1 == "-l" ]
+then
+	echo "Looking at a list of runs"
+#############################################################################################1
+#############################################################################################1
+elif [ $# -eq 2 ]
+then
+	echo "Looking at runs from $1 to $2 "
+#############################################################################################2
+run=$1
+last=$2 
+while [ ${run} -le ${last} ] 
+do
+## Deterimine if the run is in cache or volatile:
+	echo "Run :: ${run}"	
+
+	###Which kinimatic for cache
+        kin=$(root -b -l -n -q "which_kin.C(${run})")
+        echo "${kin}" >tmp.tmp
+        FN="tmp.tmp"
+        tmplin=$(cat "tmp.tmp")
+        KIN=${tmplin#*(int)}
+        KIN=${KIN# }
+        if [ ${KIN} -eq -1 ]
+        then
+                echo "Run not found in runlist"
+        fi
+	run=$[$run+1]	
+
+	if [ -e ${vola}tritium_${run}.root ]
+	then
+        	echo "file in volatile "
+	###Found in Volatile run that CODE!!!
+
+	the_command ${run}
+
+	#####################################	
+	else
+		if [ ${KIN} -eq -1 ]
+        	then
+			echo "Can not id the kin. & not in vol. cleaning up and exiting!"
+			echo "${run},">>no_kin.out
+		fi
+		
+		if [ -e ${cache}/kin${KIN}/tritium_${run}.root ]
+		then
+		###########
+		##Found in cache run iT!!
+		
+		the_command ${run}
+		
+		##########
+		else
+			echo "File not in cache, making get statment in get_root.sh"
+			echo "jcache get ${mss}/kin${KIN}/tritium_${run}*.root -e jbane@jlab.org">>get_root.sh	
+		fi
+		
+
+	fi
+done
+
+#############################################################################################2
+else
+	echo "please use option -l for arg 1 or two run numbers to scan from 1 to 2!"
+	exit
+fi
+
+
+
+
+
