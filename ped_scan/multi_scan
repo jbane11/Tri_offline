@@ -47,7 +47,6 @@ do
         then
                 echo "Run not found in runlist"
         fi
-	run=$[$run+1]	
 
 	if [ -e ${vola}tritium_${run}.root ]
 	then
@@ -56,6 +55,7 @@ do
 
 	the_command ${run}
 
+	run=$[$run+1]	
 	#####################################	
 	else
 		if [ ${KIN} -eq -1 ]

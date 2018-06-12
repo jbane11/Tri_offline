@@ -8,9 +8,19 @@ void ped_scan( int run = 0 , int debug=0, int single_det=-1){
 	if(run==0){cout << "Please Enter run number" <<endl; cin >> run;}
 	if(debug) cout << "Debug is turn on: if you supply a run number this will be the first statment printed!! "<<endl<<endl;
 	gStyle->SetOptStat(0);
-	vector< vector<string>> ped_scan;
+	std::vector< string> tmp_v(34);
+	std::vector< std::vector<string>> ped_scan(7,tmp_v);
+	ped_scan.begin();
+cout << ped_scan.size() <<endl;
 
-	ped_scan.reserve(7);
+	for(unsigned int i=0; i<ped_scan.size();i++){
+		for(unsigned int j=0; j<ped_scan[i].size();j++){
+			cout<<ped_scan[i][j] << " ,";}
+		cout<<endl;
+	}
+	ped_scan.clear();
+
+//	ped_scan.reserve(7);
 	string image = "./det";
 	//Correct arm varribles
 	string Arm="",ARM="",arm="";
@@ -25,22 +35,24 @@ void ped_scan( int run = 0 , int debug=0, int single_det=-1){
 		ARM="Right";
 		arm="r";
 		}
-	//////////////////////////
-	
-	//Load one file for detector checks
+	////////////////////////	//Load one file for detector checks
 	TChain *Temp = LoadCalib(run);
 	if(Temp==nullptr)
 	{
 		cout << "Error on first run: run number ("<< first_run<<"). Exiting!!"<<endl;
 		exit(0);
 	}
+	Temp->SetBranchStatus("*",0);
 	////////////////////////////////////
 
 	ofstream output(Form("./ped_table/%d.csv",run));
 	if(!output.is_open()){
 		cout<<"Ped table not open!"<<endl;
 		exit(0);}	
-		
+	//make a buffer for the output
+	
+	char mybuffer [512];
+	output.rdbuf()->pubsetbuf(mybuffer,512);	
 	//Find the correct name for the detector to ploti
 	string det_array[] ={".s0",".s2",".prl1",".prl2",".cer",".sh",".ps"};
 	string suffix_array[] = {".a",".la",".ra"};
@@ -50,30 +62,41 @@ void ped_scan( int run = 0 , int debug=0, int single_det=-1){
 	vector<int> num_of_channels;
 	Temp->GetEntry(10);
 	int max_channel=0;
-	for(unsigned int det_l =0; det_l<det_vector.size();det_l++)//start of short loop through suffix
-
+	int tbn=0;
+	int nod=0;
+	for(unsigned int det_l=0; det_l<det_vector.size();det_l++)//start of short loop through suffix
+	{	
 		for(unsigned int suf =0; suf<suffix.size();suf++)//start of short loop through suffix
 		{
+			Temp->ResetBranchAddresses();
 			string tmp =Arm+ det_vector[det_l] + suffix[suf];
 			if(debug)cout << tmp<<"   \t";
 			TBranch *TB = Temp->FindBranch(tmp.c_str());
-			TBranch *TBN; int tbn=0;
+			TBranch *TBN; 
 			if(debug)cout <<TB<<" ";	
 			if(TB!=nullptr)
 			{
+			
 				detector.push_back(tmp);
+				Temp->SetBranchStatus(Form("%s",tmp.c_str()),1);
+				Temp->SetBranchStatus(Form("Ndata.%s",tmp.c_str()),1);
 				Temp->SetBranchAddress(Form("Ndata.%s",tmp.c_str()), &tbn);
 				//I need this draw. Y, IDK F ME!!!
-				Temp->Draw(Form("Ndata.%s",tmp.c_str()),"","goff");	
+//				Temp->Draw(Form("Ndata.%s",tmp.c_str()),"","goff");	
+				Temp->GetEntry(10+nod);
 				if(tbn>0)num_of_channels.push_back(tbn);
+
+				nod++;
 			}
 			if(debug)cout<<"  \t"<< tbn;
+			tbn=0;
 			TB =nullptr; 
 			TBN=nullptr;
-			if(debug)cout<<endl;
 			if(tbn>max_channel)max_channel=tbn;
 			
+			if(debug)cout<<endl;
 		}//end of suffix loop
+	}//end of prefix loop
 	///////////////////////
 	////////	
 
@@ -98,6 +121,8 @@ void ped_scan( int run = 0 , int debug=0, int single_det=-1){
 	//Loop through each part of the detector
 	for(unsigned int dets=detss;dets<detector.size();dets++)
 	{
+	
+if(debug)cout<<"Debug: start of dets loop:  " << dets <<endl;
 		//make A canvas with the closest but sligtly more 
 		//or = num of pads. 
 		int x_d = floor(sqrt(num_of_channels[dets]));
@@ -136,8 +161,11 @@ void ped_scan( int run = 0 , int debug=0, int single_det=-1){
 		TLegend *leg[num_of_channels[dets]];
 		//Loop through each PMT of the detectro
 		int pad=1; //pad for drawing
+
+if(debug)cout<<"Debug: start of pmt loop:  " <<endl;
 		for(int pmt=0; pmt<num_of_channels[dets];pmt++)
 		{
+
 			if(pmt/12.0 == pmt/12&&pmt>>0){C_select++;pad=1; if(debug){cout << "Next canvas" <<endl;}}
 			if(debug)cout<< "pmt "<<pmt<<" "; 
 			//Make a hist for each pmt, need to keep till end of loop 
@@ -145,7 +173,7 @@ void ped_scan( int run = 0 , int debug=0, int single_det=-1){
 			hist[pmt] = new TH1F(Form("hist%d",pmt),
 				Form("%s[%d]",detector[dets].c_str(),pmt)
 				,10000,0,50000);
-		
+			if(debug) cout<< "Debug: intialize hist" <<endl;	
 			
 			C[C_select]->cd(pad);
 			//Draw the branch.
@@ -220,7 +248,7 @@ void ped_scan( int run = 0 , int debug=0, int single_det=-1){
 				old_red=red_x_F1;
 				if(counter>8)break;
 
-			}
+			}//out of refit
 
 			F1[pmt]->Draw("same");
 
@@ -258,14 +286,17 @@ void ped_scan( int run = 0 , int debug=0, int single_det=-1){
 			leg[pmt]->AddEntry(F1[pmt],Form("Pedestal = %0.2f",F1[pmt]->GetParameter(1)),"l");
 			leg[pmt]->Draw("same"); 
 			hist[pmt]->GetXaxis()->SetTitle("raw adc");
-			if(!debug){delete hist[pmt]; delete F1[pmt];}
+			if(!debug){delete hist[pmt]; delete F1[pmt];delete F2[pmt];}
 			pad++; //pad for drawing on canvas
+			peaks=nullptr;
 		}//End of PMT loop
-			
-		ped_scan.push_back(oneD);
-		cout << "Push back "<< oneD[0]<<" "<< ped_scan[dets+1][0]<<endl;
-		oneD.clear();
 
+		if(debug)cout<<" End of PMT loop "<<dets<<endl;	
+		ped_scan.push_back(oneD);
+		if(debug)cout << "Push back "<< oneD[0]<<" "<< ped_scan[dets+1][0]<<endl;
+		
+		oneD.clear();
+		if(debug)cout<<"Cleared the oneD vector"<<endl;
 
 		//Add the canvas to a pdf
 		for(int noc=0;noc<num_of_Cs;noc++){
@@ -277,7 +308,13 @@ void ped_scan( int run = 0 , int debug=0, int single_det=-1){
 		}
 		
 		if(single_det>=0)break;
-		if(debug) for(int pmt=0; pmt<num_of_channels[dets];pmt++) delete hist[pmt]; 	
+		if(debug){
+			 for(int pmt=0; pmt<num_of_channels[dets];pmt++){
+				 delete hist[pmt]; 	
+				 delete F1[pmt];
+				 delete F2[pmt];
+				}
+		}
 		if(dets>20)break;	
 		if(!debug||single_det==-1)for(int noc=0;noc<num_of_Cs;noc++){delete C[noc];}
 	}//End of suffix loop of diff dets
