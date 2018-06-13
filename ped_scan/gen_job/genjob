@@ -1,9 +1,9 @@
 #!/bin/sh
 
-home=/work/halla/triton/Bane/Tri_offline/ped_scan/gen_job
-image_dir=/work/halla/triton/Bane/Tri_offline/ped_scan/det
-out_dir=/work/halla/triton/Bane/Tri_offline/ped_scan/ped_table
-list_dir=/work/halla/triton/Bane/Tri_offline/
+home=/w/halla-scifs17exp/triton/Bane/Tri_offline/ped_scan/gen_job
+image_dir=${home}/../det
+out_dir=${home}/../ped_table
+list_dir=${home}/../..
 #
 # Function to check if input is an integer
 #
@@ -15,6 +15,14 @@ then
 else
 	debug=$2
 fi
+
+if [ $# -eq 3 ]
+then 
+	track=$3
+else
+	track=analysis
+fi
+
 #
     if ! [ -d batch_files ]
 	then 
@@ -30,24 +38,26 @@ fi
 	FN="tmp.tmp"
 	tmplin=$(cat "tmp.tmp")
 	KIN=${tmplin#*(int)}
-	echo ${KIN}
+	KIN=${KIN# }
+	echo ":${KIN}:"
 	
 	if [ ${KIN} -eq -1 ] 
 	then
-		echo "Run not found in runlist, exiting"
-		exit
+		echo "Run not found in runlist"
+	
 	fi
 #
 #
-    	rm -f ./batch_files/batch_${batch_run}*
-	
-	rm -f ./batch_corrections/batch_outfiles/${run}.out
-    	echo "#!/bin/sh" >> batch_files/batch_${run}
+    	rm -f -v ./batch_files/batch_${run}
+	rm -f -v ./batch_outfiles/${run}.out
+    	
+	echo "#!/bin/sh" >> batch_files/batch_${run}
+	echo "source /apps/root/6.10.02/setroot_CUE.bash" >>batch_files/batch_${run}
     	echo "export ANALYZER=/work/halla/triton/MARATHON_Replay/analyzer1.6" >>batch_files/batch_${run}
 	echo "export PATH=\${ROOTSYS}/bin:\${ANALYZER}:\${PATH}" >>batch_files/batch_${run}
-   	echo "cd ${list_dir}/ped_scan" >>batch_files/batch_${run}
+   	echo "cd ${home}/.." >>batch_files/batch_${run}
     	echo " ">>batch_files/batch_${run}
-   	echo "analyzer -b -q -l -n .x '/work/halla/triton/Bane/Tri_offline/ped_scan/batch_ped_scan.C(${run},${debug})'>>./batch_corrections/batch_outfiles/${run}.out" >>batch_files/batch_${run}
+   	echo "analyzer -b -q -l -n 'batch_ped_scan.C(${run},${debug})'>>/w/halla-scifs17exp/triton/Bane/Tri_offline/ped_scan/gen_job/batch_outfiles/${run}.out" >>batch_files/batch_${run}
   
     	chmod +x batch_files/batch_${run}
     
@@ -70,41 +80,99 @@ fi
 		p2="sh."
 	fi
 # Write the jsub script
-#
+#i
+	if [ $KIN -lt 3 ]
+	then 
+		ti=240
+	elif [ $KIN -lt 6 ]
+	then
+		ti=200
+	elif [ $KIN -lt 9 ]
+	then
+		ti=160
+	elif [ $KIN -lt 12 ]
+	then
+		ti=120	
+	elif [ $KIN -lt 14 ]
+	then	
+		ti=80 
+	else
+		ti=40 
+	fi
+	
+	echo ":::: ${ti} ::: "
 
-    rm -f batch_files/jscript_${run}*
+    rm -f -v  batch_files/jscript_${run}*
     echo "PROJECT     triton" > batch_files/jscript_${run}
     echo "COMMAND     ${home}/batch_files/batch_"${run} >>batch_files/jscript_${run}
     echo "JOBNAME     H3_ped_scan_"${run}>>batch_files/jscript_${run}
-    echo "TRACK       test" >> batch_files/jscript_${run}
-    echo "TIME        10" >>batch_files/jscript_${run}
-    echo "MEMORY      1000 MB" >>batch_files/jscript_${run}
+    echo "TRACK       ${track}" >> batch_files/jscript_${run}
+    echo "TIME        ${ti}" >>batch_files/jscript_${run}
+    echo "MEMORY      2 GB" >>batch_files/jscript_${run}
     echo "OS          centos7" >>batch_files/jscript_${run}
-    echo "INPUT_FILES: ${INPUT}/kin${KIN}/tritium_${run}_*.root" >>batch_files/jscript_${run}
-    
-    echo "OUTPUT_DATA: Pedestals_${Arm}s0.la_${run}.pdf">>batch_files/jscript_${run}
-    echo "OUTPUT_TEMPLATE: ${image_dir}/Pedestals_${Arm}s0.la_${run}.pdf">>batch_files/jscript_${run}
 
-    echo "OUTPUT_DATA: Pedestals_${Arm}s0.ra_${run}.pdf">>batch_files/jscript_${run}
-    echo "OUTPUT_TEMPLATE: ${image_dir}/Pedestals_${Arm}s0.ra_${run}.pdf">>batch_files/jscript_${run}
+   ##################################################
+   if [ -e /volatile/halla/triton/Marathon_Rootfiles/pass1_calibration/tritium_${run}.root ]
+   then
+    	echo "file in volatile "	
+    	FN=/volatile/halla/triton/Marathon_Rootfiles/pass1_calibration/tritium_${run}.root
+   #	 icr=1
+    	#while [ -e $FN ]
+    	#do
+		#echo "${FN}"	
+	    	#echo "INPUT_FILES: ${FN}" >>batch_files/jscript_${run}
+		#FN=/volatile/halla/triton/Marathon_Rootfiles/pass1_calibration/tritium_${run}_${icr}.root
+	#	(( icr++ ))
+    #	done  
+	
+  
+   else
+   ##########
+	#######
+   	if [ ${KIN} -eq -1 ]
+     	then 
+		echo "Can not id the kin. and root file not found in volatile: cleaning up and exiting!"
+		rm -f batch_files/jscript_${run}
+		rm -f batch_files/batch_${run}
+		exit
+	fi
+	######
+    	echo "Getting file off tape "
+    	FN=${INPUT}/kin${KIN}/tritium_${run}.root
+	    icr=1
+	    while [ -e $FN ]
+	    do
+		echo "${FN}"	
+	    	echo "INPUT_FILES: ${FN}" >>batch_files/jscript_${run}
+		FN=${INPUT}/kin${KIN}/tritium_${run}_${icr}.root
+		(( icr++ ))
+	    done  	
+   fi
+   ##################################################	
+ 
+    #echo "OUTPUT_DATA: Pedestals_${Arm}s0.la_${run}.pdf">>batch_files/jscript_${run}
+    #echo "OUTPUT_TEMPLATE: ${image_dir}/Pedestals_${Arm}s0.la_${run}.pdf">>batch_files/jscript_${run}
+
+    #echo "OUTPUT_DATA: Pedestals_${Arm}s0.ra_${run}.pdf">>batch_files/jscript_${run}
+    #echo "OUTPUT_TEMPLATE: ${image_dir}/Pedestals_${Arm}s0.ra_${run}.pdf">>batch_files/jscript_${run}
     
-    echo "OUTPUT_DATA: Pedestals_${Arm}s2.la_${run}.pdf">>batch_files/jscript_${run}
-    echo "OUTPUT_TEMPLATE: ${image_dir}/Pedestals_${Arm}s2.la_${run}.pdf">>batch_files/jscript_${run}
+    #echo "OUTPUT_DATA: Pedestals_${Arm}s2.la_${run}.pdf">>batch_files/jscript_${run}
+    #echo "OUTPUT_TEMPLATE: ${image_dir}/Pedestals_${Arm}s2.la_${run}.pdf">>batch_files/jscript_${run}
     
-    echo "OUTPUT_DATA: Pedestals_${Arm}s2.ra_${run}.pdf">>batch_files/jscript_${run}
-    echo "OUTPUT_TEMPLATE: ${image_dir}/Pedestals_${Arm}s2.ra_${run}.pdf">>batch_files/jscript_${run}
+    #echo "OUTPUT_DATA: Pedestals_${Arm}s2.ra_${run}.pdf">>batch_files/jscript_${run}
+    #echo "OUTPUT_TEMPLATE: ${image_dir}/Pedestals_${Arm}s2.ra_${run}.pdf">>batch_files/jscript_${run}
     
-    echo "OUTPUT_DATA: Pedestals_${Arm}${p1}a_${run}.pdf">>batch_files/jscript_${run}
-    echo "OUTPUT_TEMPLATE: ${image_dir}/Pedestals_${Arm}${p1}.a_${run}.pdf">>batch_files/jscript_${run}
+    #echo "OUTPUT_DATA: Pedestals_${Arm}${p1}a_${run}.pdf">>batch_files/jscript_${run}
+    #echo "OUTPUT_TEMPLATE: ${image_dir}/Pedestals_${Arm}${p1}.a_${run}.pdf">>batch_files/jscript_${run}
     
-    echo "OUTPUT_DATA: Pedestals_${Arm}${p2}a_${run}.pdf">>batch_files/jscript_${run}
-    echo "OUTPUT_TEMPLATE: ${image_dir}/Pedestals_${Arm}${p2}.a_${run}.pdf">>batch_files/jscript_${run}
+    #echo "OUTPUT_DATA: Pedestals_${Arm}${p2}a_${run}.pdf">>batch_files/jscript_${run}
+    #echo "OUTPUT_TEMPLATE: ${image_dir}/Pedestals_${Arm}${p2}.a_${run}.pdf">>batch_files/jscript_${run}
     
-    echo "OUTPUT_DATA: Pedestals_${Arm}cer.a_${run}.pdf">>batch_files/jscript_${run}
-    echo "OUTPUT_TEMPLATE: ${image_dir}/Pedestals_${Arm}cer.a_${run}.pdf">>batch_files/jscript_${run}
+    #echo "OUTPUT_DATA: Pedestals_${Arm}cer.a_${run}.pdf">>batch_files/jscript_${run}
+    #echo "OUTPUT_TEMPLATE: ${image_dir}/Pedestals_${Arm}cer.a_${run}.pdf">>batch_files/jscript_${run}
    
-    echo "OUTPUT_DATA: ${run}.csv">>batch_files/jscript_${run}
-    echo "OUTPUT_TEMPLATE: ${out_dir}/${run}.csv">>batch_files/jscript_${run}
+    #echo "OUTPUT_DATA: ${run}.csv">>batch_files/jscript_${run}
+    #echo "OUTPUT_TEMPLATE: ${out_dir}/${run}.csv">>batch_files/jscript_${run}
  
     echo "SINGLE_JOB: true" >>batch_files/jscript_${run}
 	   
@@ -115,9 +183,12 @@ fi
 ################################
 #    Submit job to the farm    #  
 ################################
-#   swif add-jsub -workflow h3_ped_scan -create -script ./batch_files/jscript_${run}
+   #swif add-jsub -workflow h3_ped_scan -create -script ./batch_files/jscript_${run}
 ################################
 ################################
+	jsub ./batch_files/jscript_${run}    
+
+
 
     echo "Job "${run} "has been submited to workflow h3_ped_scan!"
     echo
