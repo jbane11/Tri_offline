@@ -24,6 +24,7 @@ const char* PATHS[] = {
 };
 
 const char* PATHS_2[] = {
+	"./rootfiles",
 	"/volatile/halla/triton/Marathon_Rootfiles/pass1_calibration/",
 	"/cache/halla/triton/prod/pass1_calibration/kin1",
 	"/cache/halla/triton/prod/pass1_calibration/kin2",
