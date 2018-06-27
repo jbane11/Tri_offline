@@ -1,4 +1,5 @@
 /*C/C++ Includes{{{*/
+#include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
 #include <string>
@@ -102,8 +103,25 @@ bool is_number(const std::string& s)
 return( strspn( s.c_str(), "-.0123456789" ) == s.size() );
 
 }
+/////////////////take csv string of ints and return vector
+vector<int> parse_csv_int(string s)
+{
+	stringstream ss(s);
+	vector<int> vec;
+	while( ss.good() )
+	{
+		string substr;
+		getline( ss, substr, ',' );
+		int sub;
+		if(is_number(substr))
+		{
+ 			sub = stoi(substr);
+			vec.push_back(sub);
+		}
+	}
 
-
+	return vec;
+}
 
 //Class to open up a kin file and create strings for the information inside. 
 class kin_file {
@@ -111,24 +129,30 @@ class kin_file {
 		std::string target;std::vector<int> Oldrun;
 		std::string kin_num;
 		std::string run_string;
-		     int run_file_status=0;
-	void set_file(std::string name, int debug = 0){
+		vector<int> run_vect;
+		int run_file_status=0;
+	
+	void set_file(std::string name, int debug = 0)
+	{
 		std::ifstream file(name);
   		if(file.fail()){cout << "Run list file does not exist !"<<endl; return;}
 		run_file_status=1;
 		TString content;
 
-  		for (int ii=0; content.ReadLine(file) && ii<3;ii++ ) {  
-    		if(debug==1){cout<<"!!!:  "<<content<<endl;}
-    		if(ii==0)target = content;
-       		if(ii==1){
-           		kin_num = content.Data();
-           	}
-    		if(ii==2)run_string = content; 
-        }
+  		for (int ii=0; content.ReadLine(file) && ii<3;ii++ ) 
+		{  
+    			if(debug==1){cout<<"!!!:  "<<content<<endl;}
+    			if(ii==0)target = content;
+       			if(ii==1){
+           			kin_num = content.Data();
+           		}
+    			if(ii==2)run_string = content; 
+        	}
   		file.close();
+		run_vect = parse_csv_int(run_string);
+		
   		
-  		}
+  	}
 };
 //////////////////////////////////////////////////////////////////////////////
 class  corrections{
