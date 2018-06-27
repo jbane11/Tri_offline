@@ -33,12 +33,13 @@ else
 #
 #
     	rm -f batch_files/batch_${kin_file}
+	rm -f ./batch_corrections/batch_outfiles/${kin_file}.out
     	echo "#!/bin/sh" >> batch_files/batch_${kin_file}
     	echo "export ANALYZER=/work/halla/triton/MARATHON_Replay/analyzer1.6" >>batch_files/batch_${kin_file}
 	echo "export PATH=\${ROOTSYS}/bin:\${ANALYZER}:\${PATH}" >>batch_files/batch_${kin_file}
    	echo "cd ${out_dir}" >>batch_files/batch_${kin_file}
     	echo " ">>batch_files/batch_${kin_file}
-   	echo "analyzer -b .x 'run.cc(\"${kin_file}.dat\",1,1)'&>./batch_corrections/batch_outfiles/${kin_file}.out" >>batch_files/batch_${kin_file}
+   	echo "analyzer -b .x 'run.cc(\"${kin_file}.dat\",1,1)'>>./batch_corrections/batch_outfiles/${kin_file}.out" >>batch_files/batch_${kin_file}
 #    echo "analyzer -b .x 'Corrections_table.C(\"${kin_file}.dat\",1,1)'>./batch_corrections/batch_outfiles/${kin_file}.err" >>batch_files/batch_${kin_file}
 	echo "swif outfile ${out_file}\$f " >>batch_files/batch_${krun}
   
@@ -68,7 +69,7 @@ else
 ################################
 #    Submit job to the farm    #  
 ################################
-#   swif add-jsub -workflow h3_corrections_${kin} -create -script ./batch_files/jscript_${kin_file}
+   swif add-jsub -workflow h3_corrections_${kin} -create -script ./batch_files/jscript_${kin_file}
 ################################
 ################################
 
