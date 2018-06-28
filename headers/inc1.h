@@ -3,7 +3,6 @@
 #include <time.h>
 #include <stdio.h>
 #include <string>
-#include <sstream>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -78,7 +77,7 @@ using namespace std;
 	double GC_p_sample_inc = 1000;
 	int cur_sel_inc=0;
 	double beamon_min_inc=1;
-
+	double PI=3.14159265359;
 
 
 //classes
@@ -123,6 +122,10 @@ vector<int> parse_csv_int(string s)
 
 	return vec;
 }
+
+double milRtoDeg(double mR){return mR*0.001 *(180/PI);}
+
+
 
 //Class to open up a kin file and create strings for the information inside. 
 class kin_file {
@@ -207,11 +210,12 @@ void Read_Table(std::string kin_target, std::string kin_num, int debug=0) {
 				d_type.resize(num_of_inputs);
 				d_type[num_of_inputs-1].set_values(in_num,columns,labels[columns-1]);
 
-				if(debug==1)cout <<" : "<< token << "  : ";
+				if(debug==1)cout <<labels[columns-1]<<":\t"<< token << ":\t";
      	  		}
 			columns++;
-			if(debug==1)cout<<endl;
+		//	if(debug==1)cout<<endl;
 		}
+		if(debug)cout<<endl;
 		input_vec.push_back(col);
      		col.clear();
     		numint++;
@@ -225,7 +229,7 @@ void Read_Table(std::string kin_target, std::string kin_num, int debug=0) {
     		inrun=stoi(stringrun,&sz);
     		size_t leng = stringrun.length();
        		Oldrun.push_back(inrun);
-		if(debug==1)cout<< "old run num : " <<inrun <<endl;
+//		if(debug==1)cout<< "old run num : " <<inrun <<endl;
     		innum++;
      	}
   	list.close();
@@ -340,6 +344,37 @@ inline TString Good_Electron_Cuts(TString ARM_inc="Left", int PID =1,int trigger
 
 	return cuts;
 }
+
+
+void set_defaults()
+{
+
+			///Varibles defined for cuts	
+	TG_Theta_Max_inc = 0.04;//40mrad
+	TG_Theta_Min_inc =-0.04;//40mrad
+	TG_Phi_Max_inc = 0.030;//25mrad
+	TG_Phi_Min_inc =-0.030;//25mrad
+	TG_Dp_Max_inc = 0.04;//4%mrad
+	TG_Dp_Min_inc =-0.04;//4%mrad
+	TG_VZ_Max_inc = 0.1200;//4%mrad
+	TG_VZ_Min_inc =-0.1200;//4%mrad
+	P0_inc = 3.100; //GeV/c
+	GC_Cut_inc = 2000.;
+	EP_Cut_inc= 0.75;
+	Main_Trigger_Left_inc = 2;
+	Main_Trigger_Right_inc = 5;
+	e_sample_int_inc = 3000.0;
+	e_sample_m_inc= -3000.0/2300.0;
+	p_sample_int_inc = 1500.0;
+	p_sample_m_inc = -1.0;
+	GC_e_sample_min_inc=4000;
+	GC_e_sample_max_inc=6000;
+	GC_p_sample_inc = 1000;
+	cur_sel_inc=0;
+	beamon_min_inc=1;
+
+}
+
 inline void set_limits(TString kin_tgt)
 {
 
@@ -370,9 +405,14 @@ inline void set_limits(TString kin_tgt)
 				pos = db_vector[k].find(delim2);					//find end of inpt
 				db_vector[k].erase(pos, pos+ db_vector[k].length());			//restructure string 			
 				if(is_number(db_vector[k])){ db_num.push_back(stod(db_vector[k]));}   	//set string as double
-				k++;} 
-			}//end of correct kin
-		j++;} //end of input file
+				k++;
+			} 
+		}//end of correct kin
+		else{ 
+			set_defaults();
+			return;
+		}
+	j++;} //end of input file
 
 	if(db_num.size()<=1){return;}
 	TG_Theta_Max_inc	=db_num[0];	//mrad
