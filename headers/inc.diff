@@ -1,0 +1,163 @@
+12a13
+> #include <TArray.h>
+13a15
+> #include <TString.h>
+18d19
+< #include <TString.h>
+35a37
+> #include <TMultiGraph.h>
+50c52,53
+< 
+---
+> #include <TSpectrum.h>
+> using namespace std;
+52c55
+< 	string kin_cor_loc = "/home/jbane/tritium/Tri_offline/kin_txt/";
+---
+> 	std::string kin_cor_loc = "/home/jbane/tritium/Tri_offline/kin_txt/";
+108c111
+< 		std::string target;vector<int> Oldrun;
+---
+> 		std::string target;std::vector<int> Oldrun;
+111c114
+< 	
+---
+> 		     int run_file_status=0;
+113,114c116,119
+< 		ifstream file(name);
+<   		TString content;
+---
+> 		std::ifstream file(name);
+>   		if(file.fail()){cout << "Run list file does not exist !"<<endl; return;}
+> 		run_file_status=1;
+> 		TString content;
+128a134,142
+> class  corrections{
+> 	public:
+> 	std::vector<vector<double>> CT;
+> 	std::vector<string> Labels;
+> 	std::vector<int> ORs;
+> 	int CS;	
+> 	//void Read_Table(std::string kin_target, std::string kin_num); 
+> 	
+> //};
+130c144
+< inline vector< vector<double>> corrections_table(std::string kin_target, std::string kin_num) {
+---
+> void Read_Table(std::string kin_target, std::string kin_num, int debug=0) {
+138d151
+< 	
+143c156,157
+< 	if(!list.is_open()) { cout << " Corrections file does not exist " <<endl; return input_vec;}
+---
+> 	if(!list.is_open()) {CS=0; cout << " Corrections file does not exist " <<endl; return; }
+> 	CS=1; //does the files open
+157c171,172
+< 
+---
+> 		
+> 		if(debug==1)cout <<numint<<" :  "<< innum << " "<< line_file <<endl;
+161c176
+<   	  		if(numint==1){labels.push_back(token);}
+---
+>   	  		if(numint==1){labels.push_back(token); cout << token <<" :: \t";}
+168a184,185
+> 
+> 				if(debug==1)cout <<" : "<< token << "  : ";
+170a188
+> 			if(debug==1)cout<<endl;
+174a193
+> 		stringrun="";
+177c196
+<       			if(line_file[jj]== ' '){break;}
+---
+>       			if(line_file[jj]== '\t'){break;}
+179c198,199
+<     		}	
+---
+>     		}
+> 		
+182a203
+> 		if(debug==1)cout<< "old run num : " <<inrun <<endl;
+186,188c207,212
+< 	input_vec.erase(input_vec.begin());
+< 	input_vec.erase(input_vec.begin());
+< 	return input_vec;
+---
+> 	if(input_vec.size()>2)input_vec.erase(input_vec.begin());
+> 	if(input_vec.size()>1)input_vec.erase(input_vec.begin());
+> 	
+> 	ORs=Oldrun;
+> 	Labels=labels;
+> 	CT=input_vec;
+190c214,215
+< 
+---
+> };	
+> /*
+224c249
+< 		
+---
+> */		
+226c251
+< inline TString Good_Electron_Cuts(TString kin_tgt="", TString ARM_inc="Left")
+---
+> inline TString Good_Electron_Cuts(TString ARM_inc="Left", int PID =1,int trigger=1, int tg_acc=1, int track=1, int beam=1)
+228,229c253,254
+< 		
+< 			///Varibles defined for cuts	
+---
+> //Need to use set_limits to set before hand. 		
+> /*		///Varibles defined for cuts	
+244a270,271
+> 
+> */
+247a275
+> 	TString cal_det_inc1;
+251a280,281
+> 		cal_det_inc1 = "(L.prl1.e+L.prl2.e)/(HacL_D1_P0rb*1000.)";
+> 		//cal_det_inc2 = "L.prl1.asum_c
+256a287
+> 		cal_det_inc1 = "(R.ps.e+R.sh.e)/(HacR_D1_P0rb*1000.)";
+264a296
+> 	TString pid_cal_inc1 = Form("%s>%3.2f",cal_det_inc1.Data(),EP_Cut_inc);
+271,272c303,313
+< 	TString cuts = Trigger_inc+"&&"+one_track_inc+"&&"+pid_cer_inc+"&&"+pid_cal_inc+"&&"+target_z_inc+"&&"+target_ph_inc;
+< 	cuts += +"&&"+target_th_inc+"&&"+track_dp_inc+"&&"+beam_trip_inc;
+---
+> 	TString cuts ="";
+> 	if(trigger)cuts = Trigger_inc;
+> 	if(PID==1)cuts+="&&"+pid_cer_inc+"&&"+pid_cal_inc;
+> 		else if(PID==2)cuts+="&&"+pid_cer_inc+"&&"+pid_cal_inc1;
+> 		else if(PID==3)cuts+="&&"+pid_cal_inc1;
+> 	if(tg_acc)cuts+="&&"+target_z_inc+"&&"+target_ph_inc+"&&"+target_th_inc+"&&"+track_dp_inc;
+> 	if(track)cuts+="&&"+one_track_inc;
+> 	if(beam) cuts+="&&"+beam_trip_inc;	
+> 
+> 	TSubString sub = cuts.operator()(0,2);
+> 	if(sub=="&&")cuts.Remove(0,2);
+273a315
+> 
+277a320
+> 
+308a352
+> 	if(db_num.size()<=1){return;}
+327c371
+< inline bool GOOD_Event(TChain *T , int Event, TString ARM_inc = "Left")
+---
+> inline bool GOOD_Event(TChain *T , int Event, TString ARM_inc = "Left", int PID =1, int tg_acc=1, int track=1, int beam=1)
+382,388d425
+< 
+<  	
+< 
+< 	  	
+<  	
+<  	
+<  	
+393c430,433
+< 
+---
+> double Bino_Err(double p, int n)
+> {
+> 	return sqrt(p*(1-p)/(n*1.0));
+> }

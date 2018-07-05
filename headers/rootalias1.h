@@ -184,7 +184,7 @@ if(!debug)cout << "ROOT file " << rootfile << " added to " << tree<<" tree"<<end
     }
 
     if (split<=0) {
-	if (debug>0) cerr << "Can not find ROOT file for run " << run << endl;
+//	if (debug>0) cerr << "Can not find ROOT file for run " << run << endl;
 	delete tt;
 	tt = 0;
     }
@@ -264,6 +264,20 @@ Int_t GetPS(TTree* tt,Int_t trigger)
     return ps;
 }
 
+Double_t GetBeamE(TTree* tt)
+{
+    THaRun* run = 0;
+    Double_t CE;
+    if (!tt->GetDirectory()) tt->LoadTree(0); // Necessary if T is a TChain
+    TDirectory* fDir = tt->GetDirectory();
+    if (fDir) fDir->GetObject("Run_Data",run);
+    if (run) {
+       CE = run->GetParameters()->GetBeamE();
+      delete run;
+    }
+    return CE;
+}
+
 
 TString GetTarget(Int_t run)
 {
@@ -314,6 +328,59 @@ vector<TString> Tokens1(TString aline,TString aDelim=",")
 	return OutStringVec;
 }
 
+//----------------------------
+//// Load online replay
+////--------------------------
+
+
+TChain* LoadOnline(Int_t run, const char* path, const char* tree,Int_t debug)
+{
+    TChain* tt = new TChain(tree);
+
+    TString  basename = Form("tritium_online_%d",run);
+    TString rootfile = basename + ".root";
+    
+    TString dir = path;
+    if (!dir.EndsWith("/")) dir.Append("/");
+
+    rootfile.Prepend(dir.Data());
+
+    Long_t split = 0;
+
+    while ( !gSystem->AccessPathName(rootfile.Data()) ) {
+	tt->Add(rootfile.Data());
+	cout << "ROOT file " << rootfile << " added to " << tree<<" tree"<<endl;
+	split++;
+	rootfile = basename + "_" + split + ".root";
+	rootfile.Prepend(dir.Data());
+
+    }
+
+    if (split<=0) {
+	if (debug>0) cerr << "Can not find online replay file for run " << run << endl;
+	delete tt;
+	tt = 0;
+    }
+
+    return tt;
+}
+
+TChain* LoadOnline(Int_t run, const char* tree = "T")
+{
+    Int_t i=0;
+
+    TChain* tt = 0;
+    while (PATHS[i]) {
+	tt = LoadOnline(run,PATHS[i++],tree,1);
+
+	if (tt) break;
+    }
+   
+    if (!tt)
+	cerr << "Can not find online replay file for run " << run << endl;
+
+    return tt;
+}
 
 
 vector<Int_t> gGet_RunNoChain1(const TString& aString)
