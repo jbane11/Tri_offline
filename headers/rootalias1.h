@@ -264,20 +264,41 @@ Int_t GetPS(TTree* tt,Int_t trigger)
     return ps;
 }
 
-Double_t GetBeamE(TTree* tt)
+double GetBeamE(TTree* beamt)
 {
-    THaRun* run = 0;
-    Double_t CE;
-    if (!tt->GetDirectory()) tt->LoadTree(0); // Necessary if T is a TChain
-    TDirectory* fDir = tt->GetDirectory();
-    if (fDir) fDir->GetObject("Run_Data",run);
-    if (run) {
-       CE = run->GetParameters()->GetBeamE();
-      delete run;
-    }
-    return CE;
+	beamt->ResetBranchAddresses();
+	//which arm
+	string Arm = "L";
+	if(beamt->FindBranch("L.tr.tg_dp") == nullptr ) Arm ="R";
+	double CE;
+	beamt->SetBranchAddress("HALLA_p",&CE);
+	beamt->GetEntry(2);
+	return CE;
 }
 
+double GetSetTheta(TTree *thet)
+{
+	thet->ResetBranchAddresses();
+	//which arm
+	string Arm = "L";
+	if(thet->FindBranch("L.tr.tg_dp") == nullptr ) Arm ="R";
+	double angle;
+	thet->SetBranchAddress(Form("Hac%s_alignAGL",Arm.c_str()),&angle);
+	thet->GetEntry(2);
+	return angle;
+}
+	
+double GetSetMo(TTree *mot)
+{
+	mot->ResetBranchAddresses();
+	//which arm
+	string Arm = "L";
+	if(mot->FindBranch("L.tr.tg_dp") == nullptr ) Arm ="R";
+	double Mo;
+	mot->SetBranchAddress(Form("Hac%s_D1_P0rb",Arm.c_str()),&Mo);
+	mot->GetEntry(2);
+	return Mo;
+}
 
 TString GetTarget(Int_t run)
 {
@@ -462,7 +483,7 @@ TChain* LoadKin(TString filename, const char* tree = "T")
 	for ( unsigned int iii=0; iii<RunNoChain.size(); iii++ )
 	{
 			Int_t aRunNo=RunNoChain[iii];
-			LoadRun(aRunNo,tree);
+			tt->Add(LoadRun(aRunNo,tree));
 	}
 			
 	return tt;

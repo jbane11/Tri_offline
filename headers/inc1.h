@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <vector>
 #include <algorithm>
@@ -64,7 +65,7 @@ using namespace std;
 	double TG_VZ_Max_inc = 0.1200;//4%mrad
 	double TG_VZ_Min_inc =-0.1200;//4%mrad
 	double P0_inc = 3.100; //GeV/c
-	double GC_Cut_inc = 2000.;
+	double GC_Cut_inc = 1000.;
 	double EP_Cut_inc= 0.75;
 	int Main_Trigger_Left_inc = 2;
 	int Main_Trigger_Right_inc = 5;
@@ -106,7 +107,7 @@ return( strspn( s.c_str(), "-.0123456789" ) == s.size() );
 /////////////////take csv string of ints and return vector
 vector<int> parse_csv_int(string s)
 {
-	stringstream ss(s);
+	std::stringstream ss(s);
 	vector<int> vec;
 	while( ss.good() )
 	{
@@ -359,7 +360,7 @@ void set_defaults()
 	TG_VZ_Max_inc = 0.1200;//4%mrad
 	TG_VZ_Min_inc =-0.1200;//4%mrad
 	P0_inc = 3.100; //GeV/c
-	GC_Cut_inc = 2000.;
+	GC_Cut_inc = 1000.;
 	EP_Cut_inc= 0.75;
 	Main_Trigger_Left_inc = 2;
 	Main_Trigger_Right_inc = 5;
@@ -433,8 +434,11 @@ inline void set_limits(TString kin_tgt)
  }// End of set limit function
 
 
-inline bool GOOD_Event(TChain *T , int Event, TString ARM_inc = "Left", int PID =1, int tg_acc=1, int track=1, int beam=1)
+inline bool GOOD_Event(TChain *T , int Event, int debug =0, TString ARM_inc = "Left", int PID =1, int tg_acc=1, int track=1, int beam=1)
  {
+
+	TChain *tt= new TChain();
+	tt->Add(T);
   	bool GE = 0; //Is this a good electron event                         	
 	double react_z, cal1, cal2, cer_asum, gold_p;
   	double track_n, trigger_bit ;
@@ -461,34 +465,34 @@ inline bool GOOD_Event(TChain *T , int Event, TString ARM_inc = "Left", int PID 
 		}
  	
  	//Setting branches
- 	T->ResetBranchAddresses();
- 	T->SetBranchAddress(	Form("%sBCM.BeamUp_time_v1495"	,ARM_inc.Data())	,Beam_up_inc); 	
- 	T->SetBranchAddress(	Form("%s.tr.tg_dp"		,Arm_inc.Data())	,&dp_inc); 	
-  	T->SetBranchAddress(	Form("%s.tr.tg_th"		,Arm_inc.Data())	,&dtheta_inc); 	
-   	T->SetBranchAddress(	Form("%s.tr.tg_ph"		,Arm_inc.Data())	,&dphi_inc);
-   	T->SetBranchAddress(	Form("rp%s.z"			,arm_inc.Data())	,&react_z);
-   	T->SetBranchAddress(	Form("%s.tr.n"			,Arm_inc.Data())	,&track_n);
-   	T->SetBranchAddress(	Form("%s.gold.p"		,Arm_inc.Data())	,&gold_p);
-   	T->SetBranchAddress(	Form("%s.cer.asum_c"		,Arm_inc.Data())	,&cer_asum);
-	T->SetBranchAddress(	Form("%s"			,Cal_B_1.Data())	,&cal1);
-	T->SetBranchAddress(	Form("%s"			,Cal_B_2.Data())	,&cal2);
-   	T->SetBranchAddress(	Form("D%s.evtypebits"		,Arm_inc.Data())	,&trigger_bit);
+ 	tt->ResetBranchAddresses();
+ 	tt->SetBranchAddress(	Form("%sBCM.BeamUp_time_v1495"	,ARM_inc.Data())	,Beam_up_inc); 	
+ 	tt->SetBranchAddress(	Form("%s.tr.tg_dp"		,Arm_inc.Data())	,&dp_inc); 	
+  	tt->SetBranchAddress(	Form("%s.tr.tg_th"		,Arm_inc.Data())	,&dtheta_inc); 	
+   	tt->SetBranchAddress(	Form("%s.tr.tg_ph"		,Arm_inc.Data())	,&dphi_inc);
+   	tt->SetBranchAddress(	Form("rp%s.z"			,arm_inc.Data())	,&react_z);
+   	tt->SetBranchAddress(	Form("%s.tr.n"			,Arm_inc.Data())	,&track_n);
+   	tt->SetBranchAddress(	Form("%s.gold.p"		,Arm_inc.Data())	,&gold_p);
+   	tt->SetBranchAddress(	Form("%s.cer.asum_c"		,Arm_inc.Data())	,&cer_asum);
+	tt->SetBranchAddress(	Form("%s"			,Cal_B_1.Data())	,&cal1);
+	tt->SetBranchAddress(	Form("%s"			,Cal_B_2.Data())	,&cal2);
+   	tt->SetBranchAddress(	Form("D%s.evtypebits"		,Arm_inc.Data())	,&trigger_bit);
    
  
    	
 	//Checking if Good
-	T->GetEntry(Event);  	
- 	if( (int)trigger_bit>>Main_Trigger_inc&1)				return GE; //Trigger
- 	if(track_n != 1)							return GE; //tracking
- 	if(Beam_up_inc[cur_sel_inc] <= beamon_min_inc) 				return GE; //Beamtrip
- 	if(react_z <= TG_VZ_Min_inc) 						return GE; //End caps
- 	if(react_z >= TG_VZ_Max_inc) 						return GE; //End caps
-	if( (cal1 +cal2)/(gold_p*1000) <= EP_Cut_inc)				return GE; //PID energy
-	if(cer_asum <= GC_Cut_inc )						return GE; //PID cer
- 	if(dp_inc 	<= TG_Dp_Min_inc || dp_inc >= TG_Dp_Max_inc) 		return GE; //p acc
- 	if(dtheta_inc <= TG_Theta_Min_inc || dtheta_inc >= TG_Theta_Max_inc) 	return GE; //theta acc	
- 	if(dphi_inc <= TG_Phi_Min_inc || dphi_inc >= TG_Phi_Max_inc) 		return GE; //phi acc	 
-	return GE;
+	tt->GetEntry(Event);  	
+ 	if( (int)trigger_bit>>Main_Trigger_inc&1)	{tt=nullptr;			return GE;} //Triggeri
+ 	if(track_n != 1)				{tt=nullptr;			return GE;} //tracking
+ 	if(Beam_up_inc[cur_sel_inc] <= beamon_min_inc) 	{tt=nullptr;			return GE;} //Beamtrip
+ 	if(react_z <= TG_VZ_Min_inc) 			{tt=nullptr;			return GE;} //End caps
+ 	if(react_z >= TG_VZ_Max_inc) 			{tt=nullptr;			return GE;} //End caps
+	if( (cal1 +cal2)/(gold_p*1000) <= EP_Cut_inc)	{tt=nullptr;			return GE;} //PID energy
+	if(cer_asum <= GC_Cut_inc )			{tt=nullptr;			return GE;} //PID cer
+ 	if(dp_inc 	<= TG_Dp_Min_inc || dp_inc >= TG_Dp_Max_inc) {tt=nullptr;	return GE;} //p acc
+ 	if(dtheta_inc <= TG_Theta_Min_inc || dtheta_inc >= TG_Theta_Max_inc) {tt=nullptr;return GE;} //theta acc	
+ 	if(dphi_inc <= TG_Phi_Min_inc || dphi_inc >= TG_Phi_Max_inc) {tt=nullptr;	return GE;} //phi acc	 
+	return 1;
 }
 
 
@@ -499,4 +503,48 @@ double Bino_Err(double p, int n)
 
 
 
+vector<string> parse_std(string str,string delim=","){
+	vector <string> vec_str;
+	size_t pos = 0;
+	std::string token;
+	while ((pos = str.find(delim)) != std::string::npos) {
+		token = str.substr(0, pos);
+		vec_str.push_back(token);
+	    	str.erase(0, pos + delim.length());
+	}	
+
+return vec_str;
+}
+
+vector<int> parse_int(string str,string delim=","){
+	vector <int> vec_str;
+	size_t pos = 0;
+	std::string token;
+	while ((pos = str.find(delim)) != std::string::npos) {
+		token = str.substr(0, pos);
+		if(is_number(token)){
+			vec_str.push_back(stoi(token));
+		}
+	    	str.erase(0, pos + delim.length());
+			
+	}	
+
+return vec_str;
+}
+
+vector<int> parse_int(string str,char delim=','){
+	vector <int> vec_str;
+	size_t pos = 0;
+	std::string token;
+	while ((pos = str.find(delim)) != std::string::npos) {
+		token = str.substr(0, pos);
+		if(is_number(token)){
+			vec_str.push_back(stoi(token));
+		}
+	    	str.erase(0, pos + 1);
+			
+	}	
+
+return vec_str;
+}
 
