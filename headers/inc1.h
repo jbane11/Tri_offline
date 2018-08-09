@@ -98,6 +98,19 @@ class data_type {
 	}
 
 
+
+class Corrections_Value {
+	public:
+	double cor;
+	double err;
+	string name;
+	void set_values(double a, double b, string c);
+};
+	void Corrections_Value::set_values(double a, double b, string c=""){
+		cor=a; err =b; name=c;}
+
+
+
 /////Function to determine if a input is a number!
 bool is_number(const std::string& s)
 {
@@ -547,4 +560,83 @@ vector<int> parse_int(string str,char delim=','){
 
 return vec_str;
 }
+
+const Double_t Qe=TMath::Qe();
+const Double_t Na=TMath::Na();
+const Double_t CMtoNB=1.0e33;
+
+
+
+vector<double> Calc_lum(int run,int debug=1){
+     vector<double> lum = {1.0 , 0.0 };
+     double lumin=0;      double lum_err=0;      double charge=0;
+     double den_cor=1;    double atomicMass=1;   double current=0;
+     double cor_parameters[2]={0.0,0.0}; double den_cor_err=0;
+     double cor_errs[2]= {0.0,0.0}; 	double charge_err=0;
+     string tgt="";
+     double tgt_thick=1.0;
+     double thick_err=0.0;
+
+     TSQLServer* Server = TSQLServer::Connect("mysql://halladb/triton-work","triton-user","3He3Hdata");
+     TString  query=Form("select run_number, current, charge from MARATHONanalysis where run_number=%d;",run);
+     TSQLResult* result=Server->Query(query.Data());
+     TSQLRow *row;
+     if(result->GetRowCount()==0) return lum;
+     row = result->Next();
+     current= atof(row->GetField(1));
+     charge = atof(row->GetField(2));
+
+       if(debug) cout << "current " << current << "  charge " << charge << "\n";
+     TString  query1=Form("select target from MARATHONrunlist where run_number=%d;",run);
+     TSQLResult* result1=Server->Query(query1.Data());
+     TSQLRow *row1;
+     if(result1->GetRowCount()>0){
+	row1 = result1->Next();
+	tgt = row1->GetField(0);
+        if(debug) cout << "Target " << tgt << "\n";
+
+     	TString  query2=Form("select density_par_1, density_err_1, density_par_2, density_err_2, Thickness , Thickness_err from TargetInfo  where name='%s';",tgt.c_str());
+     	TSQLResult* result2=Server->Query(query2.Data());
+     	TSQLRow *row2;
+     	if(result2->GetRowCount()>0){
+	      	row2 = result2->Next();
+     		cor_parameters[0]=atof(row2->GetField(0));
+	     	cor_parameters[1]=atof(row2->GetField(2));
+     		cor_errs[0]=atof(row2->GetField(1));
+	     	cor_errs[1]=atof(row2->GetField(3));
+	     	tgt_thick = atof(row2->GetField(4));
+     		thick_err = atof(row2->GetField(5));
+		}
+	}
+	else{if(debug)cout<<"\n!!!!!!This run is not in runlist!!!!!!\n\n";}
+
+     Server->Close();
+//CLose the server
+
+     double charge_E = charge / ( Qe*1e6);
+     charge_err = 0.01*charge_E; //Using 1% for now... Need to fix
+     double Ierr = 0.01*current; //Using 1% for now... Need to fix
+     if(tgt == "Tritium") atomicMass = 3.016;
+     else if(tgt == "Helium-3") atomicMass = 3.016;
+     else if(tgt == "Deuterium")atomicMass = 2.014102;
+     else if(tgt == "Hydrogen") atomicMass = 1.007947;
+     
+     den_cor = 1 + current*current*cor_parameters[1] + current*cor_parameters[0];    
+	if(cor_parameters[1]!=0.0)     den_cor_err = sqrt(pow(current,2)*cor_parameters[1] * sqrt( pow((2*Ierr/current),2) + pow((cor_errs[1]/cor_parameters[1]),2)) + sqrt( pow((current*cor_parameters[0]),2) * ( pow((Ierr/current),2) + pow((cor_errs[0]/cor_parameters[0]),2)) ) );
+
+    if(debug) cout <<" density cor " << den_cor <<"  " << den_cor_err<<"\n"; 
+     lumin = (charge_E*tgt_thick*den_cor*Na/atomicMass)/CMtoNB;
+	/// Error on charge , error on thick , error on den_cor
+     lum_err = sqrt(lumin*(pow((charge_err/(charge_E*1.0)),2) + 
+		pow((thick_err/(tgt_thick*1.0)),2) + 
+		pow((den_cor_err/(den_cor*1.0)),2)));
+
+    if(debug) cout << " luminosity " << lumin << " err " <<lum_err<<"\n";
+     lum[0]=lumin;
+     lum[1]=lum_err;
+     return lum;
+}
+
+
+
 
