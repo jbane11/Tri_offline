@@ -46,8 +46,8 @@ void CalcYield(string tgt ="", string kin="",  int debug=1)
 	
 	//Number of bins and step per kin
 	int bins = 25;
-	double th_step = 0.75;
-	double x_step  = 0.02;
+	double th_step = (37.7-16)/(bins*1.0);
+	double x_step  = (0.85-0.15)/(bins*1.0);
 	/// vectors of info
 	vector<double> tmpv(2,0.0);
 	vector< double> Xbj_yield(bins,0.0);  //yield 
@@ -68,7 +68,7 @@ void CalcYield(string tgt ="", string kin="",  int debug=1)
 
 	for(int z=0;z<bins;z++){
 		xbj_cen[z]  =0.16+z*x_step;
-		theta_cen[z]=13.0+z*th_step;
+		theta_cen[z]=16.0+z*th_step;
 		out<< z <<" ";
 	}
 		out<<"\n";
@@ -186,28 +186,28 @@ void CalcYield(string tgt ="", string kin="",  int debug=1)
 		int thbins=0;
 
 		//calculate the errr for this run and sum it together
-		double tmp_err_x=0.0; //Used to sum up error
-		double tmp_err_th=0.0; //Used to sum up error
+		vector<double> tmp_err_x(bins,0.0); //Used to sum up error
+		vector<double> tmp_err_th(bins,0.0); //Used to sum up error
 		for(int i=0;i<bins;i++)
 		{
 			if(N_ele_x[i]>0){
 				xbins++;
-				tmp_err_x = sqrt( 1/N_ele_x[i] + pow((correction_error/run_correction),2) + pow((luminosity_run[1]/luminosity_run[0]),2) ) * N_ele_x[i]/(run_correction*luminosity_run[0]); 
+				tmp_err_x[i] = sqrt( 1/N_ele_x[i] + pow((correction_error/run_correction),2) + pow((luminosity_run[1]/luminosity_run[0]),2) ) * N_ele_x[i]/(run_correction*luminosity_run[0]); 
 			}
-			Xbj_yield_err[i]+=pow(tmp_err_x,2);			
+			Xbj_yield_err[i]+=pow(tmp_err_x[i],2);			
 			if(N_ele_th[i]>0){
 				thbins++;
-				tmp_err_th = sqrt( 1/N_ele_th[i] + pow((correction_error/run_correction),2) + pow((luminosity_run[1]/luminosity_run[0]),2) ) * N_ele_th[i]/(run_correction*luminosity_run[0]); 					}
-			theta_yield_err[i]+=pow(tmp_err_th,2);			
+				tmp_err_th[i] = sqrt( 1/N_ele_th[i] + pow((correction_error/run_correction),2) + pow((luminosity_run[1]/luminosity_run[0]),2) ) * N_ele_th[i]/(run_correction*luminosity_run[0]); 					}
+			theta_yield_err[i]+=pow(tmp_err_th[i],2);			
 		}//end of error bins
 
 		//Clean up
 		delete T;
 		if(debug>=3){
-			cout << "theta   :  yield     :error " <<"\n";
+			cout << "theta   :Ne         yield     :error " <<"\n";
 			for(int z=0;z<bins;z++){
 				if(N_ele_th[z]!=0)
-cout <<theta_run[z]/N_ele_th[z]<<"\t"<< theta_yield_run[z]<<"  "<< theta_yield_err[z] << "\n";
+cout <<theta_run[z]/N_ele_th[z]<<"\t"<<N_ele_th[z]<<" "<< theta_yield_run[z]<<"  "<< tmp_err_th[z] << "\n";
 
 	out<< theta_yield_run[z]<<" ";
 
@@ -232,8 +232,12 @@ cout <<theta_run[z]/N_ele_th[z]<<"\t"<< theta_yield_run[z]<<"  "<< theta_yield_e
 	{
 		theta_yield[i] /= total_lumin;
 		Xbj_yield[i] /= total_lumin;
-		thout << theta_tot[i]/theta_raw_e[i]<<"\t"<<theta_yield[i]<<"\t"<<theta_yield_err[i]<<"\n";
-		xout << xbj_tot[i]/xbj_raw_e[i]<<"\t"<<Xbj_yield[i]<<"\t"<<Xbj_yield_err[i]<<"\n";	
+		
+		double total_error_th = theta_yield[i]*sqrt( pow(theta_yield_err[i]/(theta_yield[i]*1.0),2) + pow(tot_lumin_err/total_lumin  ,2) );	
+		double total_error_x= Xbj_yield[i]*sqrt( pow(Xbj_yield_err[i]/(Xbj_yield[i]*1.0),2) + pow(tot_lumin_err/total_lumin  ,2) );	
+			
+		thout << theta_tot[i]/theta_raw_e[i]<<"\t"<<theta_yield[i]<<"\t"<<total_error_th<<"\n";
+		xout << xbj_tot[i]/xbj_raw_e[i]<<"\t"<<Xbj_yield[i]<<"\t"<<total_error_x<<"\n";	
 	}	
 	
 	xout.close();
