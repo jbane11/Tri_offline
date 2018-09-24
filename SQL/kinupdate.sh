@@ -1,9 +1,9 @@
 #!bin/bash
 
-rundir="/home/jbane/tritium/Runlist"
+#rundir="/home/jbane/tritium/Runlist"
 #alldir="/work/halla/triton/mnycz/Marathon/Analysis/Data_Quality/All_Runs"
 #alldir="/w/halla-scifs17exp/triton/mnycz/Marathon/Analysis/Data_Quality/All_Runs"
-#rundir="./Runlist1"
+rundir="./Runlist"
 
 
 

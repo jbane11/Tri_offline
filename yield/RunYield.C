@@ -12,7 +12,7 @@
 const string runl_dir = "/home/jbane/tritium/replay/HallA-Online-Tritium/replay/scripts/Runlist/"; 
 //"/home/jbane/tritium/Runlist/";
 
-void CalcYield(string tgt ="", string kin="",int whichRL=2,  int debug=3)
+void RunYield(int runnum, string tgt ="", string kin="",int whichRL=2,  int debug=3)
 {
 	if(kin=="" || tgt ==""){
 		cout << "Please enter the  kin and tgt you would like to use" <<"\n";
@@ -98,6 +98,9 @@ void CalcYield(string tgt ="", string kin="",int whichRL=2,  int debug=3)
 	double tot_lumin_err=0.0;
 	double pos_err_kin=0.0;
 	double pos_cor_kin=0.0;
+
+	runlist.clear();
+	runlist.push_back(runnum);
 
 	//Loop through the runs over i
 	for(unsigned int i=0; i<runlist.size();i++)
@@ -323,12 +326,12 @@ thbyrun <<theta_run[z]/N_ele_th[z]<<"\t"<<N_ele_th[z]<<" "<< theta_yield_run[z]<
 	//Print all this info to file for plotting
 	//output file txt file
 	
-	ofstream xout; xout.open(Form("./yield_output/xbj/%s_kin%s.dat",tgt.c_str(),kin.c_str()));
-	xout << "Xbj\t"<<"Ne\t"<<"Yield\t"<<"Error\n";
-	ofstream thout; thout.open(Form("./yield_output/theta/%s_kin%s.dat",tgt.c_str(),kin.c_str()));
-	thout << "theta\t"<<"Ne\t"<<"Yield\t"<<"Error\n";
+//	ofstream xout; xout.open(Form("./yield_output/xbj/%s_kin%s.dat",tgt.c_str(),kin.c_str()));
+//	xout << "Xbj\t"<<"Ne\t"<<"Yield\t"<<"Error\n";
+//	ofstream thout; thout.open(Form("./yield_output/theta/%s_kin%s.dat",tgt.c_str(),kin.c_str()));
+//	thout << "theta\t"<<"Ne\t"<<"Yield\t"<<"Error\n";
 
-	for(int i=0;i<bins;i++)
+	/*for(int i=0;i<bins;i++)
 	{
 		theta_yield[i] /= total_lumin;
 		Xbj_yield[i] /= total_lumin;
@@ -343,7 +346,7 @@ thbyrun <<theta_run[z]/N_ele_th[z]<<"\t"<<N_ele_th[z]<<" "<< theta_yield_run[z]<
 	xout.close();
 	thout.close();
 	out.close();
-
+*/
 
 	if(debug){cout<<"\n\n";
 		for(unsigned int z=0;z<missing_runs.size();z++){

@@ -8,8 +8,10 @@
 
 
 
-void Acc_comp(string options = "", int rescaling=1, int tarid=0,int weighter=0, int weighter1=0,int only=0, int debug=1)
+void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=2, int weighter1=0,int only=0, int debug=1)
 {
+
+	SetStyles();
 
 	if(debug){
 		cout<< "rescaling " << rescaling<<endl;
@@ -89,11 +91,11 @@ void Acc_comp(string options = "", int rescaling=1, int tarid=0,int weighter=0, 
 	
 	string hist_pre[2] = {"data", "mc"};
 	vector<string> hist_names = { "dp", "ytar", "xfoc", "yfoc", "xpfoc", "ypfoc","xptar","yptar","ztar"};
-	vector<string> unit = { "dp/p" , "ytar(cm)" , "xfoc" ,"Yfoc", "XP(theta mr)","YP(phi mr)","XP(theta mr)", "YP(phi m)","ztar(cm)"};
+	vector<string> unit = { "dp/p" , "ytar(cm)" , "xfoc" ,"Yfoc", "XP(theta r)","YP(phi r)","XP(theta r)", "YP(phi r)","ztar(cm)"};
 	vector<string> det_name = {"ex%s.dp","%s.tr.tg_y*100","%s.tr.x","%s.tr.y","%s.tr.th","%s.tr.ph","%s.tr.tg_th","%s.tr.tg_ph","%s.tr.vz*100"};
 	vector<string> mcv_name = {"delta/100.0", "ytar", "xfoc/100.0", "yfoc/100.0", "xpfoc", "ypfoc","xptar","yptar","ztar"};
-	vector< vector<double> > histbininfo = { {20,-0.07,0.07},{80,-8,8},{25,-1.0,1.0},
-	{25,-0.05,0.05},{20,-.2,0.2},{25,-0.05,0.05},{20,-0.05,0.05},{20,-0.05,-0.05},{20,-15,15}};
+	vector< vector<double> > histbininfo = { {50,-0.07,0.07},{200,-8,8},{70,-1.0,1.0},
+	{70,-0.05,0.05},{40,-.2,0.2},{40,-0.05,0.05},{80,-0.08,0.08},{80,-0.08,0.08},{250,-15,15}};
 	vector<string> hist_titles = {"Dp ", "Y Target", "X focal plane", "Y focal plane", "Xp(dtheta/theta) focal", "Yp(dphi/phi) focal","Xp/theta tar","YP/phi tar","Ztar"};
 						
 	TH1F *hist[2][hist_names.size()][runs.size()];
@@ -166,19 +168,19 @@ void Acc_comp(string options = "", int rescaling=1, int tarid=0,int weighter=0, 
 		cout << mc_lumin << " " << lumin << " " << lumin/mc_lumin <<endl;
 
 		////////////////////////////////////	
-		C_runs[0][i] = new TCanvas(Form("C_0%d",i),Form("Canvas 0 for run %d",run),i*200,0,700,500);
+		C_runs[0][i] = new TCanvas(Form("C_0%d",i),Form("Canvas 0 for run %d",run),i*400,0,700,500);
 		C_runs[0][i]->Divide(0,2); //Divid into 2 long pads
-		C_runs[1][i] = new TCanvas(Form("C_1%d",i),Form("Canvas 1 for run %d",run),i*200,100,700,500);
-		C_runs[2][i] = new TCanvas(Form("C_2%d",i),Form("Canvas 2 for run %d",run),i*200,200,700,500);
+		C_runs[1][i] = new TCanvas(Form("C_1%d",i),Form("Canvas 1 for run %d",run),i*400,100,700,500);
+		C_runs[2][i] = new TCanvas(Form("C_2%d",i),Form("Canvas 2 for run %d",run),i*400,200,700,500);
 		C_runs[1][i]->Divide(0,2); //Divid into 2 long pads
 		C_runs[2][i]->Divide(0,2); //Divid into 2 long pads
 	
-		C_runs[3][i] = new TCanvas(Form("C_3%d",i),Form("Canvas 3 for run %d",run),i*200,300,700,500);
+		C_runs[3][i] = new TCanvas(Form("C_3%d",i),Form("Canvas 3 for run %d",run),i*400,300,700,500);
 		C_runs[3][i]->Divide(0,2); //Divid into 2 long pads
-		C_runs[4][i] = new TCanvas(Form("C_4%d",i),Form("Canvas 4 for run %d",run),i*200,400,700,500);
+		C_runs[4][i] = new TCanvas(Form("C_4%d",i),Form("Canvas 4 for run %d",run),i*400,400,700,500);
 		C_runs[4][i]->Divide(0,2); //Divid into 2 long pads
 
-		C_ratio[i] = new TCanvas(Form("C_r%d",i),Form("Canvas for ratio run %d",run),i*200,500,700,500);
+		C_ratio[i] = new TCanvas(Form("C_r%d",i),Form("Canvas for ratio run %d",run),i*400,500,700,500);
 
 		C_ratio[i]->Divide(2,ceil(hist_names.size()/2.0));
 
@@ -198,7 +200,7 @@ void Acc_comp(string options = "", int rescaling=1, int tarid=0,int weighter=0, 
 			hist[0][hnum][i]->SetLineColor(2);
 			hist[0][hnum][i]->SetMarkerColor(2);
 			hist[0][hnum][i]->SetMarkerSize(2);
-			hist[0][hnum][i]->SetMarkerStyle(31);
+			hist[0][hnum][i]->SetMarkerStyle(33);
 			hist[0][hnum][i]->SetFillColor(2);
 			hist[0][hnum][i]->SetFillStyle(3352);
 			hist[1][hnum][i]->SetLineColor(4);
@@ -214,7 +216,7 @@ void Acc_comp(string options = "", int rescaling=1, int tarid=0,int weighter=0, 
 			hist_pre[1].c_str(),hist_names[hnum].c_str(),run);
 			//needs to be made switchable with arm
 			data_cut = electron_cut_L+dp_cut_L+th_cut_L+ph_cut_L+z_cut_L;//acc_cut_L+track_L;
-			mc_cut = "(fabs(yptar)<=0.03&&fabs(xptar)<=0.04&&fabs(ztar)<=9.0&&fabs(delta)<4)";
+			mc_cut = "(fabs(yptar)<=0.05&&fabs(xptar)<=0.04&&fabs(ztar)<=9.0&&fabs(delta)<=4.0)";
 			
 			if(debug>=2){cout << data_cut <<endl;	
 				cout <<   mc_cut << endl;}
@@ -225,13 +227,13 @@ void Acc_comp(string options = "", int rescaling=1, int tarid=0,int weighter=0, 
 			if(weighter1==1)data_w=Form("1.0/%f",lumin);
 			if(weighter1==2)data_w=Form("1.0/%f",runinfo.charge);
 
-			dataTree[i]->Draw(Form("%s",det_draw.c_str()),data_cut*Form("%s",data_w.c_str()), "E3");
+			dataTree[i]->Draw(Form("%s",det_draw.c_str()),data_cut*Form("%s",data_w.c_str()), "E");
 			if(debug){
 				cout<< det_draw <<"\t";
 				cout<< data_w  <<"\n";
 			}
 			int mod=1;
-			if(RI.target=="Carbon")if(hnum==1)mod=-1;
+			if(RI.target=="Carbon"|| run==1007)if(hnum==1)mod=-1;
 			mcTree[i]->Draw(Form("%d*%s",mod,mc_draw.c_str()),Form("%s*%s",mc_cut.c_str(),weight.c_str()),"same");
 
 if(debug)cout << Form("%s",det_draw.c_str())<<" "<<data_cut <<Form("*%s",data_w.c_str()) <<endl;
@@ -247,7 +249,7 @@ if(debug)cout << Form("%s",mc_draw.c_str())<<" "<<Form("%s*%s",mc_cut.c_str(),we
 			double  norm_fact_mc  =hist[1][hnum][i]->GetBinContent((int)floor(histbininfo[hnum][0]/2.0));	
 			double ratio = norm_fact_data/norm_fact_mc;
 
-if(debug)cout << integral<<" "<< Ierro<< " "<< integralmc<< " "<< Ierromc<<" "<< integral/integralmc<<"\n";	
+if(debug)cout<< 1/(sqrt(hist[0][hnum][i]->GetEntries())*1.0)<<" " << integral<<" "<< Ierro<< " "<< integralmc<< " "<< Ierromc<<" "<< integral/integralmc<<"\n";	
 if(debug) cout << norm_fact_data<<"  " << norm_fact_mc << " " << ratio <<endl;
 
 			if(rescaling==1){
@@ -295,8 +297,8 @@ if(debug) cout << norm_fact_data<<"  " << norm_fact_mc << " " << ratio <<endl;
 			double spread=hist[0][1][i]->GetRMS();
 	//		cout << ytar_max<<" "<< hist[0][1][i]->GetRMS() <<endl;
 	//		hist[0][1][i]->GetXaxis()->SetRangeUser(-(abs(ytar_max)+spread*5.5),abs(ytar_max)+spread*5.5);
-			if(RI.target=="Carbon" || RI.target=="Carbon Hole"){
-				hist[0][1][i]->GetXaxis()->SetRangeUser(-2,2);}
+			//if(RI.target=="Carbon" || RI.target=="Carbon Hole"){
+			//	hist[0][1][i]->GetXaxis()->SetRangeUser(-2,2);}
 		
 			//Add some 2D histograms
 			C_d2[i]=new TCanvas(Form("Canvas %d",run),Form("2d hists for run -> %d",run),i*200,400,700,500);
