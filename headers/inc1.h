@@ -52,6 +52,7 @@
 #include <TLegend.h>
 #include <TRandom3.h>
 #include <TSpectrum.h>
+#include <TRatioPlot.h>
 using namespace std;
 //	string kin_cor_loc = "/adaqfs/home/a-onl/tritium_work/Bane/Tri_offline/kin_txt/";
 	std::string kin_cor_loc = "/home/jbane/tritium/Tri_offline/kin_txt/";
@@ -81,6 +82,22 @@ using namespace std;
 	double PI=3.14159265359;
 
 
+
+
+
+void SetStyles(){
+TStyle* mcStyle = new TStyle("mcStyle","Manuel's Root Styles");
+ mcStyle->SetPalette(1,0); // avoid horrible default color scheme
+ mcStyle->SetOptStat(0);
+ mcStyle->SetOptTitle(0);
+ mcStyle->SetOptDate(0);
+ mcStyle->SetLabelSize(0.05,"xyz"); // size of axis value font
+ mcStyle->SetTitleSize(0.05,"xyz"); // size of axis title font
+ mcStyle->SetTitleFont(22,"xyz"); // font option
+ mcStyle->SetLabelFont(22,"xyz");
+ mcStyle->SetTitleOffset(1.2,"y");
+ gROOT->SetStyle("mcStyle");
+}
 //classes
 
 /////////////Class to define an input.
@@ -561,6 +578,36 @@ vector<int> parse_int(string str,char delim=','){
 return vec_str;
 }
 
+double CalcCharge(int runnum, double cur_thres=4.0 , int debug=0){
+	
+	double charge=0.0;
+	TChain *T = LoadRun(runnum);
+	if(T==nullptr){cout << "somthing wrong with loadrun\n" ;
+			return charge;}
+	int entries = T->GetEntries();
+	double Qdnew=0.0; 	Double_t Idnew=0.0;
+	double dnew2=0.0;	Double_t renew=0;
+	TString arm="Left";
+	if(runnum>=8000)arm="Right";
+	T->ResetBranchAddresses();
+	T->SetBranchAddress(Form("%sBCMev.current_dnew",arm.Data()),&Idnew);
+	T->SetBranchAddress(Form("%sBCMev.charge_dnew",arm.Data()),&Qdnew);
+	T->SetBranchAddress(Form("%sBCMev.isrenewed",arm.Data()),&renew);
+	if(debug)	cout << "num " << entries <<"\n";
+	for(int i=0; i<entries; i++){
+		T->GetEntry(i);
+		if((int)renew  ==1  && Idnew>=cur_thres){
+			charge+=(Qdnew-dnew2);
+			}		
+		dnew2=Qdnew;
+		Qdnew=0.0;Idnew=0.0;renew=0;
+	}
+	return charge;
+}
+	
+
+
+
 const Double_t Qe=TMath::Qe();
 const Double_t Na=TMath::Na();
 const Double_t CMtoNB=1.0e33;
@@ -569,8 +616,8 @@ const Double_t CMtoNB=1.0e33;
 
 vector<double> Calc_lum(int run,int debug=1){
      vector<double> lum = {1.0 , 0.0 };
-     double lumin=0;      double lum_err=0;      double charge=0;
-     double den_cor=1;    double atomicMass=1;   double current=0;
+     double lumin=0;      double lum_err=0;      Double_t charge=0;
+     double den_cor=1.0;    double atomicMass=1;   double current=0;
      double cor_parameters[2]={0.0,0.0}; double den_cor_err=0;
      double cor_errs[2]= {0.0,0.0}; 	double charge_err=0;
      string tgt="";
@@ -578,15 +625,22 @@ vector<double> Calc_lum(int run,int debug=1){
      double thick_err=0.0;
 
      TSQLServer* Server = TSQLServer::Connect("mysql://halladb/triton-work","triton-user","3He3Hdata");
-     TString  query=Form("select run_number, current, charge from MARATHONanalysis where run_number=%d;",run);
+     TString  query=Form("select run_number, current, charge from MARATHONanalysis where run_number=%d order by charge desc;",run);
      TSQLResult* result=Server->Query(query.Data());
      TSQLRow *row;
-     if(result->GetRowCount()==0) return lum;
-     row = result->Next();
-     current= atof(row->GetField(1));
-     charge = atof(row->GetField(2));
+	double charge1;
+     if(result->GetRowCount()>0){
+	     row = result->Next();
+	     current= atof(row->GetField(1));
+     	     charge = atof(row->GetField(2));
+	//}
+	//else{
 
-       if(debug) cout << "current " << current << "  charge " << charge << "\n";
+	//	cout << "Not in analysis list calculating event by event\n";
+		charge1=CalcCharge(run);
+	}
+
+       if(debug) cout << "current " << current << "  charge " << charge<<"  "<<charge1 << "\n";
      TString  query1=Form("select target from MARATHONrunlist where run_number=%d;",run);
      TSQLResult* result1=Server->Query(query1.Data());
      TSQLRow *row1;
@@ -594,18 +648,23 @@ vector<double> Calc_lum(int run,int debug=1){
 	row1 = result1->Next();
 	tgt = row1->GetField(0);
         if(debug) cout << "Target " << tgt << "\n";
-
-     	TString  query2=Form("select density_par_1, density_err_1, density_par_2, density_err_2, Thickness , Thickness_err from TargetInfo  where name='%s';",tgt.c_str());
+	
+     	TString  query2=Form("select density_par_1, density_err_1, density_par_2, density_err_2, Thickness , Thickness_err, type from MARATHONTargetInfo  where name='%s';",tgt.c_str());
      	TSQLResult* result2=Server->Query(query2.Data());
      	TSQLRow *row2;
      	if(result2->GetRowCount()>0){
 	      	row2 = result2->Next();
-     		cor_parameters[0]=atof(row2->GetField(0));
-	     	cor_parameters[1]=atof(row2->GetField(2));
-     		cor_errs[0]=atof(row2->GetField(1));
-	     	cor_errs[1]=atof(row2->GetField(3));
-	     	tgt_thick = atof(row2->GetField(4));
-     		thick_err = atof(row2->GetField(5));
+		string type=row2->GetField(6);
+		if(type=="gas"){
+	     		cor_parameters[0]=atof(row2->GetField(0));
+		     	cor_parameters[1]=atof(row2->GetField(2));
+     			cor_errs[0]=atof(row2->GetField(1));
+		     	cor_errs[1]=atof(row2->GetField(3));
+			}
+		     	tgt_thick = atof(row2->GetField(4));
+			if(row2->GetField(5)==nullptr) thick_err = 0.0;
+			else{ thick_err = atof(row2->GetField(5));}
+		
 		}
 	}
 	else{if(debug)cout<<"\n!!!!!!This run is not in runlist!!!!!!\n\n";}
@@ -620,18 +679,28 @@ vector<double> Calc_lum(int run,int debug=1){
      else if(tgt == "Helium-3") atomicMass = 3.016;
      else if(tgt == "Deuterium")atomicMass = 2.014102;
      else if(tgt == "Hydrogen") atomicMass = 1.007947;
-     
-     den_cor = 1 + current*current*cor_parameters[1] + current*cor_parameters[0];    
-	if(cor_parameters[1]!=0.0)     den_cor_err = sqrt(pow(current,2)*cor_parameters[1] * sqrt( pow((2*Ierr/current),2) + pow((cor_errs[1]/cor_parameters[1]),2)) + sqrt( pow((current*cor_parameters[0]),2) * ( pow((Ierr/current),2) + pow((cor_errs[0]/cor_parameters[0]),2)) ) );
+     else if(tgt=="Carbon")	atomicMass = 12.01;
+
+
+ 
+//     den_cor = 1 + current*current*cor_parameters[1] + current*cor_parameters[0];    
+	if(abs(cor_parameters[1])>0.0)     den_cor_err = sqrt(pow(current,2)*cor_parameters[1] * sqrt( pow((2*Ierr/current),2) +  pow((cor_errs[1]/cor_parameters[1]),2)) + sqrt( pow((current*cor_parameters[0]),2) * ( pow((Ierr/current),2) + pow((cor_errs[0]/cor_parameters[0]),2)) ) );
+
+cout<< "1st term "<<current*current*cor_parameters[1] <<" " <<sqrt( pow((2*Ierr/current),2) +  pow((cor_errs[1]/cor_parameters[1]),2)) << endl;
+
+cout<< "second term "<<current*cor_parameters[0]  <<"  "<< sqrt( ( pow((Ierr/current),2) + pow((cor_errs[0]/cor_parameters[0]),2)) ) <<endl;
+
+
+
 
     if(debug) cout <<" density cor " << den_cor <<"  " << den_cor_err<<"\n"; 
      lumin = (charge_E*tgt_thick*den_cor*Na/atomicMass)/CMtoNB;
 	/// Error on charge , error on thick , error on den_cor
-     lum_err = sqrt(lumin*(pow((charge_err/(charge_E*1.0)),2) + 
-		pow((thick_err/(tgt_thick*1.0)),2) + 
-		pow((den_cor_err/(den_cor*1.0)),2)));
+     lum_err = sqrt(lumin*lumin*(pow((charge_err/(charge_E*1.0)),2) + 
+		pow((thick_err/(tgt_thick*1.0)),2)) ); // + 
+//		pow((den_cor_err/(den_cor*1.0)),2));
 
-    if(debug) cout << " luminosity " << lumin << " err " <<lum_err<<"\n";
+    if(debug) cout << " luminosity " << lumin << " err% " <<lum_err/lumin<<"  thick_err% " << thick_err/tgt_thick << "\n";//  den_error% "<< den_cor_err/den_cor<<"\n";
      lum[0]=lumin;
      lum[1]=lum_err;
      return lum;
