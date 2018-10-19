@@ -99,6 +99,16 @@ void CalcYield(string tgt ="", string kin="",int whichRL=2,  int debug=3)
 	double pos_err_kin=0.0;
 	double pos_cor_kin=0.0;
 
+	
+	//Vectors that need to be reset
+	vector<double> pos_cor ;    // after an event.
+
+	vector<double>luminosity_run={2,0.0}; //After each run
+	vector<double> density_cor ; //After each run
+	//tmp vector for clean up
+	vector< double> tmp_vec(bins,0.0);
+	vector< int> tmp_vecint(bins,0);
+
 	//Loop through the runs over i
 	for(unsigned int i=0; i<runlist.size();i++)
 	{
@@ -125,15 +135,15 @@ void CalcYield(string tgt ="", string kin="",int whichRL=2,  int debug=3)
 		//Calculate the correction on a run bases. LT, det. eff.  ....
 		//I will store this in SQL, I will use the DB to store these run by run values
 		double correction_error=0;
-		double run_correction= SQLRunCorrection(run, correction_error, 1, debug);
+		double run_correction= 1.0;// SQLRunCorrection(run, correction_error, 1, debug);
 
 
 		//Deat time is applied through SQL
 		if(debug) cout << "Corrections :: "<<run_correction<<" error "<<correction_error<<"\n";
 		//////Calculate the luminosty and the error on that, this err includes
 		// tgt thickness and a hard coded 1% for beam charge
-		int debug_flag=0; if(debug){debug_flag=1;}	
-		vector<double>luminosity_run={2,0.0};
+		int debug_flag=0; if(debug){debug_flag=1;}
+
 		luminosity_run=Calc_lum(run,debug_flag);
 		if(luminosity_run[1]!=luminosity_run[1]){
 			luminosity_run[1]=0.0;
@@ -144,7 +154,7 @@ void CalcYield(string tgt ="", string kin="",int whichRL=2,  int debug=3)
 		///////////////////////////////////////////
 		
 
-		vector<double> density_cor = DensityCor(run);
+		density_cor = DensityCor(run);
 		if(debug)cout << "Density cor "<< density_cor[0] <<" " << density_cor[1] <<endl;	
 //		density_cor[0]=1.0;		
 
@@ -156,8 +166,8 @@ void CalcYield(string tgt ="", string kin="",int whichRL=2,  int debug=3)
 	 	int totn = T->GetEntries();	
 		//Shorten up the tree to only look at good electron events;
 		TCut total_cut;
-		if(coda.arm=="L")total_cut = electron_cut_L&&acc_cut_L;
-		else{total_cut = electron_cut_R&&acc_cut_R;}
+		if(coda.arm=="L")total_cut = electron_cut_L&&acc_cut_L&&L_dnew;
+		else{total_cut = electron_cut_R&&acc_cut_R&&R_dnew;}
 		T->Draw(">>GoodEs",total_cut);
 		TEventList *GoodEs;
 		gDirectory->GetObject("GoodEs",GoodEs);
@@ -188,8 +198,7 @@ void CalcYield(string tgt ="", string kin="",int whichRL=2,  int debug=3)
 		vector<double> theta_run(bins,0.0);
 		vector< double> Xbj_yield_run(bins,0.0);  //yield per run
 		vector< double> theta_yield_run(bins,0.0);
-
-
+	
 		double avg_pos=0.0;
 		PositronCor PC= GetPosInfo(run);
 		double pos_cor_err_run=0;
@@ -209,12 +218,12 @@ void CalcYield(string tgt ="", string kin="",int whichRL=2,  int debug=3)
 			theta=theta/rad;
 			double event_cors=1.0;
 			//positron correction, 
-			vector<double> pos_cor = GetPosCorFactor(x_bj,PC);
+			pos_cor = GetPosCorFactor(x_bj,PC);
 			pos_cor[0]=1.0-pos_cor[0];
 			if(pos_cor[0]<0.0)pos_cor[0]=1.0;
 			
 			if(pos_cor[0] != pos_cor[0] || 1.0/pos_cor[0] ==0) pos_cor[0] = 1.0;
-			event_cors*=pos_cor[0];
+//			event_cors*=pos_cor[0];
 			avg_pos=avg_pos+pos_cor[0];
 			pos_cor_err_run+=pos_cor[1];
 
@@ -233,7 +242,7 @@ void CalcYield(string tgt ="", string kin="",int whichRL=2,  int debug=3)
 				{//This event falls into the ith bin for x
 					Xbj_yield_run[i] += 1.0/(run_correction
 						*luminosity_run[0]*density_cor[0]);
-/*yield for the kin*/			Xbj_yield[i]+=1.0/(event_cors);
+/*yield for the kin*/			Xbj_yield[i]+=1.0*(event_cors);
 					xbj_raw_e[i]++;
 					xbj_tot[i]+=x_bj;
 					xbj_run[i]+=x_bj;
@@ -243,7 +252,7 @@ void CalcYield(string tgt ="", string kin="",int whichRL=2,  int debug=3)
 				{//this event is in this theta bin
 					theta_yield_run[i] += 1.0/(run_correction
 						*luminosity_run[0]*density_cor[0]);
-/*yield for the kin*/			theta_yield[i] += 1.0/(event_cors);
+/*yield for the kin*/			theta_yield[i] += 1.0*(event_cors);
 					theta_raw_e[i]++;
 					theta_tot[i]+=theta;					
 					theta_run[i]+=theta;					
@@ -290,8 +299,10 @@ void CalcYield(string tgt ="", string kin="",int whichRL=2,  int debug=3)
 			}
 			theta_yield_err[i]+=pow(tmp_err_th[i],2);			
 		}//end of error bins
-
+		
 		//Clean up
+		
+		T=nullptr;
 		delete T;
 
 		//theta file by run
@@ -312,6 +323,7 @@ thbyrun <<theta_run[z]/N_ele_th[z]<<"\t"<<N_ele_th[z]<<" "<< theta_yield_run[z]<
 			out<<"\n";
 			thbyrun.close();
 			}//end of debug print statment	
+
 	}//End of run loop	
 	//////////////////////////////////////////////////////////////////////
 	
