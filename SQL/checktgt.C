@@ -18,7 +18,7 @@ void checktgt(int runnum, int debug=1){
 	string run_tgt = Form("%s",tgt_info.name.Data());
 		
 	if(debug){ cout<< "From SQL\trun \n";
-		cout <<sql_tgt << "  \t"<< run_tgt <<endl;}
+		cout <<sql_tgt << ":  \t"<< run_tgt <<":" <<endl;}
 
 	if(sql_tgt==run_tgt){cout<< "Great: NEXT!!!\t"; Server->Close();exit(1);}
 	else{
