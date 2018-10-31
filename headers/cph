@@ -1,0 +1,4 @@
+cp ~/tritium/replay/HallA-Online-Tritium/replay/scripts/headers/rootalias.h ./
+cp ~/tritium/replay/HallA-Online-Tritium/replay/scripts/headers/SQLanalysis.h ./
+
+
