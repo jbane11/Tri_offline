@@ -54,9 +54,13 @@
 #include <TSpectrum.h>
 #include <TRatioPlot.h>
 
-#include "/home/jbane/headers/rootalias.h"
-#include "/home/jbane/headers/SQLanalysis.h"
 
+
+//#include "/home/jbane/headers/rootalias.h"
+#include "./rootalias.h"
+#include "./SQLanalysis.h"
+//#include "/home/jbane/headers/SQLanalysis.h"
+#include "./dirent.h"
 using namespace std;
 //	string kin_cor_loc = "/adaqfs/home/a-onl/tritium_work/Bane/Tri_offline/kin_txt/";
 	std::string kin_cor_loc = "/home/jbane/tritium/Tri_offline/kin_txt/";
@@ -1018,6 +1022,24 @@ double RC_factor(int kin, string tgt, double E, double Ep, double theta){
 	
 	return RCF;
 }
+
+
+int getdir (string dir, vector<string> &files)
+{
+    DIR *dp;
+    struct dirent *dirp;
+    if((dp  = opendir(dir.c_str())) == NULL) {
+        cout << "Error(" << errno << ") opening " << dir << endl;
+        return errno;
+    }
+
+    while ((dirp = readdir(dp)) != NULL) {
+        files.push_back(string(dirp->d_name));
+    }
+    closedir(dp);
+    return 0;
+}
+
 
 
 
