@@ -60,11 +60,10 @@
 #include "./rootalias.h"
 #include "./SQLanalysis.h"
 //#include "/home/jbane/headers/SQLanalysis.h"
-#include "./dirent.h"
 using namespace std;
 //	string kin_cor_loc = "/adaqfs/home/a-onl/tritium_work/Bane/Tri_offline/kin_txt/";
 	std::string kin_cor_loc = "/home/jbane/tritium/Tri_offline/kin_txt/";
-			///Varibles defined for cuts	
+			///Varibles defined for cuts
 	double TG_Theta_Max_inc = 0.04;//40mrad
 	double TG_Theta_Min_inc =-0.04;//40mrad
 	double TG_Phi_Max_inc = 0.030;//25mrad
@@ -92,7 +91,7 @@ using namespace std;
 
 
 	vector<vector<double>> ECC_table;
-	
+
 	vector<vector<double>> RC_table;
 	string RC_tgt;
 
@@ -107,7 +106,7 @@ TStyle* mcStyle = new TStyle("mcStyle","Manuel's Root Styles");
  mcStyle->SetTitleSize(0.05,"xyz"); // size of axis title font
  mcStyle->SetTitleFont(22,"xyz"); // font option
  mcStyle->SetLabelFont(22,"xyz");
- mcStyle->SetTitleOffset(1.2,"y");
+ mcStyle->SetTitleOffset(-.5,"y");
  gROOT->SetStyle("mcStyle");
 }
 //classes
@@ -118,7 +117,7 @@ class data_type {
 	double value;
 	int column;
 	std::string type;
-	void set_values(double a, int b, std::string str); 	
+	void set_values(double a, int b, std::string str);
 };
 	void data_type::set_values(double a, int b, std::string str){
 		value = a;
@@ -179,7 +178,7 @@ vector<double> parse_csv_d(string s, char delim=',')
 			if(is_number(substr)){
 
 				if(substr.size()==0){substr="0";}
-						
+
 	 			sub = stod(substr);
 				vec.push_back(sub);}
 		}
@@ -191,7 +190,7 @@ double milRtoDeg(double mR){return mR*0.001 *(180/PI);}
 
 
 
-//Class to open up a kin file and create strings for the information inside. 
+//Class to open up a kin file and create strings for the information inside.
 class kin_file {
 	public:
 		std::string target;std::vector<int> Oldrun;
@@ -199,7 +198,7 @@ class kin_file {
 		std::string run_string;
 		vector<int> run_vect;
 		int run_file_status=0;
-	
+
 	void set_file(std::string name, int debug = 0)
 	{
 		std::ifstream file(name);
@@ -207,19 +206,19 @@ class kin_file {
 		run_file_status=1;
 		TString content;
 
-  		for (int ii=0; content.ReadLine(file) && ii<3;ii++ ) 
-		{  
+  		for (int ii=0; content.ReadLine(file) && ii<3;ii++ )
+		{
     			if(debug==1){cout<<"!!!:  "<<content<<endl;}
     			if(ii==0)target = content;
        			if(ii==1){
            			kin_num = content.Data();
            		}
-    			if(ii==2)run_string = content; 
+    			if(ii==2)run_string = content;
         	}
   		file.close();
 		run_vect = parse_csv_int(run_string);
-		
-  		
+
+
   	}
 };
 //////////////////////////////////////////////////////////////////////////////
@@ -228,9 +227,9 @@ class  corrections{
 	std::vector<vector<double>> CT;
 	std::vector<string> Labels;
 	std::vector<int> ORs;
-	int CS;	
-	//void Read_Table(std::string kin_target, std::string kin_num); 
-	
+	int CS;
+	//void Read_Table(std::string kin_target, std::string kin_num);
+
 //};
 
 void Read_Table(std::string kin_target, std::string kin_num, int debug=0) {
@@ -248,19 +247,19 @@ void Read_Table(std::string kin_target, std::string kin_num, int debug=0) {
 	if(!list.is_open()) {CS=0; cout << " Corrections file does not exist " <<endl; return; }
 	CS=1; //does the files open
  	//////////////
-	
+
 	std::string stringrun;std::string::size_type sz;
-  	int inrun=0; int status=0;  int innum=0;   
+  	int inrun=0; int status=0;  int innum=0;
   	int numint=0;	int num_of_inputs=0;
 
   	string delimiter = "\t";
-  	
+
 	while (std::getline(list, line_file)){
     		vec.push_back(line_file);
-		size_t pos = 0;	size_t pos1 = 0; 
+		size_t pos = 0;	size_t pos1 = 0;
 		int columns=1;
 		std::string token;
-		
+
 		if(debug==1)cout <<numint<<" :  "<< innum << " "<< line_file <<endl;
     		while ((pos = vec[numint].find(delimiter)) != std::string::npos) {
 			token = vec[numint].substr(0, pos);
@@ -269,7 +268,7 @@ void Read_Table(std::string kin_target, std::string kin_num, int debug=0) {
   	  		double in_num;
 			if(is_number(token)) {
   	  			num_of_inputs++;
-  	  	 		in_num=stod(token);  		  
+  	  	 		in_num=stod(token);
 				col.push_back (in_num);
 				d_type.resize(num_of_inputs);
 				d_type[num_of_inputs-1].set_values(in_num,columns,labels[columns-1]);
@@ -289,7 +288,7 @@ void Read_Table(std::string kin_target, std::string kin_num, int debug=0) {
       			if(line_file[jj]== '\t'){break;}
       			stringrun+=line_file[jj];
     		}
-		
+
     		inrun=stoi(stringrun,&sz);
     		size_t leng = stringrun.length();
        		Oldrun.push_back(inrun);
@@ -299,12 +298,12 @@ void Read_Table(std::string kin_target, std::string kin_num, int debug=0) {
   	list.close();
 	if(input_vec.size()>2)input_vec.erase(input_vec.begin());
 	if(input_vec.size()>1)input_vec.erase(input_vec.begin());
-	
+
 	ORs=Oldrun;
 	Labels=labels;
 	CT=input_vec;
 }
-};	
+};
 /*
 inline vector<std::string> corrections_label(std::string kin_target, std::string kin_num) {
         //vectors to be used
@@ -335,16 +334,16 @@ inline vector<std::string> corrections_label(std::string kin_target, std::string
                         if(numint==1){labels.push_back(token);}
 		}
 		numint++;
-	}	
+	}
 	list.close();
-	return labels;		
-}			
-*/		
+	return labels;
+}
+*/
 
 inline TString Good_Electron_Cuts(TString ARM_inc="Left", int PID =1,int trigger=1, int tg_acc=1, int track=1, int beam=1)
 {
-//Need to use set_limits to set before hand. 		
-/*		///Varibles defined for cuts	
+//Need to use set_limits to set before hand.
+/*		///Varibles defined for cuts
 	TG_Theta_Max_inc = 0.04;//40mrad
 	TG_Theta_Min_inc =-0.04;//40mrad
 	TG_Phi_Max_inc = 0.030;//25mrad
@@ -392,7 +391,7 @@ inline TString Good_Electron_Cuts(TString ARM_inc="Left", int PID =1,int trigger
 	TString target_th_inc = Form("(%s.tr.tg_th)>%4.3f &&(%s.tr.tg_th)<%4.3f",Arm_inc.Data(),TG_Theta_Min_inc,Arm_inc.Data(),TG_Theta_Max_inc);
 	TString track_dp_inc = Form("(%s.tr.tg_dp)>%4.3f && (%s.tr.tg_dp)<%4.3f",Arm_inc.Data(),TG_Dp_Min_inc,Arm_inc.Data(),TG_Dp_Max_inc);
 	TString beam_trip_inc = Form("%sBCM.BeamUp_time_v1495[%d] >= %f",ARM_inc.Data(),cur_sel_inc,beamon_min_inc);
-	
+
 	TString cuts ="";
 	if(trigger)cuts = Trigger_inc;
 	if(PID==1)cuts+="&&"+pid_cer_inc+"&&"+pid_cal_inc;
@@ -400,11 +399,11 @@ inline TString Good_Electron_Cuts(TString ARM_inc="Left", int PID =1,int trigger
 		else if(PID==3)cuts+="&&"+pid_cal_inc1;
 	if(tg_acc)cuts+="&&"+target_z_inc+"&&"+target_ph_inc+"&&"+target_th_inc+"&&"+track_dp_inc;
 	if(track)cuts+="&&"+one_track_inc;
-	if(beam) cuts+="&&"+beam_trip_inc;	
+	if(beam) cuts+="&&"+beam_trip_inc;
 
 	TSubString sub = cuts.operator()(0,2);
 	if(sub=="&&")cuts.Remove(0,2);
-	
+
 
 	return cuts;
 }
@@ -413,7 +412,7 @@ inline TString Good_Electron_Cuts(TString ARM_inc="Left", int PID =1,int trigger
 void set_defaults()
 {
 
-			///Varibles defined for cuts	
+			///Varibles defined for cuts
 	TG_Theta_Max_inc = 0.04;//40mrad
 	TG_Theta_Min_inc =-0.04;//40mrad
 	TG_Phi_Max_inc = 0.030;//25mrad
@@ -442,13 +441,13 @@ void set_defaults()
 inline void set_limits(TString kin_tgt)
 {
 
-	//open file 
+	//open file
 	TString cor_kin = "---- "+kin_tgt;
 	std::fstream limits_file;
   	std::string limits_line;
   	limits_file.open( Form("%skin_cut.dat",kin_cor_loc.c_str())	,std::fstream::in);
 	if(!limits_file.is_open()){ cout <<Form("%skin_cut.dat",kin_cor_loc.c_str())<< " is not open:" <<endl; return;}
-	// Define vectors to be used //	
+	// Define vectors to be used //
 	vector<string> line_vector;
 	vector<string> db_vector;
 	vector<double> db_num;
@@ -461,18 +460,18 @@ inline void set_limits(TString kin_tgt)
 			while (std::getline(limits_file, limits_line)){					//get line of cor kin
 				if(limits_line=="----") break;						//to find the end of cor kin
 				db_vector.push_back(limits_line);					//add line to cor vec
-				size_t pos=0;								//pos of the string 	
+				size_t pos=0;								//pos of the string
 				string delim1="=";string delim2=";";					//what defines the input
 				pos = db_vector[k].find(delim1);					//find the input
-				if(pos> db_vector[k].length()){ k++; continue;}				//not a value line	
+				if(pos> db_vector[k].length()){ k++; continue;}				//not a value line
 				db_vector[k].erase(0, pos + delim1.length());				//restructure string
 				pos = db_vector[k].find(delim2);					//find end of inpt
-				db_vector[k].erase(pos, pos+ db_vector[k].length());			//restructure string 			
+				db_vector[k].erase(pos, pos+ db_vector[k].length());			//restructure string
 				if(is_number(db_vector[k])){ db_num.push_back(stod(db_vector[k]));}   	//set string as double
 				k++;
-			} 
+			}
 		}//end of correct kin
-		else{ 
+		else{
 			set_defaults();
 			return;
 		}
@@ -483,16 +482,16 @@ inline void set_limits(TString kin_tgt)
 	TG_Theta_Min_inc 	=db_num[1];	//mrad
 	TG_Phi_Max_inc 		=db_num[2];	//mrad
 	TG_Phi_Min_inc 		=db_num[3];	//mrad
-	TG_Dp_Max_inc 		=db_num[4];	//dp/p   
+	TG_Dp_Max_inc 		=db_num[4];	//dp/p
 	TG_Dp_Min_inc		=db_num[5];	//dp/p
 	TG_VZ_Max_inc 		=db_num[6];	//meters
 	TG_VZ_Min_inc 		=db_num[7];	//meters
-	P0_inc 			=db_num[8]; 	//GeV/c         
-	GC_Cut_inc 		=db_num[9];    //adc channel        
-	EP_Cut_inc		=db_num[10];    // Deposit engery of p          
-	Main_Trigger_Left_inc 	=db_num[11];    // int 1-8 
+	P0_inc 			=db_num[8]; 	//GeV/c
+	GC_Cut_inc 		=db_num[9];    //adc channel
+	EP_Cut_inc		=db_num[10];    // Deposit engery of p
+	Main_Trigger_Left_inc 	=db_num[11];    // int 1-8
 	Main_Trigger_Right_inc 	=db_num[12];    // int 1-8
-	cur_sel_inc		=db_num[13];    // int 0-4             
+	cur_sel_inc		=db_num[13];    // int 0-4
 	beamon_min_inc		=db_num[14];	// uAs
  }// End of set limit function
 
@@ -502,10 +501,10 @@ inline bool GOOD_Event(TChain *T , int Event, int debug =0, TString ARM_inc = "L
 
 	TChain *tt= new TChain();
 	tt->Add(T);
-  	bool GE = 0; //Is this a good electron event                         	
+  	bool GE = 0; //Is this a good electron event
 	double react_z, cal1, cal2, cer_asum, gold_p;
   	double track_n, trigger_bit ;
-  	//Tree varibles                                       	
+  	//Tree varibles
   	double Beam_up_inc[5], dp_inc,  dtheta_inc, dphi_inc;  	//Arm seperated issues
  	TString Arm_inc,arm_inc;
 	Int_t Main_Trigger_inc;
@@ -517,7 +516,7 @@ inline bool GOOD_Event(TChain *T , int Event, int debug =0, TString ARM_inc = "L
 		cal_det_inc = "(L.prl1.e+L.prl2.e)/(L.gold.p*1000.)";
 		Cal_B_1 = "L.prl1.e";
 		Cal_B_2 = "L.prl2.e";
-		
+
 		}
 	else{
 		Arm_inc="R";arm_inc="r";
@@ -526,12 +525,12 @@ inline bool GOOD_Event(TChain *T , int Event, int debug =0, TString ARM_inc = "L
 		Cal_B_1 = "L.ps.e";
 		Cal_B_2 = "L.sh.e";
 		}
- 	
+
  	//Setting branches
  	tt->ResetBranchAddresses();
- 	tt->SetBranchAddress(	Form("%sBCM.BeamUp_time_v1495"	,ARM_inc.Data())	,Beam_up_inc); 	
- 	tt->SetBranchAddress(	Form("%s.tr.tg_dp"		,Arm_inc.Data())	,&dp_inc); 	
-  	tt->SetBranchAddress(	Form("%s.tr.tg_th"		,Arm_inc.Data())	,&dtheta_inc); 	
+ 	tt->SetBranchAddress(	Form("%sBCM.BeamUp_time_v1495"	,ARM_inc.Data())	,Beam_up_inc);
+ 	tt->SetBranchAddress(	Form("%s.tr.tg_dp"		,Arm_inc.Data())	,&dp_inc);
+  	tt->SetBranchAddress(	Form("%s.tr.tg_th"		,Arm_inc.Data())	,&dtheta_inc);
    	tt->SetBranchAddress(	Form("%s.tr.tg_ph"		,Arm_inc.Data())	,&dphi_inc);
    	tt->SetBranchAddress(	Form("rp%s.z"			,arm_inc.Data())	,&react_z);
    	tt->SetBranchAddress(	Form("%s.tr.n"			,Arm_inc.Data())	,&track_n);
@@ -540,11 +539,11 @@ inline bool GOOD_Event(TChain *T , int Event, int debug =0, TString ARM_inc = "L
 	tt->SetBranchAddress(	Form("%s"			,Cal_B_1.Data())	,&cal1);
 	tt->SetBranchAddress(	Form("%s"			,Cal_B_2.Data())	,&cal2);
    	tt->SetBranchAddress(	Form("D%s.evtypebits"		,Arm_inc.Data())	,&trigger_bit);
-   
- 
-   	
+
+
+
 	//Checking if Good
-	tt->GetEntry(Event);  	
+	tt->GetEntry(Event);
  	if( (int)trigger_bit>>Main_Trigger_inc&1)	{tt=nullptr;			return GE;} //Triggeri
  	if(track_n != 1)				{tt=nullptr;			return GE;} //tracking
  	if(Beam_up_inc[cur_sel_inc] <= beamon_min_inc) 	{tt=nullptr;			return GE;} //Beamtrip
@@ -553,8 +552,8 @@ inline bool GOOD_Event(TChain *T , int Event, int debug =0, TString ARM_inc = "L
 	if( (cal1 +cal2)/(gold_p*1000) <= EP_Cut_inc)	{tt=nullptr;			return GE;} //PID energy
 	if(cer_asum <= GC_Cut_inc )			{tt=nullptr;			return GE;} //PID cer
  	if(dp_inc 	<= TG_Dp_Min_inc || dp_inc >= TG_Dp_Max_inc) {tt=nullptr;	return GE;} //p acc
- 	if(dtheta_inc <= TG_Theta_Min_inc || dtheta_inc >= TG_Theta_Max_inc) {tt=nullptr;return GE;} //theta acc	
- 	if(dphi_inc <= TG_Phi_Min_inc || dphi_inc >= TG_Phi_Max_inc) {tt=nullptr;	return GE;} //phi acc	 
+ 	if(dtheta_inc <= TG_Theta_Min_inc || dtheta_inc >= TG_Theta_Max_inc) {tt=nullptr;return GE;} //theta acc
+ 	if(dphi_inc <= TG_Phi_Min_inc || dphi_inc >= TG_Phi_Max_inc) {tt=nullptr;	return GE;} //phi acc
 	return 1;
 }
 
@@ -574,7 +573,7 @@ vector<string> parse_std(string str,string delim=","){
 		token = str.substr(0, pos);
 		vec_str.push_back(token);
 	    	str.erase(0, pos + delim.length());
-	}	
+	}
 
 return vec_str;
 }
@@ -589,8 +588,8 @@ vector<int> parse_int(string str,string delim=","){
 			vec_str.push_back(stoi(token));
 		}
 	    	str.erase(0, pos + delim.length());
-			
-	}	
+
+	}
 
 return vec_str;
 }
@@ -605,14 +604,14 @@ vector<int> parse_int(string str,char delim=','){
 			vec_str.push_back(stoi(token));
 		}
 	    	str.erase(0, pos + 1);
-			
-	}	
+
+	}
 
 return vec_str;
 }
 
 double CalcCharge(int runnum, double cur_thres=4.0 , int debug=0){
-	
+
 	double charge=0.0;
 	TChain *T = LoadRun(runnum);
 	if(T==nullptr){cout << "somthing wrong with loadrun\n" ;
@@ -631,7 +630,7 @@ double CalcCharge(int runnum, double cur_thres=4.0 , int debug=0){
 		T->GetEntry(i);
 		if((int)renew  ==1  && Idnew>=cur_thres){
 			charge+=(Qdnew-dnew2);
-			}		
+			}
 		dnew2=Qdnew;
 		Qdnew=0.0;Idnew=0.0;renew=0;
 	}
@@ -639,9 +638,10 @@ double CalcCharge(int runnum, double cur_thres=4.0 , int debug=0){
 
 	return charge;
 }
+
 double CalcCharge1(int runnum, double &current,double cur_thres=4.0 ){
 	int debug=0;
-	
+
 	double charge=0.0;
 	TChain *T = LoadRun(runnum);
 	if(T==nullptr){cout << "somthing wrong with loadrun\n" ;
@@ -663,7 +663,7 @@ double CalcCharge1(int runnum, double &current,double cur_thres=4.0 ){
 		T->GetEntry(i);
 		if((int)renew  ==1  && Idnew>=cur_thres && Idnew <= 50.0 && Qdnew==Qdnew){
 		if(debug>1){
-			double per = i/(entries*1.0)*1000;		
+			double per = i/(entries*1.0)*1000;
 			int peri = per/10;
 			int modu = peri % 10;
 			if( modu  == 0 && peri != prev_p)
@@ -679,11 +679,67 @@ double CalcCharge1(int runnum, double &current,double cur_thres=4.0 ){
 			accum_current+=Idnew;
 			charge+=(Qdnew-dnew2);
 			G_events++;
-			}		
+			}
 		dnew2=Qdnew;
 		Qdnew=0.0;Idnew=0.0;renew=0;
 	}
-	
+
+	current = accum_current/(G_events*1.0);
+	delete T;
+
+	return charge;
+}
+
+double CalcChargeold(int runnum, double &current,double cur_thres=4.0 ){
+	int debug=0;
+	double gain = 0.000333;
+	double charge=0.0;
+	TChain *T = LoadRun(runnum);
+	if(T==nullptr){cout << "somthing wrong with loadrun\n" ;
+			return charge;}
+	int entries = T->GetEntries();
+	Double_t Qdnew=0.0; 	Double_t Idnew=0.0;
+	double dnew2=0.0;	Double_t renew=0;
+	double clock=0.0; 	double oclock=0.0;
+	TString arm="Left";
+	if(runnum>=8000)arm="Right";
+	T->ResetBranchAddresses();
+	T->SetBranchAddress(Form("ev%sdnew_r",arm.Data()),&Idnew);
+	T->SetBranchAddress(Form("ev%sdnew",arm.Data()),&Qdnew);
+	T->SetBranchAddress(Form("ev%sLclock",arm.Data()),&clock);
+	if(debug)	cout << "num " << entries <<"\n";
+	double accum_current=0.0;
+	int G_events=0;
+	int prev_p=-1;
+	for(int i=0; i<entries; i++){
+		T->GetEntry(i);
+		Idnew*=gain;
+		if(oclock  != clock  && Idnew>=cur_thres && Idnew <= 50.0 && Qdnew==Qdnew)
+		{
+			if(debug>1)
+			{
+				double per = i/(entries*1.0)*1000;
+				int peri = per/10;
+				int modu = peri % 10;
+				if( modu  == 0 && peri != prev_p)
+				{
+					prev_p=peri;
+					cout << " current " << Idnew ;
+					cout << " charge  " << charge ;
+					cout << " avg cur " << accum_current/G_events;
+					cout << " %\t"<< i/(entries*1.0) <<endl;
+				}
+			}
+
+			accum_current+=Idnew;
+			charge+=(Qdnew-dnew2)*gain ;
+			G_events++;
+		}
+		dnew2=Qdnew;
+		oclock=clock;
+		Qdnew=0.0;Idnew=0.0;
+	}
+
 	current = accum_current/(G_events*1.0);
 	delete T;
 
@@ -764,7 +820,7 @@ vector<double> Calc_lum(int run,int debug=1){
 
 
 	charge = GetChargeSQL(run,current,0);
-	
+
 	TargetInfo  TI = GetTargetInfo("",-999,run);
 	tgt = TI.name;
 	tgt_thick =TI.Thickness;
@@ -781,15 +837,15 @@ vector<double> Calc_lum(int run,int debug=1){
      else if(tgt == "Deuterium")atomicMass = 2.014102;
      else if(tgt == "Hydrogen") atomicMass = 1.007947;
      else if(tgt=="Carbon")	atomicMass = 12.01;
-	
+
 	den_cor = DensityCor(den_cor_err, run, current);
 
-    if(debug) cout <<" density cor " << den_cor <<"  " << den_cor_err<<"\n"; 
+    if(debug) cout <<" density cor " << den_cor <<"  " << den_cor_err<<"\n";
      lumin = (charge_E*tgt_thick*den_cor*Na/atomicMass)/CMtoNB;
 
 	/// Error on charge , error on thick , error on den_cor
-     lum_err = sqrt(lumin*lumin*(pow((charge_err/(charge_E*1.0)),2) + 
-		pow((thick_err/(tgt_thick*1.0)),2)  + 
+     lum_err = sqrt(lumin*lumin*(pow((charge_err/(charge_E*1.0)),2) +
+		pow((thick_err/(tgt_thick*1.0)),2)  +
 		pow((den_cor_err/(den_cor*1.0)),2)) );
 
     if(debug) cout << " luminosity " << lumin << " err% " <<lum_err/lumin<<"  thick_err% " << thick_err/tgt_thick << "\n";//  den_error% "<< den_cor_err/den_cor<<"\n";
@@ -807,8 +863,8 @@ struct RunDBInfo{
 };
 
 RunDBInfo GetRunDBInfo(int run){
-	RunDBInfo RunDB;	
-	string ser = Form("run %d",run);	
+	RunDBInfo RunDB;
+	string ser = Form("run %d",run);
 
 	string run_db_name= "/home/jbane/tritium/replay/HallA-Online-Tritium/replay/DB/db_run.dat";
 	string line;
@@ -832,37 +888,37 @@ RunDBInfo GetRunDBInfo(int run){
 						pos=line.find("=");
 						string sub = line.substr(pos+1);
 						RunDB.ebeam=atof(sub.c_str());
-					}	
+					}
 					if(line.find("theta")!=string::npos)
 					{
 						pos=line.find("=");
 						string sub = line.substr(pos+1);
 						RunDB.angle=atof(sub.c_str());
-					}	
+					}
 					if(line.find("pcentral")!=string::npos)
 					{
 						pos=line.find("=");
 						string sub = line.substr(pos+1);
 						RunDB.p0=atof(sub.c_str());
-					}	
+					}
 					if(line.find("off_x")!=string::npos)
 					{
 						pos=line.find("=");
 						string sub = line.substr(pos+1);
 						RunDB.offset[0]=atof(sub.c_str());
-					}	
+					}
 					if(line.find("off_y")!=string::npos)
 					{
 						pos=line.find("=");
 						string sub = line.substr(pos+1);
 						RunDB.offset[1]=atof(sub.c_str());
-					}	
+					}
 					if(line.find("off_z")!=string::npos)
 					{
 						pos=line.find("=");
 						string sub = line.substr(pos+1);
 						RunDB.offset[2]=atof(sub.c_str());
-					}	
+					}
 
 				}//end of while loop
 			break;
@@ -876,7 +932,7 @@ RunDBInfo GetRunDBInfo(int run){
 
 
 double ECC_Cor(int kin, string tgt){
-	double ECC=1.0;	
+	double ECC=1.0;
 	int col=0;
 	int row=-1;
 	if(tgt=="H3"){col=1;}
@@ -890,7 +946,7 @@ double ECC_Cor(int kin, string tgt){
 		in.open("/home/jbane/Documents/ECC_table.csv");
 		string line;
 		getline(in,line);//titles
-		
+
 		while(in.good())
 		{
 			getline(in,line);
@@ -904,9 +960,9 @@ double ECC_Cor(int kin, string tgt){
 		if((int)ECC_table[i][0]==kin){row=i;break;}
 	}
 	if(row==-1){return ECC;}
-	
 
-	ECC=ECC_table[row][col];			
+
+	ECC=ECC_table[row][col];
 
 	return ECC;
 }
@@ -938,30 +994,30 @@ double RC_factor(int kin, string tgt, double E, double Ep, double theta){
 		}
 		RC_tgt=tgt;
 	}
-	
+
 	double Ep_sel[4]={0.0};
 	double theta_sel[4]={0.0};
 	double RC_sel[4]={0.0};
 
 	double ediff=1000;
-	double thdiff=100;		
+	double thdiff=100;
 	double thstep=0.1;
 	double thstep_1=0.1;
 	double Epstep=0.01;
-		
+
 	int thF=0;
-	double thT=0;	
+	double thT=0;
 	//find the theta boundries
 	for(unsigned int i=0;i<RC_table.size();i++)
 	{
-		
+
 		thT=RC_table[i][2];
 		thdiff=abs(theta-thT);
 		if(thT < theta){
 			if(thdiff<=thstep){
 				theta_sel[0]=thT;
 					}
-		
+
 		}
 		else{
 			if(thdiff<=thstep_1){
@@ -1002,43 +1058,190 @@ double RC_factor(int kin, string tgt, double E, double Ep, double theta){
 				}
 			}
 		}
-	}	
-					
+	}
+
 	//iterperlate between the 4 points
 //	cout << RC_sel[0] << " "<< RC_sel[1] << " "<< RC_sel[2] << " "<< RC_sel[3] << " \n";
 
 //	cout << theta_sel[0] <<" "<< theta_sel[1]<<endl;
-	
-	double RC1 = (RC_sel[1]*(Ep-Ep_sel[0]) + RC_sel[0]*(Ep_sel[1]-Ep))/(Ep_sel[1]-Ep_sel[0]);	
+
+	double RC1 = (RC_sel[1]*(Ep-Ep_sel[0]) + RC_sel[0]*(Ep_sel[1]-Ep))/(Ep_sel[1]-Ep_sel[0]);
 	double RC2 = (RC_sel[3]*(Ep-Ep_sel[2]) + RC_sel[2]*(Ep_sel[3]-Ep))/(Ep_sel[3]-Ep_sel[2]);
 //	cout <<RC1<<" "<<RC2 <<endl;
-		
-	RCF= (RC2*(theta-theta_sel[0]) + RC1*(theta_sel[1]-theta) )/(theta_sel[1]-theta_sel[0]) ; 
 
-		
+	RCF= (RC2*(theta-theta_sel[0]) + RC1*(theta_sel[1]-theta) )/(theta_sel[1]-theta_sel[0]) ;
+
+
 //	cout << theta-theta_sel[0] << " " << theta_sel[1]-theta << " "<< theta_sel[1]-theta_sel[0] <<endl;
 
-		
-	
+
+
 	return RCF;
 }
 
 
-int getdir (string dir, vector<string> &files)
+vector<double> beam_info(TTree *T, int debug=1)
 {
-    DIR *dp;
-    struct dirent *dirp;
-    if((dp  = opendir(dir.c_str())) == NULL) {
-        cout << "Error(" << errno << ") opening " << dir << endl;
-        return errno;
-    }
+  TH1F *h_x = new TH1F("h_x","rbx",2500,-5,5);
+  TH1F *h_y = new TH1F("h_y","rby",2500,-5,5);
+  THaRun *RI = GetRunData(T);
+  int run =RI->GetNumber();
+  CODASetting coda = GetCODASetting(run);
+  string arm = coda.arm.Data();
+  TCut cut="1";
+  if(arm == "L"){  cut = electron_cut_L;}
+  else { cut = electron_cut_R;}
+	TCanvas *C;
+	TString g_op="goff";
+	if(debug>=2)
+	{
+		g_op="";
+		C= new TCanvas(Form("c_%d",run),Form("run %d",run));
+		C->Divide(1,2);
+		C->cd(1);
+	}
+	double res=1.8;
+	double x_mean, y_mean, x_min, x_max, y_min, y_max;
 
-    while ((dirp = readdir(dp)) != NULL) {
-        files.push_back(string(dirp->d_name));
-    }
-    closedir(dp);
-    return 0;
+  T->Draw("Lrb.x*1000>>h_x",cut,g_op);
+	x_mean = h_x->GetMean();
+
+	if(T->GetEntries(cut) <3000)
+	{
+		cut = "1";
+		T->Draw("Lrb.x*1000>>h_x",cut,g_op);
+	}
+	if(T->GetEntries(cut) <6000)
+	{
+		if(debug)cout << "using first and last bin for x" <<endl;
+		x_min  = h_x->GetBinCenter( h_x->FindFirstBinAbove(10));
+		x_max  = h_x->GetBinCenter( h_x->FindLastBinAbove(10));
+		TLine *lx1 = new TLine(x_min,0,x_min,h_x->GetMaximum());
+		TLine *lx2 = new TLine(x_max,0,x_max,h_x->GetMaximum());
+		lx1->SetLineColor(2);lx2->SetLineColor(2);
+		lx1->Draw(Form("same %s",g_op.Data()));
+		lx2->Draw(Form("same %s",g_op.Data()));
+	}
+	else{
+		 TSpectrum *s = new TSpectrum(5,1);
+	  s->Search(h_x,res,g_op,0.8);
+	  double *peaks = s->GetPositionX();
+		if(debug) {for(int i=0; i<s->GetNPeaks();i++){cout <<peaks[i]<<"  ";}cout<<"\n";}
+		int num_x_s=1;
+		while(s->GetNPeaks() <2){
+			double thres=(0.7-(0.05*num_x_s));
+			s->Search(h_x,res,g_op,thres);
+			peaks= s->GetPositionX();
+			if(debug) {
+				cout << "Search again with threshold of " <<thres<<endl;
+				for(int i=0; i<s->GetNPeaks();i++){cout <<peaks[i]<<"  ";}cout<<"\n";
+			}
+			if(num_x_s>=14)break;
+			num_x_s++;
+		}
+		if(s->GetNPeaks() <2)cout << "Not enough peaks for x"<<endl;
+
+	  x_min = peaks[0];
+	  x_max = peaks[1];
+	  if(x_min>x_max){double tmp = x_min; x_min=x_max;x_min=tmp;}
+	}
+	if(x_max - x_min < 1.0){
+		if(debug) cout << "bad spectrum"<<endl;
+		x_min  = h_x->GetBinCenter( h_x->FindFirstBinAbove(10));
+		x_max  = h_x->GetBinCenter( h_x->FindLastBinAbove(10));
+		TLine *lx1 = new TLine(x_min,0,x_min,h_x->GetMaximum());
+		TLine *lx2 = new TLine(x_max,0,x_max,h_x->GetMaximum());
+		lx1->SetLineColor(2);lx2->SetLineColor(2);
+		lx1->Draw(Form("same %s",g_op.Data()));
+		lx2->Draw(Form("same %s",g_op.Data()));
+	}
+
+
+	if(debug) cout <<" Y time"<<endl;
+
+	if(debug>=2)C->cd(2);
+
+	if(arm == "L"){  cut = electron_cut_L;}
+	else { cut = electron_cut_R;}
+
+  T->Draw("Lrb.y*1000>>h_y",cut,g_op);
+	y_mean = h_y->GetMean();
+	if(T->GetEntries(cut) <1000)
+	{
+		cut = "1";
+		T->Draw("Lrb.y*1000>>h_y",cut,g_op);
+	}
+	if(T->GetEntries(cut) <3000)
+	{
+		if(debug)cout << "using first and last bin for y" <<endl;
+		y_min  = h_y->GetBinCenter( h_y->FindFirstBinAbove(10));
+		y_max = h_y->GetBinCenter( h_y->FindLastBinAbove(10));
+		TLine *ly1 = new TLine(y_min,0,y_min,h_y->GetMaximum());
+		TLine *ly2 = new TLine(y_max,0,y_max,h_y->GetMaximum());
+		ly1->SetLineColor(2);ly2->SetLineColor(2);
+		ly1->Draw(Form("same %s",g_op.Data()));
+		ly2->Draw(Form("same %s",g_op.Data()));
+	}
+	else{
+	  TSpectrum *sy = new TSpectrum(5,1);
+	  sy->Search(h_y,res,g_op,0.8);
+		int num_y_s=1;
+		double *peaksy = sy->GetPositionX();
+		if(debug) {for(int i=0; i<sy->GetNPeaks();i++){cout <<peaksy[i]<<"  ";}cout<<"\n";}
+		while(sy->GetNPeaks() <2){
+			double thres=(0.7-(0.05*num_y_s));
+			sy->Search(h_y,res,g_op,thres);
+			peaksy= sy->GetPositionX();
+			if(debug) {
+				cout << "Search again with threshold of " <<thres<<endl;
+				for(int i=0; i<sy->GetNPeaks();i++){cout <<peaksy[i]<<"  ";}cout<<"\n";}
+			if(num_y_s>=14)break;
+			num_y_s++;
+		}
+		if(sy->GetNPeaks() <2)cout << "Not enough peaks for y"<<endl;
+  	y_min = peaksy[0];
+  	y_max = peaksy[1];
+		if(y_min>y_max){double tmp = y_min; y_min=y_max;y_min=tmp;}
+	}
+	if(x_max - x_min < 1.0){
+		if(debug) cout << "bad spectrum"<<endl;
+		y_min  = h_y->GetBinCenter( h_y->FindFirstBinAbove(10));
+		y_max = h_y->GetBinCenter( h_y->FindLastBinAbove(10));
+		TLine *ly1 = new TLine(y_min,0,y_min,h_y->GetMaximum());
+		TLine *ly2 = new TLine(y_max,0,y_max,h_y->GetMaximum());
+		ly1->SetLineColor(2);ly2->SetLineColor(2);
+		ly1->Draw(Form("same %s",g_op.Data()));
+		ly2->Draw(Form("same %s",g_op.Data()));
+	}
+
+
+  double size_x = abs(x_max-x_min);
+  double size_y = abs(y_max-y_min);
+
+  vector<double> beamI;
+  beamI.push_back(size_x/10.0);
+  beamI.push_back(size_y/10.0);
+  beamI.push_back(x_mean/10.0);
+  beamI.push_back(y_mean/10.0);
+	//In cm!!!!
+
+	if(debug>=3)
+	{
+		C->SaveAs(Form("./images/beampos_%d.png",run));
+	}
+
+
+  return beamI;
 }
+
+vector<double> beam_info(int run, int debug=1)
+{
+  TTree *T = LoadRun(run);
+  vector<double>beamI = beam_info(T,debug);
+  return beamI;
+}
+
+
 
 
 
@@ -1068,7 +1271,7 @@ int getdir (string dir, vector<string> &files)
 	row1 = result1->Next();
 	tgt = row1->GetField(0);
         if(debug) cout << "Target " << tgt << "\n";
-	
+
      	TString  query2=Form("select density_par_1, density_err_1, density_par_2, density_err_2, Thickness , Thickness_err, type from MARATHONTargetInfo  where name='%s';",tgt.c_str());
      	TSQLResult* result2=Server->Query(query2.Data());
      	TSQLRow *row2;
@@ -1084,7 +1287,7 @@ int getdir (string dir, vector<string> &files)
 		     	tgt_thick = atof(row2->GetField(4));
 			if(row2->GetField(5)==nullptr) thick_err = 0.0;
 			else{ thick_err = atof(row2->GetField(5));}
-		
+
 		}
 	}
 	else{if(debug)cout<<"\n!!!!!!This run is not in runlist!!!!!!\n\n";}
@@ -1092,5 +1295,3 @@ int getdir (string dir, vector<string> &files)
      Server->Close();
 //CLose the server
 */
-
-

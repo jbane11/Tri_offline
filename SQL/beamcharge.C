@@ -18,7 +18,7 @@ void beamcharge(int runnum, int cut=0, int debug=1){
 
 	double current;
 	double charge = CalcCharge1(runnum,current,cut*1.0);
-
+	if(charge!=charge) charge = CalcChargeold(runnum,current,cut*1.0);
 	if(debug) cout<<"Charge : " << charge<<"  Current " << current <<"\n";
 	
 	int found=0;

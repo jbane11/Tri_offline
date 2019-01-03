@@ -8,7 +8,7 @@
 
 
 #include <string>
-#include <stdio.h> 
+#include <stdio.h>
 #include <cstdlib>
 #include <iomanip>
 #include <locale>
@@ -48,7 +48,11 @@
 #include "THaRunParameters.h"
 #include "TVector.h"
 
+
 const char* ROOTPATHS[] = {
+  "/storage/MARATHONRootfiles/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2/kin1/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2/kin4/",
   "/run/media/jbane/Slim/MARATHONRoots/",
   "/storage/MARATHONRootfiles/",
   "/storage/MARATHONRootfiles/pass1/kin0/",
@@ -68,7 +72,7 @@ const char* ROOTPATHS[] = {
   "/volatile/halla/triton/Marathon_Rootfiles/optics_trial/",
   "./tmproot/",
   "/home/shujie/jlab/MyTritium/Rootfiles/",
-  "/volatile/halla/triton/nathaly/Rootfiles/",  
+  "/volatile/halla/triton/nathaly/Rootfiles/",
   "/volatile/halla/triton/eep_Rootfiles/pass1/",
   "/volatile/halla/triton/Marathon_Rootfiles/pass1_calibration/",
   "/volatile/halla/triton/Marathon_Rootfiles/pass1/",
@@ -104,12 +108,13 @@ const char* ROOTPATHS[] = {
   0
 };
 
+
 const char* MCPATHS[] = {
 	"/run/media/jbane/Slim/",
 	"./mcroot/",
 	0
 };
-
+const int    G_debug=0;
 const double pi=3.1415926535897932;
 const double rad=pi/180.0;
 const double wsqr=2.5;
@@ -129,8 +134,8 @@ TCut inv_m_L	    = Form("EKLx.W2>=%g",wsqr);
 
 TCut track_L        = "L.tr.n==1";
 TCut aperture_L     = "((L.tr.tg_y+L.tr.tg_ph*1.5)^2/0.64+(L.tr.tg_th*1.5)^2/0.49)<0.01";
-const double tg_dp_L=0.03;
-const double tg_th_L=0.03;
+const double tg_dp_L=0.04;
+const double tg_th_L=0.05;
 const double tg_ph_L=0.03;
 const double tg_vz_L=0.09;
 TCut dp_cut_L=Form("fabs(L.tr.tg_dp)<%g",tg_dp_L);
@@ -145,6 +150,9 @@ TCut dp_cut_L_e  = Form("fabs(L.tr.tg_dp)<%g",tg_dp_L_e);
 TCut th_cut_L_e  = Form("fabs(L.tr.tg_th)<%g",tg_th_L_e);
 TCut ph_cut_L_e  = Form("fabs(L.tr.tg_ph)<%g",tg_ph_L_e);
 TCut acc_cut_L_e = dp_cut_L_e+th_cut_L_e+ph_cut_L_e+z_cut_L+aperture_L;
+TCut L_mara_trig = "DL.evtypebits&(1<<2)";
+
+TCut L_total_cut =acc_cut_L+electron_cut_L+inv_m_L;
 
 //--------------RHRS-------------------------------------
 const double beta_min_R=0.6;
@@ -238,7 +246,7 @@ TChain* LoadOnline(Int_t run, const char* path, const char* tree,Int_t debug)
 
     TString  basename = Form("tritium_online_%d",run);
     TString  rootfile = basename + ".root";
-    
+
     TString dir = path;
     if (!dir.EndsWith("/")) dir.Append("/");
 
@@ -274,7 +282,7 @@ TChain* LoadOnline(Int_t run, const char* tree = "T")
 
   if (tt) break;
     }
-   
+
  //    if (!tt)
   // cerr << "Can not find online replay file for run " << run << endl;
 
@@ -289,7 +297,7 @@ TChain* LoadMC(Int_t run, int tarid=0, const char* tree = "h9040")
 	TChain *tt = new TChain(tree);
 	tt->Add(Form("%smc%d%s.root",MCPATHS[0],run,tgt.Data()));
 	if(tt->GetEntries()==0){return nullptr;}
-	else{cout << "adding " <<Form("%smc%d.root",MCPATHS[0],run)<<"\n";}
+	else{cout << "adding " <<Form("%smc%d%s.root",MCPATHS[0],run,tgt.Data())<<"\n";}
 	return tt;
 }
 // get rootfile path
@@ -362,17 +370,17 @@ Int_t GetPS(TTree* tt,Int_t trigger)
 
 // ---------------------------
 // Return rawdata taken time (as unix /epoch time) for a given Ttree
-// t2day = 1: return days since the Tritium cell filled 
-// 
+// t2day = 1: return days since the Tritium cell filled
+//
 // ---------------------------
 Int_t GetTimeStamp(TTree* tt, Int_t decay_days=0)
 {
-   
-    THaRun* run = GetRunData(tt);    
+
+    THaRun* run = GetRunData(tt);
     TDatime datetime = run->GetDate();
-   
+
     // cout<<datetime.AsString()<<endl;
-    Int_t timestamp = datetime.Convert();    // convert to epoch time 
+    Int_t timestamp = datetime.Convert();    // convert to epoch time
 
     if (decay_days==1){
         vector<Int_t> filldate={1508774400};// the first tritium cell filled on 2017.10.23. please add newer date in ascending order
@@ -413,6 +421,9 @@ Double_t pois_fit(Double_t *x, Double_t *par)
    //   cout<<fitval<<endl;
    return fitval;
 }
+
+
+
 
 
 #endif

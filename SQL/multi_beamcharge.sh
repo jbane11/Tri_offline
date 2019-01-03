@@ -1,5 +1,5 @@
 #!bin/bash
-set -x
+#set -x
 if [[ $# -gt 2 ]]
 then
         for var in "$@"

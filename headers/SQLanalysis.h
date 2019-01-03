@@ -7,7 +7,7 @@
 
 
 #include <string>
-#include <stdio.h> 
+#include <stdio.h>
 #include <cstdlib>
 #include <iomanip>
 #include <locale>
@@ -47,15 +47,15 @@
 const TString mysql_connection = "mysql://halladb/triton-work";
 const TString mysql_user       = "triton-user";
 const TString mysql_password   = "3He3Hdata";
-const double current_error     = 0.01;	
-
+const double current_error     = 0.01;
+const int Global_debug				 = 0;
 
 //Function to take target name abrivations and return the targt table full name;
 string FullTargetName(string tgt){
 	vector<string> tgt_names  = { "Tritium" ,"Deuterium", "Hydrogen", "Helium-3","unknown"};
 	vector<string> H3  = {"Tritium" ,"T", "T3", "H3" };
-	vector<string> D2  = {"Deuterium","D2", "D", "H2" }; 
-	vector<string> H   = {"Hydrogen","H1", "H" };	
+	vector<string> D2  = {"Deuterium","D2", "D", "H2" };
+	vector<string> H   = {"Hydrogen","H1", "H" };
 	vector<string> He3 = {"Helium","Helium-3","He3"};
 	string TGT="";
 	if(     find(H3.begin(), H3.end() ,tgt) != H3.end())TGT=tgt_names[0];
@@ -88,10 +88,10 @@ CODASetting GetCODASetting(Int_t runnum, Int_t sql=1){
     TSQLResult* result   = Server->Query(query.Data());
     Server->Close();// Always remember to CLOSE the connection!
 
-    Int_t       nrows    = result->GetRowCount(); 
+    Int_t       nrows    = result->GetRowCount();
     if(nrows==0){
       cout<< "Error: run "<<runnum<<" does not match any experiment run range in the table <coda>, will use the hard coded setting";
-    }  
+    }
     else{
     TSQLRow*    row      = result->Next(); // load row for the corresponding current
     coda.experiment = row->GetField(2);
@@ -117,8 +117,8 @@ CODASetting GetCODASetting(Int_t runnum, Int_t sql=1){
   }
   else if(runnum<100000) {
     coda.arm           = "R";
-    coda.tsscaler      = "Right"; 
-    coda.evscaler      = "evRight"; 
+    coda.tsscaler      = "Right";
+    coda.evscaler      = "evRight";
     coda.trigger       = "DR.bit5";
     coda.bit           = 5;
     if(runnum<93000)
@@ -141,7 +141,7 @@ CODASetting GetCODASetting(Int_t runnum, Int_t sql=1){
 //-------------------------------------------
 //get target info from epics encoder position
 // works for tritium since 2018.1
-//----------------------------------------- 
+//-----------------------------------------
 
 struct TargetInfo
 {
@@ -169,8 +169,8 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
   CODASetting    coda     = GetCODASetting(runnum);
   string prefix ="";
   if(coda.experiment=="MARATHON")prefix="MARATHON";
-  
-  if (pos == -999){ 
+
+  if (pos == -999){
     if(runnum>0)// find target name from runlist by runnumber, then get the target info from matching run date
       query = Form("select * from %sTargetInfo where name=(select target from %srunlist where run_number=%d)  and time<(select start_time from `%srunlist` where run_number=%d) order by time desc",prefix.c_str(), coda.experiment.Data(), runnum, coda.experiment.Data(),runnum);
     else // get latest target info given target name
@@ -195,17 +195,17 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
     return target;
   }
   TSQLRow *row    = result->Next(); // load first row of results
-  target.name     = row->GetField(1); 
-  target.type     = row->GetField(2); 
-  target.pos      = atoi(row->GetField(3)); 
-  target.pos_err  = atoi(row->GetField(4)); 
+  target.name     = row->GetField(1);
+  target.type     = row->GetField(2);
+  target.pos      = atoi(row->GetField(3));
+  target.pos_err  = atoi(row->GetField(4));
 
   vector<string>  fields = {"density_par_0","density_err_0","density_CV_0","density_CV_1","density_CV_2", "Thickness","Thickness_err"};
 
   if(target.type=="gas"){
-    target.dens_par1 = atof(row->GetField(6)); 
-    target.dens_err1 = atof(row->GetField(7)); 
-    target.dens_par2 = atof(row->GetField(8)); 
+    target.dens_par1 = atof(row->GetField(6));
+    target.dens_err1 = atof(row->GetField(7));
+    target.dens_par2 = atof(row->GetField(8));
     target.dens_err2 = atof(row->GetField(9));
     for(int f=0; f<result->GetFieldCount();f++){
 	    if(result->GetFieldName(f) == fields[0]) target.dens_par0=atof(row->GetField(f));
@@ -222,7 +222,7 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			if(result->GetFieldName(f) == fields[5]&& row->GetField(f)) target.Thickness =atof(row->GetField(f));
 			if(result->GetFieldName(f) == fields[6]&& row->GetField(f)) target.Thickness_err =atof(row->GetField(f));
 			}
-		   }	
+		   }
 
 
 
@@ -236,12 +236,12 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		  TString        query;
 			int run;
 			if(runnum==0) {run=1002;}
-			else{run=runnum;} 
+			else{run=runnum;}
 		  CODASetting    coda     = GetCODASetting(run);
 		  string prefix ="";
 		  prefix="MARATHON";
-		  
-		  if (pos == -999){ 
+
+		  if (pos == -999){
 		    if(runnum>0)// find target name from runlist by runnumber, then get the target info from matching run date
 		      query = Form("select * from %sTargetInfo where name=(select target from %srunlist where run_number=%d)  and time<(select start_time from `%srunlist` where run_number=%d) order by time desc",prefix.c_str(), coda.experiment.Data(), runnum, coda.experiment.Data(),runnum);
 		    else // get latest target info given target name
@@ -269,14 +269,14 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		    return target;
 		  }
 		  TSQLRow *row    = result->Next(); // load first row of results
-		  target.name     = row->GetField(1); 
-		  target.type     = row->GetField(2); 
-		  target.pos      = atoi(row->GetField(3)); 
-		  target.pos_err  = atoi(row->GetField(4)); 
+		  target.name     = row->GetField(1);
+		  target.type     = row->GetField(2);
+		  target.pos      = atoi(row->GetField(3));
+		  target.pos_err  = atoi(row->GetField(4));
 		  if(target.type=="gas"){
-		    target.dens_par1 = atof(row->GetField(6)); 
-		    target.dens_err1 = atof(row->GetField(7)); 
-		    target.dens_par2 = atof(row->GetField(8)); 
+		    target.dens_par1 = atof(row->GetField(6));
+		    target.dens_err1 = atof(row->GetField(7));
+		    target.dens_par2 = atof(row->GetField(8));
 		    target.dens_err2 = atof(row->GetField(9));
 		    vector<string>  fields = {"density_par_0","density_err_0","density_CV_0","density_CV_1","density_CV_2"};
 		    for(int f=0; f<result->GetFieldCount();f++){
@@ -305,10 +305,10 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		  }
 		  else{ // identify target by encoder position, then get specs from TargetInfo table
 		    Double_t   pos;
-		    Int_t      nn     = etree->GetEntries(); 
+		    Int_t      nn     = etree->GetEntries();
 		    etree->SetBranchAddress("haBDSPOS",&pos);
 		    etree->GetEntry(Int_t(nn/2));
-		    position = pos; 
+		    position = pos;
 		  }
 		  TargetInfo target = GetTargetInfo("",position,run);
 		  return target;
@@ -321,7 +321,7 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		struct AnalysisInfo {
 		  TString  elist      =  '0'; // location for beamtrip cut elist
 		  TString  trigger    =  '0'; //
-		  TString  target     =  "unknown"; 
+		  TString  target     =  "unknown";
 		  Double_t current    =  -1;
 		  Double_t charge     =  -1;
 		  Double_t livetime   =  -1;
@@ -334,15 +334,17 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		};
 
 		Int_t GetNCurrents(Int_t runnum){
+			int debug=Global_debug;
 		  CODASetting    coda     = GetCODASetting(runnum);
 		  AnalysisInfo   runinfo;
 		  TSQLServer*    Server   = TSQLServer::Connect(mysql_connection.Data(),mysql_user.Data(),mysql_password.Data());
 		  TString        query    = Form("select current, charge from %sanalysis where run_number=%d order by current desc", coda.experiment.Data(),runnum);
 		  TSQLResult*    result   = Server->Query(query.Data());
 		  Server->Close();// Always remember to CLOSE the connection!
-		  Int_t   nrows = result->GetRowCount(); 
+		  Int_t   nrows = result->GetRowCount();
 		  Int_t nfields = result->GetFieldCount();
-		  
+
+			if(debug){
 		  printf("%20s", "current_id");
 		  for (Int_t i = 0; i < nfields; i++)
 		    printf("%20s", result->GetFieldName(i));
@@ -354,6 +356,7 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		      printf("%20s", row->GetField(i));
 		    cout<<endl;
 		  }
+			}
 		  return nrows;
 		}
 
@@ -366,7 +369,7 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		  TSQLResult*    result   = Server->Query(query.Data());
 		  Server->Close();// Always remember to CLOSE the connection!
 		  // Int_t nrows = result->GetRowCount();
-		  Int_t nrows = GetNCurrents(runnum); 
+		  Int_t nrows = GetNCurrents(runnum);
 		  if(nrows==0){
 		    cout<<"Error: Can't find run "<<runnum<<" in the table "<<coda.experiment<<"analysis"<<endl;
 		    runinfo.status = -1;
@@ -385,11 +388,11 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 
 		  runinfo.current    = atof(row->GetField(1)); // get the second column (current)
 		  runinfo.charge     = atof(row->GetField(2)); // get the third  column (charge )
-		  runinfo.trigger    = row->GetField(3); 
-		  runinfo.livetime   = atof(row->GetField(4)); 
-		  runinfo.ntrigger   = atoi(row->GetField(5)); 
-		  runinfo.ntriggered = atoi(row->GetField(6)); 
-		  runinfo.elist      = row->GetField(7); 
+		  runinfo.trigger    = row->GetField(3);
+		  runinfo.livetime   = atof(row->GetField(4));
+		  runinfo.ntrigger   = atoi(row->GetField(5));
+		  runinfo.ntriggered = atoi(row->GetField(6));
+		  runinfo.elist      = row->GetField(7);
 		  if(coda.experiment=="MARATHON")runinfo.kin        = row->GetField(8);
 		  runinfo.status     = 1;
 
@@ -409,7 +412,7 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 
 		struct BCMInfo {
 		  // use dnew from 2018.1 as default setting
-		  TString  name      =  "dnew"; 
+		  TString  name      =  "dnew";
 		  TString  scaler    =  "evLeft";
 		  Double_t gain      = 0.0003358;
 		  Double_t gain_err  = 2.74e-6;
@@ -424,7 +427,7 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		  TSQLServer* Server1 = TSQLServer::Connect("mysql://halladb/triton-work","triton-user","3He3Hdata");
 		  TString  query1;
 		  // find the latest bcm calibration results from database
-		  query1=Form("select * from bcm where scaler='%s' and name='%s' and date<(select start_time from `%srunlist` where run_number=%d) order by date desc",coda.evscaler.Data(),bcm_name.Data(), coda.experiment.Data(),runnum); // 
+		  query1=Form("select * from bcm where scaler='%s' and name='%s' and date<(select start_time from `%srunlist` where run_number=%d) order by date desc",coda.evscaler.Data(),bcm_name.Data(), coda.experiment.Data(),runnum); //
 		  TSQLResult* result1=Server1->Query(query1.Data());
 		  Server1->Close();
 		  // skip the run if it's not on the runlist
@@ -466,13 +469,13 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		  // highest currrent has id 0, default cut on 5 seconds after beam stablized
 		TChain *LoadList(Int_t runnum, Int_t current_id=0, Int_t stable_time=5){
 		  TChain*         t    = LoadRun(runnum);
-		  // read info from SQL 
+		  // read info from SQL
 		  AnalysisInfo    ana  = GetAnalysisInfo(runnum, current_id);
 		  CODASetting     coda = GetCODASetting(runnum);
 		  if(ana.status < 1){
 		    cout<<"Error: can not find run "<<runnum<<" in analysis table! No beamtrip cut applied\n";
 		    return t;
-		  } 
+		  }
 		  // load eventlist after beamtrip cut
 		  TString listname = Form("bcm%d_%d_%d.root",runnum,current_id,stable_time);
 		  TString LISTPATHS[] = {
@@ -525,14 +528,14 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			return runlist;
 		}
 
-		 
+
 		///////////////
 
 
-		//This will make a Class RunList output from the query to give you the choice to look at all the kinemtaics of one type. 
+		//This will make a Class RunList output from the query to give you the choice to look at all the kinemtaics of one type.
 		vector<RunList> SQL_Kin_Target_RL(TString kin="", TString tgt=""){
 			vector<RunList> runlist;
-			
+
 			if(kin =="" || tgt=="")
 			{
 				cout << "Please use this function with (kin,tgt),,, example (1,Tritium)" <<"\n\n";
@@ -545,21 +548,21 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			else if(tgt=="DM")  tgt = "25 cm Dummy";
 			else if(tgt=="CH")  tgt = "Carbon Hole";
 
-			/////Make a SQL querey in 	
+			/////Make a SQL querey in
 			TSQLServer* Server1 = TSQLServer::Connect("mysql://halladb/triton-work","triton-user","3He3Hdata");
 			TString  query1;
-			query1=Form("select run_number, Kinematic , prescale_T2, prescale_T5 from MARATHONrunlist where (Kinematic = '%s' or Kinematic like '%s[_]') and target='%s' order by run_number asc",kin.Data(),kin.Data(),tgt.Data());  
+			query1=Form("select run_number, Kinematic , prescale_T2, prescale_T5 from MARATHONrunlist where (Kinematic = '%s' or Kinematic like '%s[_]') and target='%s' order by run_number asc",kin.Data(),kin.Data(),tgt.Data());
 		       TSQLResult* result1=Server1->Query(query1.Data());
 		       Server1->Close();
-			
-			if(result1->GetRowCount()==0){ 
+
+			if(result1->GetRowCount()==0){
 				cout <<"Sorry could not find that kin tgt" <<"\n";
 				return runlist;
 			}
 			RunList tmp;
 			TSQLRow *row1;
 			for(int i =0; i<result1->GetRowCount();i++){
-				row1 =  result1->Next();	
+				row1 =  result1->Next();
 				tmp.set_values(atoi(row1->GetField(0)),row1->GetField(1));
 				int PS5=0; int PS2=0;
 				if(row1->GetField(2)!=nullptr) PS2=atoi(row1->GetField(2));
@@ -578,11 +581,11 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 				cout << "Please use this function with (kin,tgt),,, example (1,Tritium)" <<"\n\n";
 				return runlist;
 			}
-			
+
 			if(suf=="all")suf="%";
 			else if(suf=="2nd"||suf=="3rd"||suf=="3"||suf=="2"){int a=1;}
-			else{suf="1st";}	
-			if(suf!="%") suf+="%";	
+			else{suf="1st";}
+			if(suf!="%") suf+="%";
 
 			if(tgt=="H3"||tgt=="T2") tgt = "Tritium";
 			else if(tgt=="D2")  tgt = "Deuterium";
@@ -591,21 +594,21 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			else if(tgt=="DM")  tgt = "25 cm Dummy";
 			else if(tgt=="CH")  tgt = "Carbon Hole";
 
-			/////Make a SQL querey in 	
+			/////Make a SQL querey in
 			TSQLServer* Server1 = TSQLServer::Connect("mysql://halladb/triton-work","triton-user","3He3Hdata");
 			TString  query1;
-			query1=Form("select run_number from MARATHONrunlist where (Kinematic like '%s/_%s' ESCAPE '/') and target='%s' order by run_number asc",kin.Data(),suf.c_str(),tgt.Data());  
+			query1=Form("select run_number from MARATHONrunlist where (Kinematic like '%s/_%s' ESCAPE '/') and target='%s' order by run_number asc",kin.Data(),suf.c_str(),tgt.Data());
 		       TSQLResult* result1=Server1->Query(query1.Data());
 		       Server1->Close();
-			
 
-			if(result1->GetRowCount()==0){ 
+
+			if(result1->GetRowCount()==0){
 				cout <<"Sorry could not find that kin tgt" <<"\n";
 				return runlist;
 			}
 			TSQLRow *row1;
 			for(int i =0; i<result1->GetRowCount();i++){
-				row1 =  result1->Next();	
+				row1 =  result1->Next();
 				runlist.push_back(atoi(row1->GetField(0)));
 
 			}
@@ -635,7 +638,7 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		  TString 	query    = Form("select %s from %sanalysis where run_number=%d",cols.c_str(), coda.experiment.Data(),runnum);
 		  TSQLResult*   result   = Server->Query(query.Data());
 		  Server->Close();
-		  if(result->GetRowCount()==0){cout << "No corrections "<<"\n"; return correction;} 
+		  if(result->GetRowCount()==0){cout << "No corrections "<<"\n"; return correction;}
 		  TSQLRow *row = result->Next();
 		/////I can Add these in as I get more corrections into the DB
 		 int count = result->GetFieldCount();
@@ -681,7 +684,7 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			CODASetting   coda     = GetCODASetting(runnum);
 			TSQLServer*   Server   = TSQLServer::Connect(mysql_connection.Data(),mysql_user.Data(),mysql_password.Data());
 			TString       query    = Form("select run_number,target,run_type,Kinematic,time_mins, prescale_T%d,angle from %srunlist where run_number=%d;", coda.bit,coda.experiment.Data(),runnum);
-			
+
 			if(coda.experiment=="COMMISSIONING"){
 			     query    = Form("select run_number,target,run_type,run_type,time_mins, prescale_T%d,angle from %srunlist where run_number=%d;", coda.bit,coda.experiment.Data(),runnum);
 				}
@@ -689,7 +692,7 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			TSQLResult*   result   = Server->Query(query.Data());
 			Server->Close();
 			if(result->GetRowCount()==0){cout << "Not in list\n";return runinfo;}
-			TSQLRow *row = result->Next();	
+			TSQLRow *row = result->Next();
 			runinfo.runnum=runnum;
 			runinfo.target=row->GetField(1);
 			runinfo.type=row->GetField(2);
@@ -712,12 +715,12 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			cout << Form("This the run info for run %d\n", RI.runnum);
 			cout<< "target = " <<RI.target <<"\ttype ="<<RI.type<<"\n";
 			cout<< "time in mins:"<<RI.time_mins<<"\tPS main trigger " <<RI.PS_main<<"\n";
-			} 
+			}
 
 
-		//Positron information structure 
+		//Positron information structure
 		struct PositronCor{   // ln(e+/e-) =  A + Bx   where x is xbj
-			double par1=0.0; 
+			double par1=0.0;
 			double err1=0.0;
 			double par2=0.0;
 			double err2=0.0;
@@ -726,7 +729,7 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		/////////////////////////////////
 
 
-		//Uses the positron struct to get info from SQL to make the positron cor factor. 
+		//Uses the positron struct to get info from SQL to make the positron cor factor.
 		PositronCor  GetPosInfo(int run=0, string tgt=""){
 			PositronCor PosC;
 			if(run>0)	{//Determine the target from run number!
@@ -747,12 +750,12 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			return PosC;
 		}
 
-		//Calculates the positron correction factor using the PositronCor structure. 
+		//Calculates the positron correction factor using the PositronCor structure.
 		//Values are retrived form the MARATHONTargetInfo SQL DB
-		//This script needs the xbj of the calculation, PositronCor struct, and a pointer to a double for the 
+		//This script needs the xbj of the calculation, PositronCor struct, and a pointer to a double for the
 		//the error calculation
 		double GetPosCorFactor(double xbj, PositronCor PC, double& PC_error){
-			
+
 			double PCfact = exp(PC.par1+PC.par2*xbj);
 			PC_error = PCfact*sqrt(PC.err1+PC.err2*xbj*xbj +2.0*PC.covariance*xbj);
 
@@ -792,9 +795,9 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		}
 
 		////////////////////////////////////////////////////////////////////////////////
-			
 
-		//Get the density correction of a target given a current, if you do not provide a current one will be retrieved from SQL if possible. 
+
+		//Get the density correction of a target given a current, if you do not provide a current one will be retrieved from SQL if possible.
 		double DensityCor( TargetInfo TI, double &err, int run, double current=0){
 			double current_err = current_error *current;
 			double dens_cor=1;
@@ -818,10 +821,10 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			double Cerr2 = pow((TI.dens_par1 + 2* TI.dens_par2 *current),2) * pow(current_error,2);
 			//combind the two
 			err = sqrt( Cerr1 + Cerr2 );
-			return dens_cor;	
+			return dens_cor;
 		}
 
-		//Get the density correction of a target given a current, if you do not provide a current one will be retrieved from SQL if possible. 
+		//Get the density correction of a target given a current, if you do not provide a current one will be retrieved from SQL if possible.
 		double DensityCor(double &err, int run, double current=0){
 			double current_err = current_error *current;
 			double dens_cor=1.0;
@@ -846,17 +849,17 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			double Cerr2 = pow((TI.dens_par1 + 2* TI.dens_par2 *current),2) * pow(current_error,2);
 			//combind the two
 			err = sqrt( Cerr1 + Cerr2 );
-			return dens_cor;	
+			return dens_cor;
 		}
 
 
-		//Get the density correction of a target given a current, if you do not provide a current one will be retrieved from SQL if possible. 
+		//Get the density correction of a target given a current, if you do not provide a current one will be retrieved from SQL if possible.
 		vector<double> DensityCor( int run, double current=0){
 			vector<double> dens_vec = {1.0,0.0};
 			double err=0;
 			double current_err = current_error *current;
 			double dens_cor=1;
-			
+
 			TargetInfo TI = GetTarget(run);
 			if(TI.type=="solid") return dens_vec;
 
@@ -881,11 +884,11 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			err = sqrt( Cerr1 + Cerr2 );
 			dens_vec[0]=dens_cor;
 			dens_vec[1]=err;
-			return dens_vec;	
+			return dens_vec;
 		}
 
 
-		//Get the density correction of a target given a current, if you do not provide a current one will be retrieved from SQL if possible. 
+		//Get the density correction of a target given a current, if you do not provide a current one will be retrieved from SQL if possible.
 		vector<double> DensityCor( string tgt, double current=22.5){
 			vector<double> dens_vec = {1.0,0.0};
 			double err=0;
@@ -894,7 +897,7 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 
 			string Target=FullTargetName(tgt);
 			if(Target=="unknown") return dens_vec;
-			
+
 			TargetInfo TI = GetTargetInfo_MAR(Target);
 			if(TI.type=="solid") return dens_vec;
 
@@ -913,7 +916,7 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			err = sqrt( Cerr1 + Cerr2 );
 			dens_vec[0]=dens_cor;
 			dens_vec[1]=err;
-			return dens_vec;	
+			return dens_vec;
 		}
 
 
