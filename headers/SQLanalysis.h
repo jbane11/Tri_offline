@@ -584,8 +584,10 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 
 			if(suf=="all")suf="%";
 			else if(suf=="2nd"||suf=="3rd"||suf=="3"||suf=="2"){int a=1;}
-			else{suf="1st";}
-			if(suf!="%") suf+="%";
+			else{
+				if(tgt!="C12" && tgt!="Carbon"){suf="1st";}
+				else {suf="";}
+			}
 
 			if(tgt=="H3"||tgt=="T2") tgt = "Tritium";
 			else if(tgt=="D2")  tgt = "Deuterium";
@@ -593,14 +595,19 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			else if(tgt=="EM")  tgt = "Empty Cell";
 			else if(tgt=="DM")  tgt = "25 cm Dummy";
 			else if(tgt=="CH")  tgt = "Carbon Hole";
-
+			else if(tgt=="C12") tgt = "Carbon";
+			string under="_";
+			if(tgt=="Carbon"||suf=="all") under="";
+			if(suf!="%") suf+="%";
+//&&tgt!="Carbon"
 			/////Make a SQL querey in
 			TSQLServer* Server1 = TSQLServer::Connect("mysql://halladb/triton-work","triton-user","3He3Hdata");
 			TString  query1;
-			query1=Form("select run_number from MARATHONrunlist where (Kinematic like '%s/_%s' ESCAPE '/') and target='%s' order by run_number asc",kin.Data(),suf.c_str(),tgt.Data());
+			query1=Form("select run_number from MARATHONrunlist where (kinematic = '%s' or kinematic like '%s/_%s' ESCAPE '/' ) and target='%s' order by run_number asc",kin.Data(),kin.Data(),suf.c_str(),tgt.Data());
 		       TSQLResult* result1=Server1->Query(query1.Data());
 		       Server1->Close();
 
+				cout << query1 <<endl;
 
 			if(result1->GetRowCount()==0){
 				cout <<"Sorry could not find that kin tgt" <<"\n";
@@ -683,7 +690,10 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			RunInfo runinfo;
 			CODASetting   coda     = GetCODASetting(runnum);
 			TSQLServer*   Server   = TSQLServer::Connect(mysql_connection.Data(),mysql_user.Data(),mysql_password.Data());
-			TString       query    = Form("select run_number,target,run_type,Kinematic,time_mins, prescale_T%d,angle from %srunlist where run_number=%d;", coda.bit,coda.experiment.Data(),runnum);
+			string kinQ="";
+			if(coda.experiment=="MARATHON") kinQ="Kinematic,";
+
+			TString       query    = Form("select run_number,target,run_type,%s time_mins, prescale_T%d,angle from %srunlist where run_number=%d;", kinQ.c_str(),coda.bit,coda.experiment.Data(),runnum);
 
 			if(coda.experiment=="COMMISSIONING"){
 			     query    = Form("select run_number,target,run_type,run_type,time_mins, prescale_T%d,angle from %srunlist where run_number=%d;", coda.bit,coda.experiment.Data(),runnum);

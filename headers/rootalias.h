@@ -107,13 +107,41 @@ const char* ROOTPATHS[] = {
   "./",
   0
 };
-
+const char* CALPATH[] ={
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2_calibration/kin0/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2_calibration/kin1/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2_calibration/kin2/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2_calibration/kin3/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2_calibration/kin4/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2_calibration/kin5/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2_calibration/kin7/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2_calibration/kin9/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2_calibration/kin11/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2_calibration/kin13/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2_calibration/kin15/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2_calibration/kin16/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass1_calibration/kin0/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass1_calibration/kin1/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass1_calibration/kin2/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass1_calibration/kin3/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass1_calibration/kin4/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass1_calibration/kin5/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass1_calibration/kin7/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass1_calibration/kin9/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass1_calibration/kin11/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass1_calibration/kin13/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass1_calibration/kin15/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass1_calibration/kin16/",
+  "./",
+  0
+};
 
 const char* MCPATHS[] = {
 	"/run/media/jbane/Slim/",
 	"./mcroot/",
 	0
 };
+
 const int    G_debug=0;
 const double pi=3.1415926535897932;
 const double rad=pi/180.0;
@@ -121,7 +149,7 @@ const double wsqr=2.5;
 //-----------LHRS-----------------------------------------
 const double beta_min_L=0.5;
 const double sh_min_L=0.7;
-const double cer_min_L=1500;
+const double cer_min_L=1800;
 const double dnew_thres = 0.1;
 
 TCut L_dnew = Form("LeftBCMev.current_dnew>=%f",dnew_thres);
@@ -141,6 +169,10 @@ const double tg_vz_L=0.09;
 TCut dp_cut_L=Form("fabs(L.tr.tg_dp)<%g",tg_dp_L);
 TCut th_cut_L=Form("fabs(L.tr.tg_th)<%g",tg_th_L);
 TCut ph_cut_L=Form("fabs(L.tr.tg_ph)<%g",tg_ph_L);
+string dp_cut_L_s = Form ("fabs(L.tr.tg_dp)<%g" , tg_dp_L);
+string th_cut_L_s = Form ("fabs(L.tr.tg_th)<%g" , tg_th_L);
+string ph_cut_L_s = Form("fabs(L.tr.tg_ph)<%g" , tg_ph_L);
+TCut spec_L  =Form("%s&&%s&&%s", dp_cut_L_s.c_str(), th_cut_L_s.c_str(), ph_cut_L_s.c_str());
 TCut z_cut_L =Form("fabs(L.tr.vz)<%g",tg_vz_L);
 TCut acc_cut_L=dp_cut_L+th_cut_L+ph_cut_L+z_cut_L+aperture_L;
 const double tg_dp_L_e=0.035;
@@ -278,7 +310,55 @@ TChain* LoadOnline(Int_t run, const char* tree = "T")
 
     TChain* tt = 0;
     while (ROOTPATHS[i]) {
-  tt = LoadOnline(run,ROOTPATHS[i++],tree,0);
+      tt = LoadOnline(run,ROOTPATHS[i++],tree,0);
+      if (tt) break;
+    }
+
+ //    if (!tt)
+  // cerr << "Can not find online replay file for run " << run << endl;
+
+    return tt;
+}
+
+TChain* LoadCalib(Int_t run, const char* path, const char* tree,Int_t debug)
+{
+    TChain* tt = new TChain(tree);
+
+    TString  basename = Form("tritium_%d",run);
+    TString  rootfile = basename + ".root";
+
+    TString dir = path;
+    if (!dir.EndsWith("/")) dir.Append("/");
+
+    rootfile.Prepend(dir.Data());
+
+    Long_t split = 0;
+
+    while ( !gSystem->AccessPathName(rootfile.Data()) ) {
+  tt->Add(rootfile.Data());
+ if(debug){ cout << "ROOT file " << rootfile << " added to " << tree<<" tree"<<endl;}
+  split++;
+  rootfile = basename + "_" + split + ".root";
+  rootfile.Prepend(dir.Data());
+
+    }
+
+    if (split<=0) {
+  if (debug>0) cout << "Can not find online replay file for run " << run << " at "<< path<< endl;
+  delete tt;
+  tt = 0;
+    }
+
+    return tt;
+}
+
+TChain* LoadCalib(Int_t run, const char* tree = "T")
+{
+    Int_t i=0;
+
+    TChain* tt = 0;
+    while (CALPATH[i]) {
+  tt = LoadCalib(run,CALPATH[i++],tree,1);
 
   if (tt) break;
     }
@@ -288,6 +368,7 @@ TChain* LoadOnline(Int_t run, const char* tree = "T")
 
     return tt;
 }
+
 
 
 TChain* LoadMC(Int_t run, int tarid=0, const char* tree = "h9040")

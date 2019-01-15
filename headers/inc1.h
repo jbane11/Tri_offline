@@ -1093,10 +1093,13 @@ vector<double> beam_info(TTree *T, int debug=1)
   else { cut = electron_cut_R;}
 	TCanvas *C;
 	TString g_op="goff";
-	if(debug>=2)
+	string can_name=Form("c_%d",run);
+	if( gROOT->FindObject(Form("%s",can_name.c_str())) !=nullptr)
+	{		can_name+="_1";	}
+		if(debug>=2)
 	{
 		g_op="";
-		C= new TCanvas(Form("c_%d",run),Form("run %d",run));
+		C= new TCanvas(Form("%s",can_name.c_str()),Form("run %d",run));
 		C->Divide(1,2);
 		C->cd(1);
 	}
@@ -1152,8 +1155,10 @@ vector<double> beam_info(TTree *T, int debug=1)
 		TLine *lx1 = new TLine(x_min,0,x_min,h_x->GetMaximum());
 		TLine *lx2 = new TLine(x_max,0,x_max,h_x->GetMaximum());
 		lx1->SetLineColor(2);lx2->SetLineColor(2);
-		lx1->Draw(Form("same %s",g_op.Data()));
-		lx2->Draw(Form("same %s",g_op.Data()));
+
+			lx1->Draw(Form("same %s",g_op.Data()));
+			lx2->Draw(Form("same %s",g_op.Data()));
+
 	}
 
 
@@ -1210,8 +1215,10 @@ vector<double> beam_info(TTree *T, int debug=1)
 		TLine *ly1 = new TLine(y_min,0,y_min,h_y->GetMaximum());
 		TLine *ly2 = new TLine(y_max,0,y_max,h_y->GetMaximum());
 		ly1->SetLineColor(2);ly2->SetLineColor(2);
-		ly1->Draw(Form("same %s",g_op.Data()));
-		ly2->Draw(Form("same %s",g_op.Data()));
+		if(debug>1){
+			ly1->Draw(Form("same %s",g_op.Data()));
+			ly2->Draw(Form("same %s",g_op.Data()));
+		}
 	}
 
 
@@ -1230,6 +1237,9 @@ vector<double> beam_info(TTree *T, int debug=1)
 		C->SaveAs(Form("./images/beampos_%d.png",run));
 	}
 
+	if(debug<=2){
+		C=new TCanvas;
+	 	delete C;}
 
   return beamI;
 }
