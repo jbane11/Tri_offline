@@ -1,30 +1,30 @@
 /////////////////////////////////////////////////////////////////////////////////
-//	This script will calculate the Yield of a kinemtaic 
-//	and deposit that value along withe bin value and error 
-//	on the yield into a txt file: 
+//	This script will calculate the Yield of a kinemtaic
+//	and deposit that value along withe bin value and error
+//	on the yield into a txt file:
 //
-//	Will look at doing this for theta and Xbj, 
+//	Will look at doing this for theta and Xbj,
 /////////////////////////////////////////////////////////////////
 #include "/home/jbane/headers/rootalias.h"
 #include "/home/jbane/headers/SQLanalysis.h"
 #include "/home/jbane/headers/inc1.h"
 
-const string runl_dir = "/home/jbane/tritium/replay/HallA-Online-Tritium/replay/scripts/Runlist/"; 
+const string runl_dir = "/home/jbane/tritium/replay/HallA-Online-Tritium/replay/scripts/Runlist/";
 //"/home/jbane/tritium/Runlist/";
 
-void CalcYield_test(string tgt ="", string kin="",int whichRL=2,  int debug=3)
+void CalcYield_test(string tgt ="", string kin="",int bins =50, int debug=3)
 {
 	if(kin=="" || tgt ==""){
 		cout << "Please enter the  kin and tgt you would like to use" <<"\n";
 		cin >> kin;
 		cin >> tgt;
 		}
-	
+		int num_G_runs=0;
 	vector<int>missing_runs;
-	
+
 	vector<int>runlist2;
 	vector<int>runlist1;
-	
+
 	//open up the run list file
 	string runl_name = runl_dir+tgt+"_kin"+kin+".dat";
 	kin_file K_File;
@@ -33,7 +33,7 @@ void CalcYield_test(string tgt ="", string kin="",int whichRL=2,  int debug=3)
 	runlist1=K_File.run_vect;
 //	if(debug){for(unsigned int z=0;z<runlist1.size();z++){cout<<runlist1[z]<<" ";}}
 	//////////////////////////////////
-	
+
 	/// SQL to get run list
 	vector<RunList> RList;
 	string suf="1";
@@ -43,11 +43,11 @@ void CalcYield_test(string tgt ="", string kin="",int whichRL=2,  int debug=3)
 //	if(debug){for(unsigned int z=0;z<runlist2.size();z++){cout<<runlist2[z]<<" ";}}
 //	if(debug)cout<<"\n";
 
-	
+	int whichRL=2;
 	vector<int>runlist;
 	if(whichRL==1){runlist=runlist1;}
 	else		{runlist=runlist2;}
-	
+
 	if(runlist.size()<1){
 		cout << runlist.size() <<endl;
 		cout << "There are no runs found in this kinemtaic, switching list and checking\n";
@@ -64,26 +64,36 @@ void CalcYield_test(string tgt ="", string kin="",int whichRL=2,  int debug=3)
 	//this we mostly likly be a function of eprime and theta
 	double rad_cor=1;
 	////
-	
+
 	//Number of bins and step per kin
-	int bins = 50;
 	vector<double> xbj_base(bins,0.0);
 	vector<double> theta_base(bins,0.0);
 	double th_step = (37.7-15)/(bins*1.0);
-	double x_step  = (0.95-0.15)/(bins*1.0);
+	double x_step  = (1.00-0.00)/(bins*1.0);
 	for(int z=0;z<bins;z++){
-		xbj_base[z]  =0.15+z*x_step;
+		xbj_base[z]  =0.00+z*x_step;
 		theta_base[z]=15.0+z*th_step;
 	}
 
-	
+
 ////////////////
 	vector<int> 	theta_ele(bins,0);	//Number of electrons in theta bin
 	vector<int> 	xbj_ele(bins,0);	//Number of electrons in x bin
-	vector<double>	theta_yield(bins,0.0);	//N of es corrected with DT, density....
+	vector<double>	theta_yield(bins,0.0);	//N of es corrected with DT, density..
 	vector<double>	xbj_yield(bins,0.0);	//N of es corrected with DT, density....
 	vector<double>  xbj_total(bins,0.0);    //use to find the bin center
 	vector<double>  theta_total(bins,0.0);
+	vector<double> xbj_y_error(bins,0.0);
+	vector<double>  th_y_error(bins,0.0);
+
+	//one run vectors
+	vector<int> 	xbj_ele_run(bins,0);	//Number of electrons in x bin
+	vector<double>  xbj_total_run(bins,0.0);    //use to find the bin center
+	vector<double>	xbj_yield_run(bins,0.0);	//N es corrected with DT,density..
+	vector<double> BGerr_run_x(bins,0.0);
+	vector<double> BGerr_run_th(bins,0.0);
+	vector<double> Yx_err_run(bins,0.0);
+	vector<double> Yth_err_run(bins,0.0);
 
 ///////////////
 	int intkin = stoi(kin);
@@ -91,7 +101,7 @@ void CalcYield_test(string tgt ="", string kin="",int whichRL=2,  int debug=3)
 
 ////////////////
 	double total_lumin=0.0;
-	double total_lumin_err=0.0;	
+	double total_lumin_err=0.0;
 	double total_run_correction_err=0.0;
 
 
@@ -103,42 +113,56 @@ void CalcYield_test(string tgt ="", string kin="",int whichRL=2,  int debug=3)
 
 ////////
 ////////Start the run loop
+
 	for(unsigned int j = 0; j < runlist.size();j++)
 	{
 		int run = runlist[j]; 	//Get run number
 		if(debug) printf("\n\n\tStarting run %d :  %d out of %zu \n",run,j+1, runlist.size());
 		T=LoadRun(run); 	//Load run using rootalias
-							
+
 		//Use SQL to retrieve run info;
 		CODASetting coda = GetCODASetting(run);
 		RunInfo runinfo  = GetRunInfo(run);
 		PositronCor PC   = GetPosInfo(run);
 		double 	ECC	 = ECC_Cor(stod(kin),tgt);
+		double Eccerr=0.001;
 		ECC = (1-ECC); //get % of endcap in nominal.
 
 		double run_correction_err;
 		double LT = SQLRunCorrection(run,run_correction_err);
-		total_run_correction_err +=pow(run_correction_err/LT,2);		
-	
-if(debug) cout << "Run cor " << LT<< " err " << run_correction_err<<" so far "<<sqrt(total_run_correction_err)<<endl;
-if(debug) cout << "ECC   " << ECC <<endl;	
 
-		
+cout<<" :::" << LT<<endl;
+		vector<double> RunC =SQLRunCorrection(run);
+		LT=RunC[0];
+		run_correction_err =RunC[1];
+		total_run_correction_err = sqrt( pow(total_run_correction_err,2)+ pow(run_correction_err*RunC[1],2));
+
+
+if(debug) cout << "Run cor " << LT<< " err " << run_correction_err<<"\n so far "<<total_run_correction_err<<endl;
+if(debug) cout << "ECC   " << ECC <<endl;
+
+
 		//Calculate the luminosity of this run, sum all the runs up for the total lumin,
-		Run_lumin = Calc_lum(run,debug);
+		Run_lumin = Calc_lum(run,0);
 		if(Run_lumin[0]==0 || Run_lumin[1] != Run_lumin[1])
 		{
-			if(debug) printf("Skipping bad lumin \n"); 		
+			if(debug) printf("Skipping bad lumin \n");
 			continue;
-		} 
+		}
+
+		total_lumin_err=sqrt(
+			pow(total_lumin_err,2) +
+			pow(Run_lumin[1]*Run_lumin[0],2)
+		);
 		total_lumin+=Run_lumin[0];
-		total_lumin_err+=pow(Run_lumin[1],2);
-if(debug) cout << "Lumin : "<<Run_lumin[0]<<" Total so far " << total_lumin<<" err% : "<< sqrt(total_lumin_err)/total_lumin<<endl;		 	
-	
-	 	int totn = T->GetEntries();	
+
+		double total_lumin_per_err = total_lumin_err/total_lumin;
+if(debug) cout << "Lumin : "<<Run_lumin[0]<< "   err  " <<Run_lumin[1] <<"\n Total so far " << total_lumin<<" err% : "<< total_lumin_err/total_lumin<<endl<<endl;
+
+	 	int totn = T->GetEntries();
 		//Shorten up the tree to only look at good electron events;
 		TCut total_cut;
-		if(coda.arm=="L")total_cut = electron_cut_L&&acc_cut_L&&L_dnew&&inv_m_L&&track_L;
+		if(coda.arm=="L")total_cut = layers_electron_cut_L&&acc_cut_L&&L_dnew&&inv_m_L&&track_L;
 		else{total_cut = electron_cut_R&&acc_cut_R&&R_dnew&&inv_m_R&&track_R;}
 		T->Draw(">>GoodEs",total_cut);
 		gDirectory->GetObject("GoodEs",GoodEs);
@@ -153,10 +177,10 @@ if(debug) cout << "Lumin : "<<Run_lumin[0]<<" Total so far " << total_lumin<<" e
 		T->SetBranchStatus(Form("EK%sx.angle",coda.arm.Data())	,1);//scattered angle
 		T->SetBranchStatus(Form("EK%sx.x_bj",coda.arm.Data())	,1);//x_bj
 		T->SetBranchStatus(Form("EK%sx.Q2",coda.arm.Data())	,1);//Q2
-	
+
 		///Address those branches
 		double eprime=0.0;	double theta=0.0;
-		double x_bj  =0.0;	double Qsqrd =0.0;		
+		double x_bj  =0.0;	double Qsqrd =0.0;
 		T->SetBranchAddress(Form("%s.gold.p",coda.arm.Data()),  &eprime);
 	        T->SetBranchAddress(Form("EK%sx.angle",coda.arm.Data()),&theta);
 		T->SetBranchAddress(Form("EK%sx.x_bj",coda.arm.Data()), &x_bj);
@@ -164,21 +188,22 @@ if(debug) cout << "Lumin : "<<Run_lumin[0]<<" Total so far " << total_lumin<<" e
 		///////////////////////
 
 
-		//Loop throught the goof events!
+		//Loop throught the good events!
 		for(int event=0; event<nentries;event++)
 		{
 			T->GetEntry(GoodEs->GetEntry(event)); //Use the GEs list to select good events.
 			theta=theta/rad;// convert radians to degrees for scattering angle
-			
+
 			//Calculate positron correction from SQL table
 			//Need x , the PC class and double pointr
 			double PosCor_Error=0.0;
 			double PosCor = GetPosCorFactor(x_bj,PC,PosCor_Error);
-			//Calculate RC cor from table interpulate between 4 points	
-			double RC= RC_factor(intkin,tgt,10.6,eprime,theta);
-			if(RC>=2 || RC<=0.75|| RC!=RC) cout <<eprime << " "<<theta <<endl;	
-			if(RC!=RC) RC=1;	
-			//Deutrium is not correct!
+
+			//Calculate RC cor from table interpelate between 4 points
+			double RC= 1.0;//RC_factor(intkin,tgt,10.6,eprime,theta);
+			if(RC>=2 || RC<=0.75|| RC!=RC) cout<<"RC issue: "<< RC<<" " <<eprime << " "<<theta <<endl;
+			if(RC!=RC) RC=1;
+
 			if(PosCor>1)
 			{
 				PosCor=0.0;
@@ -194,11 +219,14 @@ if(debug) cout << "Lumin : "<<Run_lumin[0]<<" Total so far " << total_lumin<<" e
 			//add in ECC
 			Event_corrections *=ECC;
 			//add in RC
-			Event_corrections *=RC;
-			if(Event_corrections!=Event_corrections) 
+			//Event_corrections *=RC;
+			if(Event_corrections ==0 && debug>=4){
+				cout << event<< "  ECC:" << ECC << " PC:"<< PosCor <<"  RC:"<< RC <<endl;
+			}
+			if(Event_corrections!=Event_corrections)
 			{
-				cout <<event<<" " << ECC << " "<< RC << " " << PosCor <<endl;
-			}	
+				cout <<event<<" : " << ECC << " "<< RC << " " << PosCor <<endl;
+			}
 
 			//loop through all of the bins, checking both x and theta!
 			for(int i=0;i<bins;i++)
@@ -206,46 +234,135 @@ if(debug) cout << "Lumin : "<<Run_lumin[0]<<" Total so far " << total_lumin<<" e
 
 				double xbj_diff   = x_bj-xbj_base[i];
 				double theta_diff= theta-theta_base[i];
+
+
+
 				if(abs(xbj_diff) <x_step && xbj_diff >0)
 				{//This event falls into the ith bin for x
-					xbj_ele[i]++; 
+					xbj_ele[i]++;
 					xbj_yield[i]+=1*Event_corrections;
 					xbj_total[i]+=x_bj;
-				}//end of xbin		
+
+					//Get reset at end of run //
+					xbj_ele_run[i]++;
+					xbj_yield_run[i]+=1*Event_corrections;
+					xbj_total_run[i]+=x_bj;
+					// Combinding error for background corrections_label
+					double PC1=PosCor;
+					double ECC1=ECC;
+					if(PosCor==0)PC1=1;
+					if(ECC==1)ECC1=0;
+					double BGerr_ev= (ECC*(1-PosCor)) * sqrt(pow(PosCor_Error/PC1,2)  +   pow( Eccerr/(1-ECC1),2) );
+					BGerr_run_x[i] =sqrt( pow(BGerr_ev,2) + pow(BGerr_run_x[i],2)  );
+
+				}//end of xbin
 				if(abs(theta_diff)<th_step && theta_diff>0)
 				{//this event is in this theta bin
 					theta_ele[i]++;
 					theta_yield[i]+=1*Event_corrections;
 					theta_total[i]+=theta;
-				}//end of th_bin
-			}//end of bins loop
-				
-//			if(debug>=4){if(event/10000 == event/10000.0){
-//		cout<<event/(nentries*1.0)<<" "<<i<<" : "<< xbj_diff <<" " << theta_diff <<" "<< N_ele_x[i] <<" "<< N_ele_th[i] <<endl;
-//				}}//debug statment for heavy debuging, debug>=4
+					// Combinding error for background corrections_label
+					double BGerr_ev=0.0;
+					double PC1=PosCor;
+					double ECC1=ECC;
+					if(PosCor==0)PC1=1;
+					if(ECC==1)ECC1=0;
+					BGerr_ev= (ECC*(1-PosCor)) * sqrt(pow(PosCor_Error/PC1,2)  +   pow( Eccerr/(1-ECC1),2) );
+					BGerr_run_th[i] =sqrt( pow(BGerr_ev,2) + pow(BGerr_run_x[i],2)  );
 
-		
-		
+				}//end of th_bin
+
+			if(debug>=4){if(event/10000 == event/10000.0){if(xbj_ele[i]>0){		cout<<event/(nentries*1.0)<<" "<<i<<"\t : "<< xbj_diff <<"\t " << theta_diff <<" \t"<< xbj_ele[i] <<" "<< xbj_yield[i]<<" "<<Event_corrections<<endl;}
+				}}//debug statment for heavy debuging, debug>=4
+			}//end of bins loop
+
+
+
 		}//End of event loop!!
 
-		GoodEs=nullptr;	
+		//Calculate the err of the yeild for this run
+		for(int z=0;z<bins;z++)
+		{		if(xbj_ele[z]>0)
+				{	Yx_err_run[z] =sqrt( pow(RunC[1],2) + pow(BGerr_run_x[z]/(xbj_yield[z]*LT),2) ) * xbj_yield_run[z];}
+				if(theta_ele[z]>0)
+				{
+			Yth_err_run[z] =sqrt( pow(RunC[1],2) + pow(BGerr_run_th[z]/(theta_yield[z]*LT),2) ) * theta_yield[z];}
+		}
+
+
+		if(debug>=3){
+			cout << " Yx err: ";
+			for(int z=0;z<bins;z++){if(xbj_ele[z]>0){
+				cout<< Yx_err_run[z]<<"\t:  "; }}
+				cout << "\n BG err: ";
+			for(int z=0;z<bins;z++){if(xbj_ele[z]>0){
+				cout<< BGerr_run_x[z]<<"\t:  "; }}
+					cout << "\nRun cor err " << RunC[1] <<endl;
+			cout<<"\n\n";
+		}
+
+		num_G_runs++;
+		GoodEs=nullptr;
 		T=nullptr;
+		if(debug>=2)cout << "END of run\n\n";
+		if(debug>=3)
+		{
+	 		cout << "xbj \t count \t yield"<<endl;
+			for(int k=0; k<bins;k++){
+				if(xbj_ele_run[k]>0){
+					cout<< k<<"  "<<setprecision(5)<< xbj_total_run[k]/xbj_ele_run[k]<<" \t"<< xbj_ele_run[k]<<"\t"<<xbj_yield_run[k]/Run_lumin[0]<<endl;
+					}
+				}
+			}//end of debug
+
+			if(debug>=3)cout << "cleaning up run vectors\n\n";
+			xbj_ele_run.erase(xbj_ele_run.begin(),xbj_ele_run.end());
+			xbj_yield_run.erase(xbj_yield_run.begin(),xbj_yield_run.end());
+			xbj_total_run.erase(xbj_total_run.begin(),xbj_total_run.end());
+			xbj_ele_run.resize(bins,0.0);
+			xbj_yield_run.resize(bins,0.0);
+			xbj_total_run.resize(bins,0.0);
+			BGerr_run_x.erase(BGerr_run_x.begin(),BGerr_run_x.end());
+			BGerr_run_x.resize(bins,0.0);
+			BGerr_run_th.erase(BGerr_run_th.begin(),BGerr_run_th.end());
+			BGerr_run_th.resize(bins,0.0);
+
+
+			cout<<"::::: " << xbj_ele_run.size()<<" :::::::" <<endl;
+
+			for(int z=0;z<bins;z++)
+			{
+				if(xbj_ele[z]>0)
+				{
+					//the error for the yield cal of all the runs
+					xbj_y_error[z] =  sqrt(pow(Yx_err_run[z],2) + pow(xbj_y_error[z],2));
+				}
+				if(theta_ele[z]>0)
+				{
+					th_y_error[z] =  sqrt(pow(Yth_err_run[z],2) + pow(th_y_error[z],2));
+				}
+			}
+
+
+
+
+
 	}//End  of run loop!
 
-	
+
 	vector<double>   xbj_stat_error(bins,0.0);
 	vector<double> theta_stat_error(bins,0.0);
 
 	vector<double>   xbj_error(bins,0.0);
 	vector<double> theta_error(bins,0.0);
 
+
+
 	for(int z=0;z<bins;z++)
 	{
 		if(xbj_ele[z]>0)
 		{
 			xbj_stat_error[z]  =(1.0/(sqrt((xbj_ele[z]*1.0) )*1.0));
-
-
 		}
 		if(theta_ele[z]>0)
 		{
@@ -253,14 +370,17 @@ if(debug) cout << "Lumin : "<<Run_lumin[0]<<" Total so far " << total_lumin<<" e
 		}
 	}
 
-	
-	//Print all this info to file for plotting 	
-	ofstream xout; xout.open(Form("./yield_output/xbj/%s_kin%s.dat",tgt.c_str(),kin.c_str()));
+
+	//Print all this info to file for plotting
+	ofstream xout; xout.open(Form("./yield_output/%s%dbins/xbj/%s_kin%s.dat",cuttype.c_str(),bins,tgt.c_str(),kin.c_str()));
 	xout << "Xbj\t"<<"Ne\t"<<"Yield\t"<<"Error\n";
-	ofstream thout; thout.open(Form("./yield_output/theta/%s_kin%s.dat",tgt.c_str(),kin.c_str()));
+	ofstream thout; thout.open(Form("./yield_output/%s%dbins/theta/%s_kin%s.dat",cuttype.c_str(),bins,tgt.c_str(),kin.c_str()));
 	thout << "theta\t"<<"Ne\t"<<"Yield\t"<<"Error\n";
 
-if(debug)cout << "xbj_error " << "  yield" << "   stat eror"<<endl;
+if(debug) cout << " RunC Err " << total_run_correction_err <<"  Lumin error " << total_lumin_err/total_lumin <<"\n";
+
+
+if(debug)cout<<"\n\n\nXbj   counts  "  << "xbj_error " << "  yield" << "   stat error%     percent err"<<endl;
 
 	for(int i=0;i<bins;i++)
 	{
@@ -269,332 +389,25 @@ if(debug)cout << "xbj_error " << "  yield" << "   stat eror"<<endl;
 
 		//Calculate the total error for the bin
 		//include stat,lumin,.......
-		xbj_error[i] =  xbj_yield[i]*   sqrt( pow(xbj_stat_error[i],2)		//stat 
-					+ pow(sqrt(total_lumin_err)/total_lumin,2)	//lumin inc(dens)
-					+ pow(sqrt(total_run_correction_err),2)  );	//LT -run_c
-		theta_error[i]= theta_yield[i]* sqrt( pow(theta_stat_error[i],2) 
-					+ pow(sqrt(total_lumin_err)/total_lumin,2)
-					+ pow(sqrt(total_run_correction_err),2)  );
-if(xbj_ele[i]>0)cout << xbj_error[i] <<"  "<< xbj_yield[i]<<" "<< xbj_stat_error[i] <<" "<< endl;	
-		//double total_error_th = theta_yield[i]*sqrt( pow(theta_yield_err[i]/(theta_yield[i]*1.0),2) + pow(tot_lumin_err/total_lumin  ,2) );	
-		//double total_error_x= Xbj_yield[i]*sqrt( pow(Xbj_yield_err[i]/(Xbj_yield[i]*1.0),2) + pow(tot_lumin_err/total_lumin  ,2) );	
-			
-		thout << theta_total[i]/theta_ele[i]<<"\t"<<theta_ele[i]<<"\t"<<theta_yield[i]<<"\t"<<theta_error[i]<<"\n";
-		xout << xbj_total[i]/xbj_ele[i]<<"\t"<<xbj_ele[i]<<"\t"<<xbj_yield[i]<<"\t"<<xbj_error[i]<<"\n";	
-	}	
-	
-	xout.close();
-	thout.close();
+		xbj_error[i] =  xbj_yield[i]*   sqrt( pow(xbj_stat_error[i],2)		//stat
+					+ pow((total_lumin_err)/total_lumin,2)	//lumin inc(dens)
+					+ pow(xbj_y_error[i]/(xbj_yield[i]*total_lumin),2)  );	//LT -run_c
+		theta_error[i]= theta_yield[i]* sqrt( pow(theta_stat_error[i],2)
+					+ pow((total_lumin_err)/total_lumin,2)
+					+ pow(th_y_error[i]/(theta_yield[i]*total_lumin),2)  );
+if(xbj_ele[i]>0)cout <<xbj_total[i]/xbj_ele[i]<<" "<<xbj_ele[i]<<" "<< xbj_error[i] <<"  "<< xbj_yield[i]<<" "<< xbj_stat_error[i] <<" "<<xbj_error[i]/xbj_yield[i]<< endl;
+		//double total_error_th = theta_yield[i]*sqrt( pow(theta_yield_err[i]/(theta_yield[i]*1.0),2) + pow(tot_lumin_err/total_lumin  ,2) );
+		//double total_error_x= Xbj_yield[i]*sqrt( pow(Xbj_yield_err[i]/(Xbj_yield[i]*1.0),2) + pow(tot_lumin_err/total_lumin  ,2) );
 
-	
-
-	
-	exit(1);	
-}//end of program	
-	////////////////////////////////////////////////////////////////////////////////
-/*
-
-	/// vectors of info
-	vector<double> tmpv(2,0.0);
-	vector< double> Xbj_yield(bins,0.0);  //yield 
-	vector< double> theta_yield(bins,0.0);
-	vector< double> Xbj_yield_err(bins,0.0);  //yield error 
-	vector< double> theta_yield_err(bins,0.0);
-	vector<double> avg_xb(bins,0.0);//Average value for printing to file
-	vector<double> avg_theta(bins,0.0);
-	vector<double> xbj_cen(bins,0.0); //Centeral value or cut value for bin selecetion
-	vector<double> theta_cen(bins,0.0);
-	vector<double> xbj_raw_e(bins,0.0); //raw number of electrons;
-	vector<double> theta_raw_e(bins,0.0);
-	vector<double> xbj_tot(bins,0.0); //used to calculate the average;
-	vector<double> theta_tot(bins,0.0);
-	
-	//debuging output file for run by run info
-	ofstream out; out.open("out.txt");
-
-	for(int z=0;z<bins;z++){
-		xbj_cen[z]  =0.15+z*x_step;
-		theta_cen[z]=15.0+z*th_step;
-		out<< z <<" ";
+		thout << theta_total[i]/theta_ele[i] <<"\t"<<theta_ele[i]<<"\t"<<theta_yield[i]<<"\t"<<theta_error[i]<<"\n";
+		xout << xbj_total[i]/xbj_ele[i] <<"\t"<<xbj_ele[i]<<"\t"<<xbj_yield[i]<<"\t"<<xbj_error[i]<<"\n";
 	}
-		out<<"\n";
-	//Total luminosity for the setting		
-	double total_lumin=0.0;
-	double tot_lumin_err=0.0;
-	double pos_err_kin=0.0;
-	double pos_cor_kin=0.0;
 
-	
-	//Vectors that need to be reset
-	vector<double> pos_cor ;    // after an event.
-
-	vector<double>luminosity_run={2,0.0}; //After each run
-	vector<double> density_cor ; //After each run
-	//tmp vector for clean up
-	vector< double> tmp_vec(bins,0.0);
-	vector< int> tmp_vecint(bins,0);
-
-	//Loop through the runs over i
-	for(unsigned int i=0; i<runlist.size();i++)
-	{
-		int run = runlist[i]; //Get run number
-
-		if(run >= 2248 && run <2566)continue;
-
-
-	 	if(!SQLRunlistStatus(run)){
-			cout <<"Skipping run " << run <<"\n";
-			missing_runs.push_back(run);
-			continue;}
-		if(debug>1) cout <<"\n\nStarting Run " <<run<< " run " << i+1 <<" out of "<< runlist.size()<<"\n";
-		//Use SQL to retrieve run info;
-		CODASetting coda = GetCODASetting(run);
-		RunInfo runinfo  = GetRunInfo(run);
-		if(debug>1){
-			cout << "Good Run ? " << runinfo.good_run <<"\n";
-
-			if(runinfo.good_run==0){PrintRunInfo(run);}//continue;}
-			}
-//		AnalysisInfo ana_info = GetAnalysisInfo(run);
-	
-		//Calculate the correction on a run bases. LT, det. eff.  ....
-		//I will store this in SQL, I will use the DB to store these run by run values
-		double correction_error=0;
-		double run_correction= 1.0;// SQLRunCorrection(run, correction_error, 1, debug);
-
-
-		//Deat time is applied through SQL
-		if(debug) cout << "Corrections :: "<<run_correction<<" error "<<correction_error<<"\n";
-		//////Calculate the luminosty and the error on that, this err includes
-		// tgt thickness and a hard coded 1% for beam charge
-		int debug_flag=0; if(debug){debug_flag=1;}
-
-		luminosity_run=Calc_lum(run,debug_flag);
-		if(luminosity_run[1]!=luminosity_run[1]){
-			luminosity_run[1]=0.0;
-			}
-		total_lumin+=luminosity_run[0];
-		tot_lumin_err += pow(luminosity_run[1],2);
-		
-		///////////////////////////////////////////
-		
-
-		density_cor = DensityCor(run);
-		if(debug)cout << "Density cor "<< density_cor[0] <<" " << density_cor[1] <<endl;	
-//		density_cor[0]=1.0;		
-
-
-		//Open the tree from (run)
-		TChain *T = LoadRun(run);
-
-
-	 	int totn = T->GetEntries();	
-		//Shorten up the tree to only look at good electron events;
-		TCut total_cut;
-		if(coda.arm=="L")total_cut = electron_cut_L&&acc_cut_L&&L_dnew;
-		else{total_cut = electron_cut_R&&acc_cut_R&&R_dnew;}
-		T->Draw(">>GoodEs",total_cut);
-		TEventList *GoodEs;
-		gDirectory->GetObject("GoodEs",GoodEs);
-		T->SetEventList(GoodEs);
-		////////////////
-		//Defining the vars address to the tree
-		double eprime =0;   double theta  =0;
-		double x_bj   =0;   double Qsqrd  =0;				
-		
-		//Reset branch address from any previous issues
-		T->ResetBranchAddresses();
-		T->SetBranchStatus("*",0);//Turn off all branches
-		T->SetBranchStatus(Form("%s.gold.p",coda.arm.Data())	,1);//Turn on eprime
-		T->SetBranchStatus(Form("EK%sx.angle",coda.arm.Data())	,1);//scattered angle
-		T->SetBranchStatus(Form("EK%sx.x_bj",coda.arm.Data())	,1);//x_bj
-		T->SetBranchStatus(Form("EK%sx.Q2",coda.arm.Data())	,1);//Q2
-		///Address those branches
-		T->SetBranchAddress(Form("%s.gold.p",coda.arm.Data()),  &eprime);
-	        T->SetBranchAddress(Form("EK%sx.angle",coda.arm.Data()),&theta);
-		T->SetBranchAddress(Form("EK%sx.x_bj",coda.arm.Data()), &x_bj);
-		T->SetBranchAddress(Form("EK%sx.Q2",coda.arm.Data()),	&Qsqrd);
-		///////////////////////
-
-		//vector for just this runs electrons;
-		vector<int> N_ele_x(bins,0);
-		vector<int> N_ele_th(bins,0);
-		vector<double> xbj_run(bins,0.0); //used to calculate the average;
-		vector<double> theta_run(bins,0.0);
-		vector< double> Xbj_yield_run(bins,0.0);  //yield per run
-		vector< double> theta_yield_run(bins,0.0);
-	
-		double avg_pos=0.0;
-		PositronCor PC= GetPosInfo(run);
-		double pos_cor_err_run=0;
-	
-
-//Loop through all the events in the Good electron list over event
-		int nentries =  GoodEs->GetN();
-		if(debug)cout << nentries << " " <<totn <<"\n";
-			
-
-
-	
-	
-		for(int event=0; event<nentries;event++)
-		{
-			T->GetEntry(GoodEs->GetEntry(event));
-			theta=theta/rad;
-			double event_cors=1.0;
-			//positron correction, 
-			pos_cor = GetPosCorFactor(x_bj,PC);
-			pos_cor[0]=1.0-pos_cor[0];
-			if(pos_cor[0]<0.0)pos_cor[0]=1.0;
-			
-			if(pos_cor[0] != pos_cor[0] || 1.0/pos_cor[0] ==0) pos_cor[0] = 1.0;
-//			event_cors*=pos_cor[0];
-			avg_pos=avg_pos+pos_cor[0];
-			pos_cor_err_run+=pos_cor[1];
-
-//		        cout << avg_pos/(event *1.0) <<endl;	
-
-
-			//Get the rad correction for this event;
-			//double rac_cor = RadCor();
-			//Look at the bins
-			for(int i=0;i<bins;i++)
-			{
-
-				double xbj_diff   = x_bj-xbj_cen[i];
-				double theta_diff= theta-theta_cen[i];
-				if(abs(xbj_diff) <x_step && xbj_diff >0)
-				{//This event falls into the ith bin for x
-					Xbj_yield_run[i] += 1.0/(run_correction
-						*luminosity_run[0]*density_cor[0]);
-			Xbj_yield[i]+=1.0*(event_cors);
-					xbj_raw_e[i]++;
-					xbj_tot[i]+=x_bj;
-					xbj_run[i]+=x_bj;
-					N_ele_x[i]++;		//gets reset			
-				}//end of xbin		
-				if(abs(theta_diff)<th_step && theta_diff>0)
-				{//this event is in this theta bin
-					theta_yield_run[i] += 1.0/(run_correction
-						*luminosity_run[0]*density_cor[0]);
-			theta_yield[i] += 1.0*(event_cors);
-					theta_raw_e[i]++;
-					theta_tot[i]+=theta;					
-					theta_run[i]+=theta;					
-					N_ele_th[i]++;		//gets reset				
-				}//end of th_bin
-				
-			if(debug>=4){if(event/10000 == event/10000.0){
-		cout<<event/(nentries*1.0)<<" "<<i<<" : "<< xbj_diff <<" " << theta_diff <<" "<< N_ele_x[i] <<" "<< N_ele_th[i] <<endl;
-				}}
-			}//end of bins
-		}//End of event loop!!!
-		avg_pos = avg_pos/nentries;
-		
-		if(debug) cout << "Average positron correction = " << avg_pos<<" "<<pos_cor_err_run/nentries <<endl;
-
-		//reset the pos average
-		avg_pos=0.0;
-
-		//Counter for num of bins;
-		int xbins =0;
-		int thbins=0;
-
-		//calculate the errr for this run and sum it together
-		vector<double> tmp_err_x(bins,0.0); //Used to sum up error
-		vector<double> tmp_err_th(bins,0.0); //Used to sum up error
-		for(int i=0;i<bins;i++)
-		{
-			if(N_ele_x[i]>0){
-				xbins++;
-				//just for this run!
-				tmp_err_x[i] = sqrt( 1/sqrt(N_ele_x[i]) + pow((correction_error/run_correction),2) + pow((luminosity_run[1]/luminosity_run[0]),2) *pow(Xbj_yield_run[i],2) ); 
-			}
-			Xbj_yield_err[i]+=pow(tmp_err_x[i],2);			
-			
-			//Apply any run corrections to the yield from all the events
-			Xbj_yield[i]*=1.0/(density_cor[0]*run_correction);
-			theta_yield[i]*=1.0/(density_cor[0]*run_correction);
-			/////////////////////////////////////////////////////////////
-
-			if(N_ele_th[i]>0){
-				thbins++;
-				//just for this run!
-				tmp_err_th[i] = sqrt( (1/sqrt(N_ele_th[i]*1.0)) + pow((correction_error/run_correction),2) + pow((luminosity_run[1]/luminosity_run[0]),2) *pow(theta_yield_run[i],2) );
-			}
-			theta_yield_err[i]+=pow(tmp_err_th[i],2);			
-		}//end of error bins
-		
-		//Clean up
-		
-		T=nullptr;
-		delete T;
-
-		//theta file by run
-
-
-		if(debug>=3){
-			ofstream thbyrun; thbyrun.open(Form("./yield_output/byrun/%d.dat",run));
-			cout << "theta   :Ne         yield     :error " <<"\n";
-			thbyrun<< "theta   :Ne         yield     :error " <<"\n";
-			for(int z=0;z<bins;z++){
-				if(N_ele_th[z]!=0)
-cout <<theta_run[z]/N_ele_th[z]<<"\t"<<N_ele_th[z]<<" "<< theta_yield_run[z]<<"  "<< tmp_err_th[z]<<"  "<< sqrt(theta_yield_err[z]) << "\n";
-thbyrun <<theta_run[z]/N_ele_th[z]<<"\t"<<N_ele_th[z]<<" "<< theta_yield_run[z]<<"  "<< tmp_err_th[z] << "\n";
-
-	out<< theta_yield_run[z]<<" ";
-
-				}//end oif z loop
-			out<<"\n";
-			thbyrun.close();
-			}//end of debug print statment	
-	//break;
-	}//End of run loop	
-	//////////////////////////////////////////////////////////////////////
-	
-	out<<"\n";
-
-	tot_lumin_err =sqrt(tot_lumin_err);
-	if(debug) cout <<"Total Lumin: " <<total_lumin << " err " << tot_lumin_err <<endl;
-
-	//Print all this info to file for plotting
-	//output file txt file
-	
-	ofstream xout; xout.open(Form("./yield_output/xbj/%s_kin%s.dat",tgt.c_str(),kin.c_str()));
-	xout << "Xbj\t"<<"Ne\t"<<"Yield\t"<<"Error\n";
-	ofstream thout; thout.open(Form("./yield_output/theta/%s_kin%s.dat",tgt.c_str(),kin.c_str()));
-	thout << "theta\t"<<"Ne\t"<<"Yield\t"<<"Error\n";
-
-
-	cout << "total Luminosity " << total_lumin <<endl;
-
-
-
-	for(int i=0;i<bins;i++)
-	{
-		cout << "total Luminosity " << total_lumin<<"  " << Xbj_yield[i]  <<endl;
-		theta_yield[i] /= total_lumin;
-		Xbj_yield[i] /= total_lumin;
-	
-		double total_error_th = theta_yield[i]*sqrt( pow(theta_yield_err[i]/(theta_yield[i]*1.0),2) + pow(tot_lumin_err/total_lumin  ,2) );	
-		double total_error_x= Xbj_yield[i]*sqrt( pow(Xbj_yield_err[i]/(Xbj_yield[i]*1.0),2) + pow(tot_lumin_err/total_lumin  ,2) );	
-			
-		thout << theta_tot[i]/theta_raw_e[i]<<"\t"<<theta_raw_e[i]<<"\t"<<theta_yield[i]<<"\t"<<total_error_th<<"\n";
-		xout << xbj_tot[i]/xbj_raw_e[i]<<"\t"<<xbj_raw_e[i]<<"\t"<<Xbj_yield[i]<<"\t"<<total_error_x<<"\n";	
-	}	
-	
 	xout.close();
 	thout.close();
-	out.close();
-
-
-	if(debug){cout<<"\n\n";
-		for(unsigned int z=0;z<missing_runs.size();z++){
-			cout<< missing_runs[z]<<"  ";}
-		cout<<"\n\n";}
 
 
 
-*/
-//	exit(1);	
-//}//end of program	
+
+//	exit(1);
+}//end of program
