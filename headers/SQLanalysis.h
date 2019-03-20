@@ -52,19 +52,55 @@ const int Global_debug				 = 0;
 
 //Function to take target name abrivations and return the targt table full name;
 string FullTargetName(string tgt){
-	vector<string> tgt_names  = { "Tritium" ,"Deuterium", "Hydrogen", "Helium-3","unknown"};
+	vector<string> tgt_names  = { "Tritium" ,"Deuterium", "Hydrogen", "Helium-3","Carbon","unknown"};
 	vector<string> H3  = {"Tritium" ,"T", "T3", "H3" };
-	vector<string> D2  = {"Deuterium","D2", "D", "H2" };
+	vector<string> D2  = {"Deuterium","H2", "D", "D2" };
 	vector<string> H   = {"Hydrogen","H1", "H" };
 	vector<string> He3 = {"Helium","Helium-3","He3"};
+	vector<string> C12 = {"Carbon","C12","C"};
 	string TGT="";
 	if(     find(H3.begin(), H3.end() ,tgt) != H3.end())TGT=tgt_names[0];
 	else if(find(D2.begin(), D2.end() ,tgt) != D2.end())TGT=tgt_names[1];
 	else if(find(H.begin(),  H.end()  ,tgt) != H.end())TGT=tgt_names[2];
 	else if(find(He3.begin(),He3.end(),tgt) != He3.end())TGT=tgt_names[3];
-	else TGT=tgt_names[4];
+	else if(find(C12.begin(),C12.end(),tgt) != He3.end())TGT=tgt_names[4];
+	else TGT=tgt_names[5];
 	return TGT;
 }
+
+//Function to take target full name and return the targt abrv. name;
+string shortTgtName(string tgt){
+	vector<string> tgt_names  = { "H3" ,"D2", "H", "He3","C12","unknown"};
+	vector<string> H3  = {"Tritium" ,"T", "T3", "H3" };
+	vector<string> D2  = {"Deuterium","H2", "D", "D2" };
+	vector<string> H   = {"Hydrogen","H1", "H" };
+	vector<string> He3 = {"Helium","Helium-3","He3"};
+	vector<string> C12 = {"Carbon","C12","C"};
+	string TGT="";
+	if(     find(H3.begin(), H3.end() ,tgt) != H3.end())TGT=tgt_names[0];
+	else if(find(D2.begin(), D2.end() ,tgt) != D2.end())TGT=tgt_names[1];
+	else if(find(H.begin(),  H.end()  ,tgt) != H.end())TGT=tgt_names[2];
+	else if(find(He3.begin(),He3.end(),tgt) != He3.end())TGT=tgt_names[3];
+	else if(find(C12.begin(),C12.end(),tgt) != He3.end())TGT=tgt_names[4];
+	else TGT=tgt_names[5];
+	return TGT;
+}
+
+bool SQLCheck(int run)
+{
+
+  TSQLServer* Server   = TSQLServer::Connect(mysql_connection.Data(),mysql_user.Data(),mysql_password.Data());
+	TString query = Form ("select run_number, kinematic from MARATHONanalysis where run_number=%d;",run);
+	TSQLResult* result   = Server->Query(query.Data());
+
+	Server->Close();// Always remember to CLOSE the connection!
+	Int_t       nrows    = result->GetRowCount();
+	if(nrows==0){return 0;}
+  else if(nrows>=1) return 1;
+
+	return 0;
+}
+
 
 //----------------------
 // CODA related setting
@@ -391,9 +427,11 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		  runinfo.trigger    = row->GetField(3);
 		  runinfo.livetime   = atof(row->GetField(4));
 		  runinfo.ntrigger   = atoi(row->GetField(5));
+
 		  runinfo.ntriggered = atoi(row->GetField(6));
 		  runinfo.elist      = row->GetField(7);
-		  if(coda.experiment=="MARATHON")runinfo.kin        = row->GetField(8);
+
+		  runinfo.kin = row->GetField(8);
 		  runinfo.status     = 1;
 
 		// calculate density correction factor (boiling)
@@ -585,8 +623,8 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			if(suf=="all")suf="%";
 			else if(suf=="2nd"||suf=="3rd"||suf=="3"||suf=="2"){int a=1;}
 			else{
-				if(tgt!="C12" && tgt!="Carbon"){suf="1st";}
-				else {suf="";}
+				suf="1st";
+				//if(tgt!="C12" && tgt!="Carbon"){else {suf="";}
 			}
 
 			if(tgt=="H3"||tgt=="T2") tgt = "Tritium";
@@ -596,18 +634,21 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			else if(tgt=="DM")  tgt = "25 cm Dummy";
 			else if(tgt=="CH")  tgt = "Carbon Hole";
 			else if(tgt=="C12") tgt = "Carbon";
+			else if(tgt=="H") tgt = "Hydrogen";
 			string under="_";
 			if(tgt=="Carbon"||suf=="all") under="";
 			if(suf!="%") suf+="%";
 //&&tgt!="Carbon"
-			/////Make a SQL querey in
+			string orstr ="";
+			if(suf =="%" || suf =="1st%") orstr = Form("kinematic = '%s' or",kin.Data());
+			if(G_debug)cout <<"suf  " << suf << " orstr " << orstr<<endl;			/////Make a SQL querey in
 			TSQLServer* Server1 = TSQLServer::Connect("mysql://halladb/triton-work","triton-user","3He3Hdata");
 			TString  query1;
-			query1=Form("select run_number from MARATHONrunlist where (kinematic = '%s' or kinematic like '%s/_%s' ESCAPE '/' ) and target='%s' order by run_number asc",kin.Data(),kin.Data(),suf.c_str(),tgt.Data());
+			query1=Form("select run_number from MARATHONrunlist where ( %s kinematic like '%s/_%s' ESCAPE '/' ) and target='%s' and prescale_T2=1 order by run_number asc",orstr.c_str(),kin.Data(),suf.c_str(),tgt.Data());
 		       TSQLResult* result1=Server1->Query(query1.Data());
 		       Server1->Close();
 
-				cout << query1 <<endl;
+				if(G_debug)cout << query1 <<endl;
 
 			if(result1->GetRowCount()==0){
 				cout <<"Sorry could not find that kin tgt" <<"\n";
@@ -628,17 +669,19 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		}
 
 
+
+
 		//////////////////////////////////////////////////
 		//Use the SQL analysis DB to get all the corrections value
 		double SQLRunCorrection(int runnum, double &correction_error, int correction_Level=1,  int debug=1)
 		{
 		///These will be added as I get more into the DB
-		string cols ="livetime, trigger_counts, trigger_events";
-		/// livetime DAQ LT
-		//  trigger counte and events used in binomal error cal for livetime;
+		string cols ="livetime, trigger_counts, trigger_events, PID_cer_eff, PID_cer_err, PID_sh_eff, PID_sh_err, PID_ps_eff, PID_sh_err";
+
 
 		  double correction=1.0;
 		  correction_error=0.0;
+
 		  CODASetting   coda     = GetCODASetting(runnum);
 		  AnalysisInfo  runinfo;
 		  TSQLServer*  	Server   = TSQLServer::Connect(mysql_connection.Data(),mysql_user.Data(),mysql_password.Data());
@@ -649,15 +692,110 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		  TSQLRow *row = result->Next();
 		/////I can Add these in as I get more corrections into the DB
 		 int count = result->GetFieldCount();
-		/* for(int i=0; i<count;i++){
-			cout<<result->GetFieldName(i)<<endl;
-			}*/
+
 		//Livetime
 		 correction *= atof(row->GetField(0));
 		 correction_error = Binomial_Error(correction,atoi(row->GetField(1)));
 		///
+		// PID efficency
+		double PID_eff = atof(row->GetField(3));
+		PID_eff *= atof(row->GetField(5))*atof(row->GetField(7));
+
+		double PID_err = sqrt( pow(atof(row->GetField(4)),2) + pow(atof(row->GetField(6)),2) + pow(atof(row->GetField(8)),2) );
+
+		correction *= PID_eff;
+
+		correction_error = sqrt( pow(correction_error,2)+ pow(PID_err,2));
+
+
 		  return correction;
 		}
+
+		vector<double> SQLRunCorrection(int runnum, int correction_Level=1,  int debug=1)
+		{
+		///These will be added as I get more into the DB
+		string cols ="livetime_eff, livetime_err, trigger_events, PID_cer_eff,  PID_cer_err, PID_sh_eff, PID_sh_err, PID_ps_eff, PID_ps_err,   Tracking_eff, Tracking_err, Trigger_eff, Trigger_err, PID_NE_eff, PID_NE_err";  //0-3, 4-8,9-10
+
+
+			vector<double> correction_vec={1.0,0.0};
+			double correction=1.0;
+			double correction_error=0.0;
+
+			CODASetting   coda     = GetCODASetting(runnum);
+			AnalysisInfo  runinfo;
+			TSQLServer*  	Server   = TSQLServer::Connect(mysql_connection.Data(),mysql_user.Data(),mysql_password.Data());
+			TString 	query    = Form("select %s from %sanalysis where run_number=%d",cols.c_str(), coda.experiment.Data(),runnum);
+			TSQLResult*   result   = Server->Query(query.Data());
+			Server->Close();
+			if(result->GetRowCount()==0){cout << "No corrections "<<"\n"; return correction_vec;}
+			TSQLRow *row = result->Next();
+		/////I can Add these in as I get more corrections into the DB
+		 int count = result->GetFieldCount();
+
+		//Livetime
+		 correction *= atof(row->GetField(0));
+		 correction_error = atof(row->GetField(1));
+		///
+		// PID efficency electron
+		double PID_eff = atof(row->GetField(3));
+		PID_eff *= atof(row->GetField(5))*atof(row->GetField(7));
+
+		double PID_err = sqrt( pow(atof(row->GetField(4)),2) + pow(atof(row->GetField(6)),2) + pow(atof(row->GetField(8)),2) );
+
+		correction *= PID_eff;
+		correction_error = sqrt( pow(correction_error,2)+ pow(PID_err,2));
+
+		//Tracking
+		double trck_eff = atof(row->GetField(9));
+		double trck_err = atof(row->GetField(10));
+		correction *= trck_eff;
+		correction_error = sqrt( pow(correction_error,2)+ pow(trck_err,2));
+
+		//Trigger
+		double trig_eff = atof(row->GetField(9));
+		double trig_err = atof(row->GetField(10));
+		correction *= trig_eff;
+		correction_error = sqrt( pow(correction_error,2)+ pow(trig_err,2));
+
+		//PID ineff.
+		double PID_NE_eff = atof(row->GetField(11));
+		double PID_NE_err = atof(row->GetField(12));
+		correction *= (1.0/PID_NE_eff);
+		correction_error = sqrt( pow(correction_error,2)+ pow(PID_NE_err,2) );
+
+
+
+		correction_vec.clear();
+		correction_vec.push_back(correction);
+		correction_vec.push_back(correction_error);
+
+
+		return correction_vec;
+	}
+
+		vector< vector<string>> List_corrections(int runnum)
+		{
+			vector< vector<string>> eff_list= {{"0","0"},{"0","0"}};
+
+			CODASetting   coda     = GetCODASetting(runnum);
+			AnalysisInfo  runinfo;
+			TSQLServer*  	Server   = TSQLServer::Connect(mysql_connection.Data(),mysql_user.Data(),mysql_password.Data());
+			TString 	query    = Form("select * from %sanalysis where run_number=%d", coda.experiment.Data(),runnum);
+			TSQLResult*   result   = Server->Query(query.Data());
+			Server->Close();
+
+			if(result->GetRowCount()==0){cout << "No corrections "<<"\n"; return eff_list;}
+
+
+
+
+
+
+
+
+			return eff_list;
+		}
+
 
 
 
@@ -772,6 +910,14 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			return PCfact;
 		}
 
+		string getposstringmc(PositronCor PC)
+		{
+			string xstr = "xbj";
+			string pcstr = Form( "(exp(%f+%f*%s))",PC.par1,PC.par2,xstr.c_str());
+			if(PC.par1==1) pcstr ="0";
+			return pcstr;
+		}
+
 		vector<double> GetPosCorFactor(double xbj, PositronCor PC){
 			vector<double> PC_vec;
 			double PCfact = exp(PC.par1+PC.par2*xbj);
@@ -835,8 +981,8 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		}
 
 		//Get the density correction of a target given a current, if you do not provide a current one will be retrieved from SQL if possible.
-		double DensityCor(double &err, int run, double current=0){
-			double current_err = current_error *current;
+		double DensityCor(double &err, int run, double current=0,int debug=0){
+			double current_err = current_error;
 			double dens_cor=1.0;
 			TargetInfo TI = GetTarget(run);
 			if(TI.type=="solid") return dens_cor;
@@ -847,18 +993,31 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 				current = AI.current;
 				}
 			dens_cor = TI.dens_par0 + TI.dens_par1*current + TI.dens_par2*pow(current,2);
+			//first term
 			double err0 = TI.dens_err0;
-			double err1 = TI.dens_err1*pow(current,2);
-			double err2 = TI.dens_err2*pow(current,4);
-			double CV0 = 2*current*TI.dens_CV0;
-			double CV1 = 2*current*current*TI.dens_CV1;
-			double CV2 = 2*pow(current,3)*TI.dens_CV2;
+			//second
+			double err10 = TI.dens_err1/pow(TI.dens_par1,2);
+			double err11 = pow(current_err,2);
+			double err1 = pow(TI.dens_err1*current,2)*(err10);
+			//third
+			double err22 = 2*current*current*current_err;
+			double err21 = TI.dens_err2/pow(TI.dens_par2,2);
+			double err2 = pow(TI.dens_par2*current*current,2)*err21;
+
+
+			double CV0 = 2*TI.dens_CV0;
+			double CV1 = 2*TI.dens_CV1;
+			double CV2 = 2*TI.dens_CV2;
 			//Sum up the error for the fit parameters including covarient terms.
-			double Cerr1 = err0 + err1 + err2 + CV0 + CV1 + CV2;
+
+
+			double Cerr1 = sqrt(err0 + err1 + err2 + CV0+CV1+CV2);
 			//Now look at the error on current
 			double Cerr2 = pow((TI.dens_par1 + 2* TI.dens_par2 *current),2) * pow(current_error,2);
 			//combind the two
-			err = sqrt( Cerr1 + Cerr2 );
+
+
+			err = Cerr1*dens_cor;
 			return dens_cor;
 		}
 
@@ -879,6 +1038,8 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 				AI = GetAnalysisInfo(run);
 				current = AI.current;
 				}
+
+				cout << current << endl;
 			dens_cor = TI.dens_par0 + TI.dens_par1*current + TI.dens_par2*pow(current,2);
 			double err0 = TI.dens_err0;
 			double err1 = TI.dens_err1*pow(current,2);
@@ -891,7 +1052,7 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			//Now look at the error on current
 			double Cerr2 = pow((TI.dens_par1 + 2* TI.dens_par2 *current),2) * pow(current_error,2);
 			//combind the two
-			err = sqrt( Cerr1 + Cerr2 );
+			err = sqrt( pow(Cerr1,2) + pow(Cerr2,2) );
 			dens_vec[0]=dens_cor;
 			dens_vec[1]=err;
 			return dens_vec;
@@ -929,6 +1090,23 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			return dens_vec;
 		}
 
+		TChain* LoadKin(string tgt, string kin, unsigned int NOR=1)
+		{
+		  vector <int> list= SQL_Kin_Target(kin,tgt);
+		  TChain *T = new TChain("T");
+		  unsigned int maxr=NOR;
+		  if(NOR>list.size()) maxr=list.size();
+		  for( unsigned int i=0;i<maxr;i++)
+		  {    T->Add(LoadRun(list[i]));  }
+		  return T;
+		}
+
+		TString GetKin(int run)
+		{
+			AnalysisInfo   runinfo =GetAnalysisInfo(run);
+			TString kin = runinfo.kin;
+			return kin;
+		}
 
 
 		#endif

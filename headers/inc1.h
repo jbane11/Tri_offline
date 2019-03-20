@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <map>
 #include <cmath>
+#include <sys/stat.h>
 /*}}}*/
 /*ROOT Includes{{{*/
 #include <TArray.h>
@@ -62,7 +63,10 @@
 //#include "/home/jbane/headers/SQLanalysis.h"
 using namespace std;
 //	string kin_cor_loc = "/adaqfs/home/a-onl/tritium_work/Bane/Tri_offline/kin_txt/";
+	vector<string> alltgt_names  = { "H3" ,"D2", "H", "He3","C12"};
+
 	std::string kin_cor_loc = "/home/jbane/tritium/Tri_offline/kin_txt/";
+	std::string T2_MC_Dir= "/home/jbane/halla_xem/weight_T2/";
 			///Varibles defined for cuts
 	double TG_Theta_Max_inc = 0.04;//40mrad
 	double TG_Theta_Min_inc =-0.04;//40mrad
@@ -88,28 +92,52 @@ using namespace std;
 	double beamon_min_inc=1;
 	double PI=3.14159265359;
 
+  //struct tm last_mc_edit = {0};
 
 
 	vector<vector<double>> ECC_table;
 
 	vector<vector<double>> RC_table;
-	string RC_tgt;
+	string RC_tgt="";
+	int RC_kin;
 
 
 void SetStyles(){
 TStyle* mcStyle = new TStyle("mcStyle","Manuel's Root Styles");
- mcStyle->SetPalette(1,0); // avoid horrible default color scheme
+ mcStyle->SetPalette(kViridis); // avoid horrible default color scheme
  mcStyle->SetOptStat(0);
  mcStyle->SetOptTitle(1);
  mcStyle->SetOptDate(0);
+ mcStyle->SetPadGridX(kTRUE);
+ mcStyle->SetPadGridY(kTRUE);
  mcStyle->SetLabelSize(0.05,"xyz"); // size of axis value font
  mcStyle->SetTitleSize(0.05,"xyz"); // size of axis title font
  mcStyle->SetTitleFont(22,"xyz"); // font option
  mcStyle->SetLabelFont(22,"xyz");
- mcStyle->SetTitleOffset(-.5,"y");
+ mcStyle->SetTitleOffset(1.05,"y");
+ mcStyle->SetLegendBorderSize(0);
+ mcStyle->SetGridStyle(0);
+ mcStyle->SetGridColor(22);
+ //mcStyle->SetLegendFillColor(0);
+ mcStyle->SetOptTitle(0);
+ //mcStyle->SetLegendFillStyle(0);
+ //mcStyle->SetLegendTextSize(22);
+
  gROOT->SetStyle("mcStyle");
 }
-//classes
+
+
+void HistSettings(TH1F* H){
+	H->GetXaxis()->CenterTitle();
+	H->GetYaxis()->CenterTitle();
+}
+
+void HistSettings(TH2F* H){
+	H->GetXaxis()->CenterTitle();
+	H->GetYaxis()->CenterTitle();
+}
+
+//classes/
 
 /////////////Class to define an input.
 class data_type {
@@ -137,7 +165,12 @@ class Corrections_Value {
 	void Corrections_Value::set_values(double a, double b, string c=""){
 		cor=a; err =b; name=c;}
 
-
+bool isnumber_1(string line)
+{
+    char* p;
+    strtod(line.c_str(), &p);
+    return *p == 0;
+}
 
 /////Function to determine if a input is a number!
 bool is_number(const std::string& s)
@@ -164,6 +197,29 @@ vector<int> parse_csv_int(string s)
 
 	return vec;
 }
+vector<string> parse_csv_str(string s)
+{
+	std::stringstream ss(s);
+	vector<string> vec;
+	while( ss.good() )
+	{
+		string substr;
+		getline( ss, substr, ',' );
+		string sub;
+		sub = substr;
+		vec.push_back(sub);
+	}
+	return vec;
+}
+/*
+void setmcedit(int day=10, int mon=01, int year=2019)
+{
+	last_mc_edit.tm_year = year;
+	last_mc_edit.tm_mon  = mon;
+	last_mc_edit.tm_mday = day;
+}*/
+
+
 vector<double> parse_csv_d(string s, char delim=',')
 {
 	std::stringstream ss(s);
@@ -173,14 +229,11 @@ vector<double> parse_csv_d(string s, char delim=',')
 		string substr;
 		getline( ss, substr, delim );
 		double sub;
-		if(is_number(substr))
+		if(isnumber_1(substr))
 		{
-			if(is_number(substr)){
-
-				if(substr.size()==0){substr="0";}
-
+			if(substr.size()==0){substr="0";}
 	 			sub = stod(substr);
-				vec.push_back(sub);}
+				vec.push_back(sub);
 		}
 	}
 
@@ -827,7 +880,7 @@ vector<double> Calc_lum(int run,int debug=1){
 	thick_err =TI.Thickness_err;
 
      double charge_E = charge / ( Qe*1e6);
-     charge_err = 0.01*charge_E; //Using 1% for now... Need to fix
+     charge_err = 0.01; //Using 1% for now... Need to fix
      double Ierr = 0.01*current; //Using 1% for now... Need to fix
 
      if(debug)	cout << tgt<<": " << charge <<"  " <<current<<" \n";
@@ -840,15 +893,15 @@ vector<double> Calc_lum(int run,int debug=1){
 
 	den_cor = DensityCor(den_cor_err, run, current);
 
-    if(debug) cout <<" density cor " << den_cor <<"  " << den_cor_err<<"\n";
+    if(debug) cout <<"\n density cor " << den_cor <<"  " << den_cor_err<<"\n\n";
      lumin = (charge_E*tgt_thick*den_cor*Na/atomicMass)/CMtoNB;
 
 	/// Error on charge , error on thick , error on den_cor
-     lum_err = sqrt(lumin*lumin*(pow((charge_err/(charge_E*1.0)),2) +
+     lum_err = sqrt( pow(charge_err,2) +
 		pow((thick_err/(tgt_thick*1.0)),2)  +
-		pow((den_cor_err/(den_cor*1.0)),2)) );
+		pow(den_cor_err,2) );
 
-    if(debug) cout << " luminosity " << lumin << " err% " <<lum_err/lumin<<"  thick_err% " << thick_err/tgt_thick << "\n";//  den_error% "<< den_cor_err/den_cor<<"\n";
+    if(debug) cout << " luminosity " << lumin << " err% " <<lum_err<<"  thick_err% " << thick_err/tgt_thick << "\n";//  den_error% "<< den_cor_err/den_cor<<"\n";
      lum[0]=lumin;
      lum[1]=lum_err;
      return lum;
@@ -932,13 +985,14 @@ RunDBInfo GetRunDBInfo(int run){
 
 
 double ECC_Cor(int kin, string tgt){
-	double ECC=1.0;
+	double ECC=0.0;
 	int col=0;
 	int row=-1;
 	if(tgt=="H3"){col=1;}
 	else if(tgt=="He3"){col=2;}
 	else if(tgt=="D2"){col=3;}
 	else if(tgt=="H"){col=4;}
+	else if(tgt=="C12"){return 0.0;}
 
 	if(ECC_table.size()==0)
 	{//read in table;
@@ -971,17 +1025,22 @@ double ECC_Cor(int kin, string tgt){
 
 double RC_factor(int kin, string tgt, double E, double Ep, double theta){
 	double RCF=1.0;
-	if(RC_table.size()==0 || RC_tgt!=tgt){
+	if(RC_table.size()==0 || RC_tgt!=tgt || RC_kin!=kin){
 		//read in table;
 		cout << "read in new RC table" <<endl;
 		int tarid=0;
 		if(tgt=="D2")tarid=2;
 		else if(tgt=="H3")tarid=3;
 		else if(tgt=="He3")tarid=4;
+		else if(tgt=="C12")tarid=7;
+		else if(tgt=="H")tarid=1;
 		string file=Form("/home/jbane/tritium/T2_externals/OUT/kin%d_%s_%d.out",kin,tgt.c_str(),tarid);
 		ifstream in;
 		in.open(file);
 		string line="";
+		if(!in.good())
+		{ cout <<"Bad table" <<endl; return 1.0;}
+
 		double ind;
 		vector<double> tmp;
 		while(in.good()){
@@ -993,6 +1052,7 @@ double RC_factor(int kin, string tgt, double E, double Ep, double theta){
 			tmp.clear();
 		}
 		RC_tgt=tgt;
+		RC_kin=kin;
 	}
 
 	double Ep_sel[4]={0.0};
@@ -1091,15 +1151,19 @@ vector<double> beam_info(TTree *T, int debug=1)
   TCut cut="1";
   if(arm == "L"){  cut = electron_cut_L;}
   else { cut = electron_cut_R;}
-	TCanvas *C;
+
 	TString g_op="goff";
 	string can_name=Form("c_%d",run);
+
+
 	if( gROOT->FindObject(Form("%s",can_name.c_str())) !=nullptr)
 	{		can_name+="_1";	}
-		if(debug>=2)
+
+  TCanvas *C= new TCanvas(Form("%s",can_name.c_str()),Form("run %d",run));
+	if(debug>=2)
 	{
 		g_op="";
-		C= new TCanvas(Form("%s",can_name.c_str()),Form("run %d",run));
+
 		C->Divide(1,2);
 		C->cd(1);
 	}
@@ -1251,10 +1315,104 @@ vector<double> beam_info(int run, int debug=1)
   return beamI;
 }
 
+/**
+ * Get the size of a file.
+ * @param filename The name of the file to check size for
+ * @return The filesize, or 0 if the file does not exist.
+ */
+size_t getFilesize(const std::string& filename) {
+    struct stat st;
+    if(stat(filename.c_str(), &st) != 0) {
+        return 0;
+    }
+    return st.st_size;
+}
+
+long getlastmod(string filename)
+{
+	struct stat st;
+  if(stat(filename.c_str(), &st) != 0) {
+        return 0;
+    }
+ return st.st_mtime;
+}
+
+bool isnewer(string filename, string check_date =Form( "%slast_edit" ,T2_MC_Dir.c_str()) )
+{
+
+	auto filetime =getlastmod(filename);
+	auto checktime = getlastmod(check_date);
+	return (checktime<filetime);
+}
+
+
+double GetClkCount(TChain *T)
+{
+	double total_clkcnt=0;
+	T->SetBranchAddress("V1495ClockCount",&total_clkcnt);
+	int all_ent = T->GetEntries();
+  T->GetEntry(all_ent-1);
+	double clkcnt = total_clkcnt;
+	T->ResetBranchAddresses();
+	return clkcnt;
+
+}
+
+
+TBox * NewEBox(double x1, double y1, double x2, double y2 )
+{
+	TBox *newbox =  new TBox(x1,y1,x2,y2);
+	newbox->SetFillColor(7);
+	newbox->SetFillStyle(3013);
+	return newbox;
+}
+
+TBox * NewNEBox(double x1, double y1, double x2, double y2 )
+{
+	TBox *newbox = new TBox(x1,y1,x2,y2);
+	newbox->SetFillColor(2);
+	newbox->SetFillStyle(3014);
+	return newbox;
+}
+
+TLegend * Boxleg(TBox *A, TBox *B)
+{
+		TLegend *leg = new TLegend(0.3,0.9,0.7,0.975);
+		leg->AddEntry(A,"Non-Es","f");
+		leg->AddEntry(B,"Electrons","f");
+		leg->SetNColumns(2);
+		leg->SetFillStyle(0);
+
+		return leg;
+}
+
+void Drawallbox(double x1, double y1, double x2, double y2, double xx1, double yx1, double xx2, double yx2)
+{
+	TBox *EB = NewEBox(x1,y1,x2,y2);
+	TBox *NEB = NewNEBox(xx1,yx1,xx2,yx2);
+	TLegend *BoxL = Boxleg(NEB,EB);
+	EB->Draw("same");
+	NEB->Draw("same");
+	BoxL->Draw("same");
+}
 
 
 
 
+
+
+
+/*
+string unparseD(vector<double> A)
+{
+	string B="";
+	for(unsigned int i=0; i<A.size();i++)
+	{
+		B+=Form("%d,"A[i]);
+	}
+	return B;
+}
+*/
 
 /*
 //   TSQLServer* Server = TSQLServer::Connect("mysql://halladb/triton-work","triton-user","3He3Hdata");

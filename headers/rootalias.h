@@ -51,6 +51,30 @@
 
 const char* ROOTPATHS[] = {
   "/storage/MARATHONRootfiles/",
+  "/storage/MARATHONRootfiles/pass2/kin0/",
+  "/storage/MARATHONRootfiles/pass2/kin1/",
+  "/storage/MARATHONRootfiles/pass2/kin2/",
+  "/storage/MARATHONRootfiles/pass2/kin3/",
+  "/storage/MARATHONRootfiles/pass2/kin4/",
+  "/storage/MARATHONRootfiles/pass2/kin5/",
+  "/storage/MARATHONRootfiles/pass2/kin7/",
+  "/storage/MARATHONRootfiles/pass2/kin9/",
+  "/storage/MARATHONRootfiles/pass2/kin11/",
+  "/storage/MARATHONRootfiles/pass2/kin13/",
+  "/storage/MARATHONRootfiles/pass2/kin15/",
+  "/storage/MARATHONRootfiles/pass2/kin16/",
+  "/storage/MARATHONRootfiles/pass2/kin7_1st/",
+  "/storage/MARATHONRootfiles/pass2/kin9_1st/",
+  "/storage/MARATHONRootfiles/pass2/kin11_1st/",
+  "/storage/MARATHONRootfiles/pass2/kin13_1st/",
+  "/storage/MARATHONRootfiles/pass2/kin15_1st/",
+  "/storage/MARATHONRootfiles/pass2/kin16_1st/",
+  "/storage/MARATHONRootfiles/pass2/kin7_2nd/",
+  "/storage/MARATHONRootfiles/pass2/kin9_2nd/",
+  "/storage/MARATHONRootfiles/pass2/kin11_2nd/",
+  "/storage/MARATHONRootfiles/pass2/kin13_2nd/",
+  "/storage/MARATHONRootfiles/pass2/kin15_2nd/",
+  "/storage/MARATHONRootfiles/pass2/kin16_2nd/",
   "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2/kin1/",
   "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2/kin4/",
   "/run/media/jbane/Slim/MARATHONRoots/",
@@ -142,15 +166,31 @@ const char* MCPATHS[] = {
 	0
 };
 
-const int    G_debug=0;
+const int    G_debug=1;
 const double pi=3.1415926535897932;
 const double rad=pi/180.0;
 const double wsqr=2.5;
 //-----------LHRS-----------------------------------------
+
+//quickdraw string
+string QDS_cal_cer_L= "L.cer.asum_c:(L.prl1.e+L.prl2.e)/(HacL_D1_P0rb*1000) >>H(100,0,1.5,1000,0,10000)";
+
+string delta_ray_ep_cut ="";
+
+
+
+//Cut file name
+string cuttype = "tightcut/";
+
 const double beta_min_L=0.5;
 const double sh_min_L=0.7;
+const double prl1_min=1.0;
+const double prl2_min=0.6;
+
 const double cer_min_L=1800;
 const double dnew_thres = 0.1;
+
+TLine *Line_cer_cut_cal_cer = new TLine(0,cer_min_L,4,cer_min_L);
 
 TCut L_dnew = Form("LeftBCMev.current_dnew>=%f",dnew_thres);
 TCut R_dnew = Form("RightBCMev.current_dnew>=%f",dnew_thres);
@@ -158,23 +198,43 @@ TCut sh_cut_L       = Form("(L.prl1.e+L.prl2.e)>HacL_D1_P0rb*1000*%g",sh_min_L);
 TCut cer_cut_L      = Form("L.cer.asum_c>%g",cer_min_L);
 TCut beta_cut_L     = Form("L.tr.beta>%g",beta_min_L);
 TCut electron_cut_L = cer_cut_L+sh_cut_L+beta_cut_L;
+
+TCut l1_cut_L =Form("(L.prl1.e/1000.0)>%g",prl1_min);
+TCut l2_cut_L =Form("(L.prl2.e/1000.0)>%g",prl2_min);
+
+TCut layers_electron_cut_L =cer_cut_L+beta_cut_L+l1_cut_L+l2_cut_L;
+
 TCut inv_m_L	    = Form("EKLx.W2>=%g",wsqr);
 
 TCut track_L        = "L.tr.n==1";
 TCut aperture_L     = "((L.tr.tg_y+L.tr.tg_ph*1.5)^2/0.64+(L.tr.tg_th*1.5)^2/0.49)<0.01";
-const double tg_dp_L=0.04;
-const double tg_th_L=0.05;
-const double tg_ph_L=0.03;
-const double tg_vz_L=0.09;
-TCut dp_cut_L=Form("fabs(L.tr.tg_dp)<%g",tg_dp_L);
-TCut th_cut_L=Form("fabs(L.tr.tg_th)<%g",tg_th_L);
-TCut ph_cut_L=Form("fabs(L.tr.tg_ph)<%g",tg_ph_L);
+TCut mc_ap_L = "((ytar*100+yptar*1.5)^2/0.64 + (xptar*1.5)^2/0.49) < 0.01";
+
+double tg_dp_L=0.04;
+double tg_th_L=0.04;
+double tg_ph_L=0.025;//0.03 ; //
+double tg_vz_L=0.09;
+double tg_dp_L_min=-0.035;// -0.04;//
+double tg_th_L_min=-0.04;
+double tg_ph_L_min=-0.025; // -0.03 ;//
+double tg_vz_L_min=-0.09;
+TCut dp_cut_L_max=Form("(L.tr.tg_dp)<%g",tg_dp_L);
+TCut th_cut_L_max=Form("(L.tr.tg_th)<%g",tg_th_L);
+TCut ph_cut_L_max=Form("(L.tr.tg_ph)<%g",tg_ph_L);
+TCut dp_cut_L_min=Form("(L.tr.tg_dp)>%g",tg_dp_L_min);
+TCut th_cut_L_min=Form("(L.tr.tg_th)>%g",tg_th_L_min);
+TCut ph_cut_L_min=Form("(L.tr.tg_ph)>%g",tg_ph_L_min);
+
+TCut dp_cut_L = dp_cut_L_max&&dp_cut_L_min;
+TCut th_cut_L = th_cut_L_max&&th_cut_L_min;
+TCut ph_cut_L = ph_cut_L_max&&ph_cut_L_min;
+
 string dp_cut_L_s = Form ("fabs(L.tr.tg_dp)<%g" , tg_dp_L);
 string th_cut_L_s = Form ("fabs(L.tr.tg_th)<%g" , tg_th_L);
 string ph_cut_L_s = Form("fabs(L.tr.tg_ph)<%g" , tg_ph_L);
 TCut spec_L  =Form("%s&&%s&&%s", dp_cut_L_s.c_str(), th_cut_L_s.c_str(), ph_cut_L_s.c_str());
 TCut z_cut_L =Form("fabs(L.tr.vz)<%g",tg_vz_L);
-TCut acc_cut_L=dp_cut_L+th_cut_L+ph_cut_L+z_cut_L+aperture_L;
+TCut acc_cut_L=dp_cut_L+th_cut_L+ph_cut_L+z_cut_L;//+aperture_L;
 const double tg_dp_L_e=0.035;
 const double tg_th_L_e=0.035;
 const double tg_ph_L_e=0.02;
@@ -185,6 +245,15 @@ TCut acc_cut_L_e = dp_cut_L_e+th_cut_L_e+ph_cut_L_e+z_cut_L+aperture_L;
 TCut L_mara_trig = "DL.evtypebits&(1<<2)";
 
 TCut L_total_cut =acc_cut_L+electron_cut_L+inv_m_L;
+
+
+
+string mc_yptar_cut = Form("yptar>=%.3f && yptar <=%.3f",tg_ph_L_min,tg_ph_L);
+string mc_xptar_cut = Form("xptar>=%.3f && xptar <=%.3f",tg_th_L_min,tg_th_L);
+string mc_dp_cut = Form("delta>=%.3f && delta <=%.3f", tg_dp_L_min*100,tg_dp_L*100);
+string mc_vz_cut = Form("ztar>=%.3f && ztar<=%.3f",tg_vz_L_min*100,tg_vz_L*100);
+TCut total_mc_cut = Form("%s && %s && %s && %s",mc_yptar_cut.c_str(), mc_xptar_cut.c_str(), mc_dp_cut.c_str(), mc_vz_cut.c_str());
+//",mc_vz_cut.c_str());//
 
 //--------------RHRS-------------------------------------
 const double beta_min_R=0.6;
@@ -246,7 +315,7 @@ TChain* LoadRun(Int_t run, const char* path, const char* tree, Int_t debug)
    delete tt;
    tt = 0;
   }
-	else{ cout << "Using run located at " << path<<endl;}
+	else{ if(G_debug)cout << "Using " <<run <<" located at " << path<<endl;}
   return tt;
 }
 
@@ -504,7 +573,7 @@ Double_t pois_fit(Double_t *x, Double_t *par)
 }
 
 
-
+vector<string> cut_branches_L ={"L.tr*", "L.cer.asum_c", "L.prl*.e", "Hac*_D1_P0rb", "D*.evtypebits", "EKLx*" };
 
 
 #endif
