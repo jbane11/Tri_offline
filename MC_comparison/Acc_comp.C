@@ -7,9 +7,11 @@
 // debug has levels, 0 off, 1 basic ....
 
 
-
-void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=2, int weighter1=0,int only=0, int debug=1)
+void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, int weighter1=0,int only=0, int debug=1)
 {
+
+	vector<int> Hcolor= {1,2,3,4,6,7,8,38,14,2,6,7};
+	vector<int> rmarker={21,22,23,36,38,29,33,34,25,40,37,31};
 
 	SetStyles();
 	string ver="";
@@ -110,7 +112,7 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=2, 
 	//det_name[8] = "rpl.z*100";
 
 	vector<string> mcv_name = {"delta/100.0", "-ytar", "xfoc/100.0", "yfoc/100.0", "xpfoc", "ypfoc","-xptar","yptar","ztar","xbj"};
-	vector< vector<double> > histbininfo = { {30,-0.06,0.06}, {250,-5,5}, {60,-1.0,1.0}, {60,-0.05,0.05},{40,-.2,0.2},{40,-0.05,0.05},{80,-0.08,0.08},{80,-0.08,0.08},{250,-15,15},{100,0,1}};
+	vector< vector<double> > histbininfo = { {30,-0.06,0.06}, {250,-5,5}, {60,-1.0,1.0}, {60,-0.05,0.05},{40,-.2,0.2},{40,-0.05,0.05},{80,-0.08,0.08},{80,-0.08,0.08},{250,-15,15},{50,0,1}};
 	vector<string> hist_titles = {"Dp ", "Y Target", "X focal plane", "Y focal plane", "Xp(dtheta) focal", "Yp(dphi) focal","Xp/theta tar","YP/phi tar","Ztar","Xbj"};
 
 	TH1F *hist[2][hist_names.size()][runs.size()];
@@ -121,7 +123,7 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=2, 
 	//Information that might be used for both 1d and 2d histos
 	double lumin=1.0;
 	TCut data_cut="1";
-	string mc_cut="1";
+	TCut mc_cut="1";
 	string data_w = "1.0";
 	string weight ="1.0";
 	double lumin_noncharge=1.0;
@@ -140,7 +142,7 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=2, 
 			mcTree[i]=new TChain("h9040");
 			for(unsigned int ij=0; ij<runs.size();ij++){
 				run = runs[ij];
-				if(debug){cout <<"Looking at adding run " << run <<"\n";}
+				if(debug){cout <<"\n\n\tLooking at adding run " << run <<"\n";}
 				RI= GetRunInfo(run);
 				if(RI.good_run==0){PrintRunInfo(run);continue;}
 				dataTree[i]->Add(LoadRun(run));
@@ -155,8 +157,9 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=2, 
 			}
 		else{
 			run = runs[i];
-			if(debug){cout <<"Looking at run " << run <<"\n";}
-			RI = GetRunInfo(run);
+			if(debug){cout <<"\n\n\tLooking at run " << run <<"\n";}
+			if( run <1000){RI= GetRunInfo(1207);}
+			else{RI = GetRunInfo(run);}
 			if(RI.good_run==0){PrintRunInfo(run);}
 			dataTree[i] = LoadRun(run);
 			if(dataTree[i]==nullptr){ if(debug){cout<<"No data";}
@@ -170,12 +173,15 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=2, 
 		//Get run info from the SQL db
 		CODASetting coda = GetCODASetting(run);
 		TargetInfo tgt_info= GetTargetInfo("",-999,run);
+		if(tgt_info.name=="unknown") tgt_info=GetTargetInfo("",-999,1207);
 		if(debug){
 			cout << "Run and tgt info" <<"\n";
 			cout << coda.trigger <<" "<< tgt_info.name <<"\n";
 			}
 		//Get analysis info
-		AnalysisInfo runinfo = GetAnalysisInfo(run);
+		AnalysisInfo runinfo;
+		if(RI.good_run) runinfo= GetAnalysisInfo(run);
+
 		if(debug){
 			cout << "Run info" <<"\n";
 			cout << runinfo.charge<<"\n";
@@ -198,30 +204,47 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=2, 
 		tarid=nullptr;
 		delete tarid;
 		delete cc;
-                int debug_flag=0; if(debug){debug_flag=1;}
-                vector<double>luminosity_run={2,0.0};
-                luminosity_run=Calc_lum(run,debug_flag);
+		double Q_e =0.0;
+    int debug_flag=0; if(debug){debug_flag=1;}
+    vector<double>luminosity_run={2,0.0};
+		vector<double> RunC =SQLRunCorrection(run);
+		PositronCor PC = GetPosInfo(run);
+		string pcstr=getposstringmc(PC);
+		string kinn = Form("%s",RI.kinematic.Data());
+		string tgtt = Form("%s",RI.target.Data());
+
+		tgtt = shortTgtName(tgtt);
+
+		double ECC = 1 - ECC_Cor(stoi(kinn),tgtt);
+
+
+
+
+		if(run>1200){
+    	if(RI.good_run)luminosity_run=Calc_lum(run,debug_flag);
+			Q_e = runinfo.charge/(Qe*1e6);
+		}
 		lumin=luminosity_run[0];
-		double Q_e = runinfo.charge/(Qe*1e6);
+
 		lumin_noncharge = lumin*Q_e;
 		mc_lumin = lumin_noncharge;//*0.00022;
 
 		cout << mc_lumin << " " << lumin << " " << lumin/mc_lumin <<endl;
 
 		////////////////////////////////////
-		C_runs[0][i] = new TCanvas(Form("C_0%d",i),Form("Canvas 0 for run %d",run),i*400,0,700,500);
+		C_runs[0][i] = new TCanvas(Form("C_0%d",i),Form("Canvas 0 for run %d",run),i*500,0,700,500);
 		C_runs[0][i]->Divide(0,2); //Divid into 2 long pads
-		C_runs[1][i] = new TCanvas(Form("C_1%d",i),Form("Canvas 1 for run %d",run),i*400,100,700,500);
-		C_runs[2][i] = new TCanvas(Form("C_2%d",i),Form("Canvas 2 for run %d",run),i*400,200,700,500);
+		C_runs[1][i] = new TCanvas(Form("C_1%d",i),Form("Canvas 1 for run %d",run),i*500,150,700,500);
+		C_runs[2][i] = new TCanvas(Form("C_2%d",i),Form("Canvas 2 for run %d",run),i*500,300,700,500);
 		C_runs[1][i]->Divide(0,2); //Divid into 2 long pads
 		C_runs[2][i]->Divide(0,2); //Divid into 2 long pads
 
-		C_runs[3][i] = new TCanvas(Form("C_3%d",i),Form("Canvas 3 for run %d",run),i*400,300,700,500);
+		C_runs[3][i] = new TCanvas(Form("C_3%d",i),Form("Canvas 3 for run %d",run),i*500,450,700,500);
 		C_runs[3][i]->Divide(0,2); //Divid into 2 long pads
-		C_runs[4][i] = new TCanvas(Form("C_4%d",i),Form("Canvas 4 for run %d",run),i*400,400,700,500);
+		C_runs[4][i] = new TCanvas(Form("C_4%d",i),Form("Canvas 4 for run %d",run),i*500,600,700,500);
 		C_runs[4][i]->Divide(0,2); //Divid into 2 long pads
 
-		C_ratio[i] = new TCanvas(Form("C_r%d",i),Form("Canvas for ratio run %d",run),i*400,500,700,500);
+		C_ratio[i] = new TCanvas(Form("C_r%d",i),Form("Canvas for ratio run %d",run),i*500,750,700,500);
 
 	//	C_ratio[i]->Divide(2,ceil(hist_names.size()/2.0));
 
@@ -240,7 +263,7 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=2, 
 
 			hist[0][hnum][i]->SetLineColor(2);
 			hist[0][hnum][i]->SetMarkerColor(2);
-			hist[0][hnum][i]->SetMarkerSize(2);
+			hist[0][hnum][i]->SetMarkerSize(1.5);
 			hist[0][hnum][i]->SetMarkerStyle(33);
 			hist[0][hnum][i]->SetFillColor(2);
 			hist[0][hnum][i]->SetFillStyle(3352);
@@ -256,14 +279,16 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=2, 
 			string mc_draw= Form("%s>>H%s_%s_%d",mcv_name[hnum].c_str(),
 			hist_pre[1].c_str(),hist_names[hnum].c_str(),run);
 			//needs to be made switchable with arm
-			data_cut = L_mara_trig + electron_cut_L + dp_cut_L + th_cut_L + ph_cut_L + z_cut_L ; //acc_cut_L+track_L;
-		mc_cut = Form("(fabs(yptar)<=%.3f&&fabs(xptar)<=%.3f&&fabs(ztar)<=%.3f&&fabs(delta)<=%.3f&& yield==yield && yield>0)" ,tg_ph_L,tg_th_L,tg_vz_L*100, tg_dp_L*100.0 ) ;
+			data_cut = L_mara_trig + electron_cut_L+ z_cut_L + dp_cut_L + th_cut_L + ph_cut_L ; //acc_cut_L+track_L;
+			mc_cut = total_mc_cut + Form(" yield==yield && yield>0 && w2>%.3f" , wsqr ) ;
 
 			if(debug>=2){cout << data_cut <<endl;
 				cout <<   mc_cut << endl;}
 			if(weighter==1) weight=Form("1.0/born*(1/%f)",mc_lumin);
 			else if(weighter==2) weight=Form("1.0*yield/%f",nop);
 			else if(weighter==3) weight=Form("(1.0*(born)/%f*12.0)",lumin);
+			else if(weighter==4) weight=Form("(1.0*(yield) *%f*(%f* (1 - %s)) )" ,RunC[0],ECC,pcstr.c_str());
+
 
 			if(weighter1==1)data_w=Form("1.0/%f",lumin);
 			if(weighter1==2)data_w=Form("1.0/%f",runinfo.charge);
@@ -274,12 +299,13 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=2, 
 				cout<< data_w  <<"\n";
 			}
 			int mod=1;
-			if(RI.target=="Carbon"|| run==1007)if(hnum==1)mod=-1;
-			mcTree[i]->Draw(Form("%d*%s",mod,mc_draw.c_str()),Form("%s*%s",mc_cut.c_str(),weight.c_str()),"same");
+			if(RI.target != "Carbon" && hnum==1) mod =-1;
+			if(strcmp(RI.target.Data(),"Carbon")==0 || strcmp(RI.target.Data(),"Carbon ")==0|| run==1107)if(hnum==1)mod=-1;
+			mcTree[i]->Draw(Form("%d*%s",mod,mc_draw.c_str()),mc_cut*Form("%s",weight.c_str()),"same");
 
 if(debug)cout << Form("%s",det_draw.c_str())<<" "<<data_cut <<Form("*%s",data_w.c_str()) <<endl;
 
-if(debug)cout << Form("%s",mc_draw.c_str())<<" "<<Form("%s*%s",mc_cut.c_str(),weight.c_str()) <<endl;
+if(debug)cout << Form("%s",mc_draw.c_str())<<" "<<mc_cut<<Form("*%s",weight.c_str()) <<endl;
 
 			double Ierro=0;
 			double integral = hist[0][hnum][i]->IntegralAndError(0,histbininfo[hnum][0]-1,Ierro,"");
@@ -316,37 +342,46 @@ if(hnum==8){if(debug)cout << "data " << max_h1 << "  mc "<<max_h2 << "    ratio 
 			if(max<maxh1)max= maxh1;
 			hist[0][hnum][i]->GetYaxis()->SetRangeUser(0, max*1.1);
 			/////////////////////////////////////////////
-			hist[0][hnum][i]->SetTitle(Form("%s %s(%d)",hist_titles[hnum].c_str(),RI.target.Data(),run));
+			hist[0][hnum][i]->SetTitle(Form("%s %s(%d)",hist_titles[hnum].c_str(),tgt_info.name.Data(),run));
 
 
-			if(pad==1){
+			if(pad==1)
+			{
 				leg[i] = new TLegend(0.8,0.7,0.9,1);
 				leg[i]->AddEntry(hist[0][hnum][i], "Data" , "lp");
 				leg[i]->AddEntry(hist[1][hnum][i], "MC" , "lp");
 				leg[i]->Draw("same");
 			}
+
 			RP[i][hnum] = (TH1F*)hist[0][hnum][i]->Clone();
 			RP[i][hnum]->Divide(hist[1][hnum][i]);
  	                RP[i][hnum]->GetYaxis()->SetRangeUser(RP[i][hnum]->GetBinContent(RP[i][hnum]->GetMinimumBin())*0.9,RP[i][hnum]->GetBinContent(RP[i][hnum]->GetMaximumBin())*1.1);
-			if(hnum==9){
+			if(hnum>=0)
+			{
 				C_ratio[i]->cd();
-				RP[i][hnum]->Draw();
-				RP[i][hnum]->Fit("pol0","","",-0.035,0.035);
+				RP[i][hnum]->SetLineColor(Hcolor[hnum]);
+				RP[i][hnum]->SetMarkerColor(Hcolor[hnum]);
+				RP[i][hnum]->SetMarkerStyle(rmarker[hnum]);
+				RP[i][hnum]->SetMarkerSize(2);
+				if(hnum==0)RP[i][hnum]->Draw();
+				RP[i][hnum]->Draw("same");
+				//RP[i][hnum]->Fit("pol0","","",-0.035,0.035);
 
 				cout <<"dp ratio mean " << RP[i][hnum]->GetMean(2) <<endl;
 
-			double err[(int)histbininfo[i][0]];
-			//loop over dp bins
-			for(int j=0; j<histbininfo[i][0];j++)
-			{
-				int count = hist[0][0][i]->GetBinContent(j);
-				err[j]=count*sqrt(1.0/(count*1.0));
-//				err.push_back( sqrt(1/count));
-				if(count <=10)err[j]=0;
-				cout << err[j]<< "  ";
-			}
+				double err[(int)histbininfo[i][0]];
+				//loop over dp bins
+				for(int j=0; j<histbininfo[i][0];j++)
+				{
+					int count = hist[0][0][i]->GetBinContent(j);
+					err[j]=count*sqrt(1.0/(count*1.0));
+	//				err.push_back( sqrt(1/count));
+					if(count <=10)err[j]=0;
+					cout << err[j]<< "  ";
+				}
 
-			hist[0][0][i]->SetError(err);}
+				hist[0][0][i]->SetError(err);
+		  }
 
 
 
@@ -392,209 +427,23 @@ if(hnum==8){if(debug)cout << "data " << max_h1 << "  mc "<<max_h2 << "    ratio 
 			//TH2F *mc_dpth = new TH2F(Form("h2_mc_dpth_%d",run),"MC dp:th",40,-0.06,0.06,40,-.05,.05);
 		//TH2F *mc_dpph = new TH2F(Form("h2_mc_dpph_%d",run),"MC dp:ph",40,-0.06,0.06,40,-.2,.2);
 			if(only>0){
-				if(only!=1 && only!=15) delete C_runs[0][i];
+				if(only!=1 && only!=15 && only!=157) delete C_runs[0][i];
 				if(only!=2) delete C_runs[1][i];
 				if(only!=3) delete C_runs[2][i];
 				if(only!=4) delete C_runs[3][i];
-				if(only!=5&& only!=15) delete C_runs[4][i];
+				if(only!=5&& only!=15 && only!=157) delete C_runs[4][i];
 				if(only!=6) delete C_d2[i];
-				if(only!=7) delete C_ratio[i];
+				if(only!=7&& only!=157) delete C_ratio[i];
 
 			}
 
-	/*
-
-			//DP
-
-			h_dp[1][i] = new TH1F(Form("Hmc_dp_%d",run),  Form("DP from mc run %d",run),25,-0.07,0.07);
-			//ytar
-			h_ytar[0][i] = new TH1F(Form("Hdata_ytar_%d",run),Form("Y target from data run %d(%s)",run,tgt_info.name.Data()),20,-10,10);
-			h_ytar[1][i] = new TH1F(Form("Hmc_ytar_%d",run),  Form("Y target from mc run %d",run),20,-10,10);
-			//xfoc
-			h_xfoc[0][i] = new TH1F(Form("Hdata_xfoc_%d",run),Form("x focal plane from data run %d",run),20,-1,1);
-			h_xfoc[1][i] = new TH1F(Form("Hmc_xfoc_%d",run),Form("x focal plane from mc run %d",run),20,-1,1);
-			//need to dived xfoc/100 unit correct?
-			//yfoc
-			h_yfoc[0][i] = new TH1F(Form("Hdata_yfoc_%d",run),Form("y focal plane from data run %d",run),20,-0.05,0.05);
-			h_yfoc[1][i] = new TH1F(Form("Hmc_yfoc_%d",run),Form("y focal plane from mc run %d",run),20,-0.05,0.05);
-			//Need to dived yfoc/100
-			//xpfoc
-			h_xpfoc[0][i] = new TH1F(Form("Hdata_xpfoc_%d",run),Form("xp(theta) focal plane from data run %d",run),20,-0.2,0.2);
-			h_xpfoc[1][i] = new TH1F(Form("Hmc_xpfoc_%d",run),Form("xp(theta) focal plane from mc run %d",run),20,-0.2,0.2);
-			//ypfoc
-			h_ypfoc[0][i] = new TH1F(Form("Hdata_ypfoc_%d",run),Form("yp(phi) focal plane from data run %d",run),20,-0.05,0.05);
-			h_ypfoc[1][i] = new TH1F(Form("Hmc_ypfoc_%d",run),Form("yp(phi) focal plane from mc run %d",run),20,-0.05,0.05);
-			//divied by 100
 
 
-			// Delta p
-			C_runs[0][i]->cd(1);
-			h_dp[0][i]->SetLineColor(2);
-			h_dp[0][i]->SetMarkerColor(2);
-			h_dp[0][i]->SetMarkerSize(2);
-			h_dp[0][i]->SetMarkerStyle(31);
-			h_dp[0][i]->SetFillColor(2);
-			h_dp[0][i]->SetFillStyle(3352);
-			h_dp[1][i]->SetLineColor(4);
-			h_dp[1][i]->SetMarkerColor(4);
-			h_dp[1][i]->SetMarkerStyle(33);
-			h_dp[1][i]->SetFillColor(4);
-			h_dp[1][i]->SetFillStyle(3354);
-			dataTree[i]->Draw(Form("ex%s.dp>>Hdata_dp_%d",coda.arm.Data(),run),electron_cut_L&&z_cut_L);
-			mcTree[i]->Draw(Form("delta/100>>Hmc_dp_%d",run),"(fabs(ztar)<10.0)/yield","same");
-
-			int norm_fact_data=h_dp[0][i]->GetBinContent(13);//h_dp[0][i]->GetMaximumBin());
-			int norm_fact_mc  =h_dp[1][i]->GetBinContent(13);//h_dp[0][i]->GetMaximumBin());
-			if(rescaling){
-	cout <<"dp data_norm " <<  norm_fact_data << " mc_norm " << norm_fact_mc << " "<< h_dp[0][i]->GetMaximumBin() << " "<< h_dp[1][i]->GetMaximumBin() << endl;
-				h_dp[0][i]->Scale(norm_fact_mc);
-				h_dp[1][i]->Scale(norm_fact_data);
-			}
-			h_dp[0][i]->GetXaxis()->SetTitle("dp/p");
-			//legend
-			h_ytar[0][i]->GetXaxis()->SetTitle("ytar(cm)");
-			leg[i] = new TLegend(0.8,0.7,0.9,1);
-			leg[i]->AddEntry(h_dp[0][i], "Data" , "lp");
-			leg[i]->AddEntry(h_dp[1][i], "MC" , "lp");
-			leg[i]->Draw("same");
-			////////////////////////////////////////////dp
-			// ytar
-			C_runs[0][i]->cd(2);
-			dataTree[i]->Draw(Form("%s.tr.tg_y*100>>Hdata_ytar_%d",coda.arm.Data(),run),electron_cut_L);
-			mcTree[i]->Draw(Form("1*ytar>>Hmc_ytar_%d",run),"(fabs(ytar)<10.0)/yield","same");
-			h_ytar[0][i]->SetLineColor(2);
-			h_ytar[0][i]->SetMarkerColor(2);
-			h_ytar[0][i]->SetMarkerStyle(31);
-			h_ytar[0][i]->SetMarkerSize(2);
-			h_ytar[0][i]->SetFillColor(2);
-			h_ytar[0][i]->SetFillStyle(3352);
-			h_ytar[1][i]->SetLineColor(4);
-			h_ytar[1][i]->SetMarkerColor(4);
-			h_ytar[1][i]->SetMarkerStyle(33);
-			h_ytar[1][i]->SetFillColor(4);
-			h_ytar[1][i]->SetFillStyle(3354);
+			luminosity_run.clear();
+			RunC.clear();
 
 
-			norm_fact_data=h_ytar[0][i]->GetBinContent(10);//h_ytar[0][i]->GetMaximumBin());
-			norm_fact_mc  =h_ytar[1][i]->GetBinContent(10);//h_ytar[1][i]->GetMaximumBin());
-
-			double norm_fact = norm_fact_mc/(norm_fact_data*1.0);
-
-	cout <<"ytar data_norm " <<  norm_fact_data << " mc_norm " << norm_fact_mc << " "<< h_ytar[0][i]->GetMaximumBin() << " "<< h_ytar[1][i]->GetMaximumBin() << endl;
-			if(rescaling){
-				//h_ytar[0][i]->Scale(norm_fact_mc);
-				h_ytar[1][i]->Scale(1/norm_fact);
-			}
-
-			///////////////////////////////////ytar
-			// xfoc
-			C_runs[1][i]->cd(1);
-			dataTree[i]->Draw(Form("%s.tr.x>>Hdata_xfoc_%d",coda.arm.Data(),run),(electron_cut_L&&z_cut_L));
-			mcTree[i]->Draw(Form("xfoc/100>>Hmc_xfoc_%d",run),"(fabs(ztar)<10.0)/yield","same");
-			h_xfoc[0][i]->SetLineColor(2);
-			h_xfoc[0][i]->SetMarkerColor(2);
-			h_xfoc[0][i]->SetMarkerStyle(31);
-			h_xfoc[0][i]->SetFillColor(2);
-			h_xfoc[0][i]->SetFillStyle(3352);
-			h_xfoc[1][i]->SetLineColor(4);
-			h_xfoc[1][i]->SetMarkerColor(4);
-			h_xfoc[1][i]->SetMarkerStyle(33);
-			h_xfoc[1][i]->SetFillColor(4);
-			h_xfoc[1][i]->SetFillStyle(3354);
-
-
-			norm_fact_data=h_xfoc[0][i]->GetBinContent(h_xfoc[0][i]->GetMaximumBin());
-			norm_fact_mc  =h_xfoc[1][i]->GetBinContent(h_xfoc[1][i]->GetMaximumBin());
-
-	cout <<"xfoc data_norm " <<  norm_fact_data << " mc_norm " << norm_fact_mc << " "<< h_xfoc[0][i]->GetMaximumBin() << " "<< h_xfoc[1][i]->GetMaximumBin() << endl;
-			if(rescaling){
-				h_xfoc[0][i]->Scale(norm_fact_mc);
-				h_xfoc[1][i]->Scale(norm_fact_data);
-			}
-			h_xfoc[0][i]->GetXaxis()->SetTitle("xfoc)");
-			leg[i]->Draw("same");
-			///////////////////////////////////////////////xfoc
-			//yfoc
-			C_runs[1][i]->cd(2);
-			dataTree[i]->Draw(Form("%s.tr.y>>Hdata_yfoc_%d",coda.arm.Data(),run),electron_cut_L&&z_cut_L);
-			mcTree[i]->Draw(Form("1*yfoc/100>>Hmc_yfoc_%d",run),"(fabs(ztar)<10.0)/yield","same");
-			h_yfoc[0][i]->SetLineColor(2);
-			h_yfoc[0][i]->SetMarkerColor(2);
-			h_yfoc[0][i]->SetMarkerStyle(31);
-			h_yfoc[0][i]->SetFillColor(2);
-			h_yfoc[0][i]->SetFillStyle(3352);
-			h_yfoc[1][i]->SetLineColor(4);
-			h_yfoc[1][i]->SetMarkerColor(4);
-			h_yfoc[1][i]->SetMarkerStyle(33);
-			h_yfoc[1][i]->SetFillColor(4);
-			h_yfoc[1][i]->SetFillStyle(3354);
-
-			norm_fact_data=h_yfoc[0][i]->GetBinContent(h_yfoc[0][i]->GetMaximumBin());
-			norm_fact_mc  =h_yfoc[1][i]->GetBinContent(h_yfoc[1][i]->GetMaximumBin());
-
-			if(rescaling){
-				h_yfoc[0][i]->Scale(norm_fact_mc);
-				h_yfoc[1][i]->Scale(norm_fact_data);
-			}
-			h_yfoc[0][i]->GetXaxis()->SetTitle("yfoc");
-			/////////////////////////////yfoc
-			//xpfoc
-			C_runs[2][i]->cd(1);
-			dataTree[i]->Draw(Form("%s.tr.th>>Hdata_xpfoc_%d",coda.arm.Data(),run),electron_cut_L&&z_cut_L);
-			mcTree[i]->Draw(Form("xpfoc>>Hmc_xpfoc_%d",run),"(fabs(ztar)<10.0)/yield","same");
-			h_xpfoc[0][i]->SetLineColor(2);
-			h_xpfoc[0][i]->SetMarkerColor(2);
-			h_xpfoc[0][i]->SetMarkerStyle(31);
-			h_xpfoc[0][i]->SetFillColor(2);
-			h_xpfoc[0][i]->SetFillStyle(3352);
-			h_xpfoc[1][i]->SetLineColor(4);
-			h_xpfoc[1][i]->SetMarkerColor(4);
-			h_xpfoc[1][i]->SetMarkerStyle(33);
-			h_xpfoc[1][i]->SetFillColor(4);
-			h_xpfoc[1][i]->SetFillStyle(3354);
-
-			norm_fact_data=h_xpfoc[0][i]->GetBinContent(h_xpfoc[0][i]->GetMaximumBin());
-			norm_fact_mc  =h_xpfoc[1][i]->GetBinContent(h_xpfoc[1][i]->GetMaximumBin());
-
-			if(rescaling){
-				h_xpfoc[0][i]->Scale(norm_fact_mc);
-				h_xpfoc[1][i]->Scale(norm_fact_data);
-			}
-			h_xpfoc[0][i]->GetXaxis()->SetTitle("xpfoc(tr.th)");
-			leg[i]->Draw("same");
-			/////////////////////////////yfoc
-			//pfoc
-			C_runs[2][i]->cd(2);
-			dataTree[i]->Draw(Form("%s.tr.ph>>Hdata_ypfoc_%d",coda.arm.Data(),run),electron_cut_L&&z_cut_L);
-			int factor=-1;
-			mcTree[i]->Draw(Form("%d*ypfoc>>Hmc_ypfoc_%d",factor,run),"(fabs(ztar)<10.0)/yield","same");
-			h_ypfoc[0][i]->SetLineColor(2);
-			h_ypfoc[0][i]->SetMarkerColor(2);
-			h_ypfoc[0][i]->SetMarkerStyle(31);
-			h_ypfoc[0][i]->SetFillColor(2);
-			h_ypfoc[0][i]->SetFillStyle(3352);
-			h_ypfoc[1][i]->SetLineColor(4);
-			h_ypfoc[1][i]->SetMarkerColor(4);
-			h_ypfoc[1][i]->SetMarkerStyle(33);
-			h_ypfoc[1][i]->SetFillColor(4);
-			h_ypfoc[1][i]->SetFillStyle(3354);
-
-			norm_fact_data=h_ypfoc[0][i]->GetBinContent(h_ypfoc[0][i]->GetMaximumBin());
-			norm_fact_mc  =h_ypfoc[1][i]->GetBinContent(h_ypfoc[1][i]->GetMaximumBin());
-
-			if(rescaling){
-				h_ypfoc[0][i]->Scale(norm_fact_mc);
-				h_ypfoc[1][i]->Scale(norm_fact_data);
-			}
-			h_ypfoc[0][i]->GetXaxis()->SetTitle("ypfoc(tr.ph)");
-			/////////////////////////////yfoc
-
-	*/
-
-
-
-
-
+		cout <<"\n\n\n";
 		}//end of loop over runs
 
 
