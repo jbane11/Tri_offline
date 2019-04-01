@@ -7,7 +7,7 @@
 // debug has levels, 0 off, 1 basic ....
 
 
-void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, int weighter1=0,int only=0, int debug=1)
+void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, int weighter1=0,int only=0, int debug=3)
 {
 
 	vector<int> Hcolor= {1,2,3,4,6,7,8,38,14,2,6,7};
@@ -23,7 +23,7 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, 
 	}
   	gStyle->SetPadGridX(kTRUE);
   	gStyle->SetPadGridY(kTRUE);
-	gStyle->SetOptStat(0);
+	gStyle->SetOptStat(11111111);
 	std::size_t it; //Used for find
 
 	//Universal defs
@@ -90,7 +90,7 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, 
 	TCanvas *C_runs[5][runs.size()];
 	TCanvas *C_ratio[runs.size()];
 	TCanvas *C_d2[runs.size()];
-
+	TCanvas *tmp = new TCanvas("tmp","tmp");
 
 	TChain *dataTree[runs.size()];
 	TChain *mcTree[runs.size()];
@@ -100,6 +100,8 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, 
 	TH1F *h_yfoc[2][runs.size()];
 	TH1F *h_xpfoc[2][runs.size()];
 	TH1F *h_ypfoc[2][runs.size()];
+
+
 	TLegend *leg[runs.size()];
 
 
@@ -119,7 +121,7 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, 
 	//TH2F *hist2[2][2dhist_names.size()][runs.size()];
 
 	TH1F *RP[hist_names.size()][runs.size()];
-
+	TPaveStats *stats[2][hist_names.size()][runs.size()];
 	//Information that might be used for both 1d and 2d histos
 	double lumin=1.0;
 	TCut data_cut="1";
@@ -161,7 +163,9 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, 
 			if( run <1000){RI= GetRunInfo(1207);}
 			else{RI = GetRunInfo(run);}
 			if(RI.good_run==0){PrintRunInfo(run);}
-			dataTree[i] = LoadRun(run);
+   		dataTree[i] = LoadRun(run);
+//		dataTree[i] = LoadP1(run);
+
 			if(dataTree[i]==nullptr){ if(debug){cout<<"No data";}
 				if(runs.size()==1){exit(1);}
 				else{continue;}}
@@ -190,6 +194,9 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, 
 			cout << "number of MC counts\n";
 			cout << mcTree[i]->GetEntries()<<"\n";
 			}
+			double DCe=0.0;
+    	double DC = DensityCor(DCe,run,0,1);
+
 
 		//determine the amount of runs in the merged file
 		double nop=1.0;
@@ -253,7 +260,7 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, 
 		{
 			int can = (int)floor((hnum/2.0));
 			int pad = abs((int)(pow(-1,hnum)+hnum%2)-1)+1;
-			C_runs[can][i]->cd(pad);
+	//		C_runs[can][i]->cd(pad);
 			hist[0][hnum][i] = new TH1F(Form("H%s_%s_%d",hist_pre[0].c_str(),hist_names[hnum].c_str(),run),
 				Form("%s from data run %d(%s)",hist_names[hnum].c_str(),run,tgt_info.name.Data()),
 				(int)histbininfo[hnum][0],histbininfo[hnum][1],histbininfo[hnum][2]);
@@ -280,32 +287,80 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, 
 			hist_pre[1].c_str(),hist_names[hnum].c_str(),run);
 			//needs to be made switchable with arm
 			data_cut = L_mara_trig + electron_cut_L+ z_cut_L + dp_cut_L + th_cut_L + ph_cut_L ; //acc_cut_L+track_L;
-			mc_cut = total_mc_cut + Form(" yield==yield && yield>0 && w2>%.3f" , wsqr ) ;
+			mc_cut = total_mc_cut + Form("yield==yield && yield>0 && w2>%.3f",wsqr);
+	//	mc_cut=Form(" yield==yield && yield>0 && w2>%.3f" , wsqr ) ;
 
 			if(debug>=2){cout << data_cut <<endl;
 				cout <<   mc_cut << endl;}
 			if(weighter==1) weight=Form("1.0/born*(1/%f)",mc_lumin);
 			else if(weighter==2) weight=Form("1.0*yield/%f",nop);
 			else if(weighter==3) weight=Form("(1.0*(born)/%f*12.0)",lumin);
-			else if(weighter==4) weight=Form("(1.0*(yield) *%f*(%f* (1 - %s)) )" ,RunC[0],ECC,pcstr.c_str());
+			else if(weighter==4) weight=Form("(1.0*(yield) *%f*%f*(%f* (1 - %s)) )" ,RunC[0],DC,ECC,pcstr.c_str());
 
 
 			if(weighter1==1)data_w=Form("1.0/%f",lumin);
 			if(weighter1==2)data_w=Form("1.0/%f",runinfo.charge);
-
+			tmp->cd();
+		//C_runs[can][i]->cd(pad);
 			dataTree[i]->Draw(Form("%s",det_draw.c_str()),data_cut*Form("%s",data_w.c_str()), "E");
+
+			gPad->Update(); //IMPORTANT
+
+			/* collect stat of the first histogram (h1) */
+			stats[0][hnum][i] = (TPaveStats*) hist[0][hnum][i]->FindObject("stats");
+			stats[0][hnum][i]->SetName(Form("data %s",hist_names[hnum].c_str()));
+			stats[0][hnum][i]->SetTextColor(kRed);
+			stats[0][hnum][i]->SetLineColor(kRed);
+			double X1 = stats[0][hnum][i]->GetX1NDC();
+			double Y1 = stats[0][hnum][i]->GetY1NDC();
+			double X2 = stats[0][hnum][i]->GetX2NDC();
+			double Y2 = stats[0][hnum][i]->GetY2NDC();
+
 			if(debug>2){
-				cout<< det_draw <<"\t";
-				cout<< data_w  <<"\n";
+				cout<<"det draw    :" << det_draw <<"\n";
+				cout<<"det weight  :"<< data_w  <<"\n";
 			}
 			int mod=1;
+
 			if(RI.target != "Carbon" && hnum==1) mod =-1;
 			if(strcmp(RI.target.Data(),"Carbon")==0 || strcmp(RI.target.Data(),"Carbon ")==0|| run==1107)if(hnum==1)mod=-1;
-			mcTree[i]->Draw(Form("%d*%s",mod,mc_draw.c_str()),mc_cut*Form("%s",weight.c_str()),"same");
+			mcTree[i]->Draw(Form("%d*%s",mod,mc_draw.c_str()),mc_cut*Form("%s",weight.c_str()),"");
 
-if(debug)cout << Form("%s",det_draw.c_str())<<" "<<data_cut <<Form("*%s",data_w.c_str()) <<endl;
+			gPad->Update(); //IMPORTANT
+			cout << "\n ::::: "<< stats[0][hnum][i] << "   "<<stats[1][hnum][i]<<endl;
+			// collect stat of the second histogram
+			stats[1][hnum][i] = (TPaveStats*) hist[1][hnum][i]->FindObject("stats");
+			stats[1][hnum][i]->SetName(Form("MC %s",hist_names[hnum].c_str()));
+			stats[1][hnum][i]->SetTextColor(kBlue);
+			stats[1][hnum][i]->SetLineColor(kBlue);
+			stats[1][hnum][i]->SetX1NDC(X1);
+			stats[1][hnum][i]->SetX2NDC(X2);
+			stats[1][hnum][i]->SetY1NDC(Y1-(Y2-Y1));
+			stats[1][hnum][i]->SetY2NDC(Y1);
+			cout << "\n ::::: "<< stats[0][hnum][i] << "   "<<stats[1][hnum][i]<<endl;
+			//change back to redraw
 
-if(debug)cout << Form("%s",mc_draw.c_str())<<" "<<mc_cut<<Form("*%s",weight.c_str()) <<endl;
+			C_runs[can][i]->cd(pad);
+			hist[0][hnum][i]->Draw("E");
+			hist[1][hnum][i]->SetFillStyle(3111);
+			hist[1][hnum][i]->SetFillColor(kRed);
+			hist[1][hnum][i]->Draw("same");
+			//mcTree[i]->Draw( Form("%d*%s", mod, mc_draw.c_str()), mc_cut* Form("%s",weight.c_str()),"");
+			//dataTree[i]->Draw( Form("%s", det_draw.c_str()), data_cut* Form("%s",data_w.c_str()), "same");
+
+
+
+		//	stats[0][hnum][i]->Draw("same");
+
+		//	stats[1][hnum][i]->Draw("same");
+
+			cout << "\n ::::: "<< stats[0][hnum][i] << "   "<<stats[1][hnum][i]<<endl;
+			//C_runs[can][i]->Modify()
+			C_runs[can][i]->Modified();
+
+//if(debug)cout << Form("%s",det_draw.c_str())<<" "<<data_cut <<Form("*%s",data_w.c_str()) <<endl;
+
+if(debug)cout << Form("mc draw  :%s",mc_draw.c_str())<<" "<<mc_cut<<Form("\nmc weight %s\n",weight.c_str()) <<endl;
 
 			double Ierro=0;
 			double integral = hist[0][hnum][i]->IntegralAndError(0,histbininfo[hnum][0]-1,Ierro,"");
@@ -347,7 +402,7 @@ if(hnum==8){if(debug)cout << "data " << max_h1 << "  mc "<<max_h2 << "    ratio 
 
 			if(pad==1)
 			{
-				leg[i] = new TLegend(0.8,0.7,0.9,1);
+				leg[i] = new TLegend(0.1,0.7,0.2,1);
 				leg[i]->AddEntry(hist[0][hnum][i], "Data" , "lp");
 				leg[i]->AddEntry(hist[1][hnum][i], "MC" , "lp");
 				leg[i]->Draw("same");
@@ -365,22 +420,23 @@ if(hnum==8){if(debug)cout << "data " << max_h1 << "  mc "<<max_h2 << "    ratio 
 				RP[i][hnum]->SetMarkerSize(2);
 				if(hnum==0)RP[i][hnum]->Draw();
 				RP[i][hnum]->Draw("same");
+				if(hnum==9)RP[i][hnum]->Draw();
 				//RP[i][hnum]->Fit("pol0","","",-0.035,0.035);
 
 				cout <<"dp ratio mean " << RP[i][hnum]->GetMean(2) <<endl;
 
-				double err[(int)histbininfo[i][0]];
+				double err[(int)histbininfo[hnum][0]];
 				//loop over dp bins
-				for(int j=0; j<histbininfo[i][0];j++)
+				for(int j=0; j<histbininfo[hnum][0];j++)
 				{
-					int count = hist[0][0][i]->GetBinContent(j);
-					err[j]=count*sqrt(1.0/(count*1.0));
+					int count = hist[0][hnum][i]->GetBinContent(j);
+					err[j]=count*(sqrt(1.0/(count*1.0))+0.02);
 	//				err.push_back( sqrt(1/count));
-					if(count <=10)err[j]=0;
+					if(count <=1)err[j]=0;
 					cout << err[j]<< "  ";
 				}
 
-				hist[0][0][i]->SetError(err);
+				hist[0][hnum][i]->SetError(err);
 		  }
 
 

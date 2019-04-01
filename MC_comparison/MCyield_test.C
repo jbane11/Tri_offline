@@ -12,9 +12,9 @@
 const string runl_dir = "/home/jbane/tritium/replay/HallA-Online-Tritium/replay/scripts/Runlist/";
 // "/home/jbane/tritium/Runlist/";
 
-void MCyield_test(string tgt ="", string kin="", int bins=50, int whichRL=2,int onerun=0, int tarid=0,int debug=3)
+void MCyield_test(string tgt ="", string kin="", int bins=50, int clean=0,int model=0, int onerun=0, int tarid=0,int debug=3)
 {
-	int clean =0;
+	//int clean =0;
 	if(kin=="" || tgt ==""){
 		cout << "Please enter the  kin and tgt you would like to use" <<"\n";
 		cin >> kin;
@@ -50,7 +50,7 @@ void MCyield_test(string tgt ="", string kin="", int bins=50, int whichRL=2,int 
 //	if(debug){for(unsigned int z=0;z<runlist2.size();z++){cout<<runlist2[z]<<" ";}}
 //	if(debug)cout<<"\n";
 
-
+	int whichRL=2;
 	vector<int>runlist;
 	if(whichRL==1){runlist=runlist1;}
 	else		{runlist=runlist2;}
@@ -78,11 +78,13 @@ void MCyield_test(string tgt ="", string kin="", int bins=50, int whichRL=2,int 
 	//Number of bins and step per kin
   vector<double> xbj_base(bins,0.0);
   vector<double> theta_base(bins,0.0);
+	vector<double> xbj_center(bins,0.0);
   double th_step = (37.7-15)/(bins*1.0);
   double x_step  = (1.00-0.00)/(bins*1.0);
   for(int z=0;z<bins;z++){
           xbj_base[z]  =0.00+z*x_step;
           theta_base[z]=15.0+z*th_step;
+					xbj_center[z]= (xbj_base[z] + x_step)/2.0;
   }
 ////////////////
 	vector<int>     theta_ele(bins,0);      //Number of electrons in theta bin
@@ -104,12 +106,14 @@ void MCyield_test(string tgt ="", string kin="", int bins=50, int whichRL=2,int 
   TChain *T = new TChain; // TChain for root file
   TEventList *GoodEs;     // Only the good electron events.
   vector<double> Run_lumin(2,0.0);
+
+
 /////Start of run loop
   for(unsigned int j = 0; j < runlist.size();j++)
   {
 	  int run = runlist[j];   //Get run number
     if(debug) printf("\n\n\tStarting run %d :  %d out of %zu \n",run,j+1, runlist.size());
-		if(tarid==0) T=LoadMC(run);
+		if(tarid==0) T=LoadMC(run,model);
 		else{ T= LoadMC(run,tarid);}
 
 		string MCdir = "~/halla_xem/weight_T2/";
@@ -131,7 +135,7 @@ void MCyield_test(string tgt ="", string kin="", int bins=50, int whichRL=2,int 
 			gSystem->Exec(Form("rm -vf ./stdout/%d.txt",run));
 	    gSystem->Exec(Form("cd %s",MCdir.c_str()));
 			cout<< Form("Making MC file with %s %d %d ",tgt.c_str(),intkin,run)<<endl;
-	    gSystem->Exec(Form("sh %s/T2_MC %s %d %d %d >> %s/stdout/%d.txt", MCdir.c_str(), tgt.c_str(), intkin, run, tarid_t, curdir.c_str(), run));
+	    gSystem->Exec(Form("sh %s/T2_MC %s %d %d %d %d >> %s/stdout/%d.txt", MCdir.c_str(), tgt.c_str(), intkin, run, tarid_t, model, curdir.c_str(), run));
 			//gSystem->Exec(Form("%s/T2_MC %s %d %d %d", MCdir.c_str(), tgt.c_str(), intkin, run, tarid_t));
 	    gSystem->Exec(Form("cd %s",curdir.c_str()));
 			if(tarid==0) T=LoadMC(run);
@@ -143,7 +147,8 @@ void MCyield_test(string tgt ="", string kin="", int bins=50, int whichRL=2,int 
 
     int totn = T->GetEntries();
 
-
+		Run_lumin = Calc_lum(run,1);
+		if(debug) cout << "Lumins :" << Run_lumin[0] <<"\n";
 
 		CODASetting coda = GetCODASetting(run);
 
@@ -212,7 +217,7 @@ void MCyield_test(string tgt ="", string kin="", int bins=50, int whichRL=2,int 
                                 }//end of th_bin
                         }//end of bins loop
 
-		if(onerun) break;
+
 		}//End of event loop!!
 
                 GoodEs=nullptr;
@@ -243,6 +248,7 @@ void MCyield_test(string tgt ="", string kin="", int bins=50, int whichRL=2,int 
 
 
 		if(debug){if(avg_bin>=12000){cout <<" Got enough data "<<endl;break;}}
+	if(onerun) break;
         }//End  of run loop!
 	if(num_G_runs<1){
 		cout << "No good runs " <<endl;}
@@ -271,7 +277,7 @@ void MCyield_test(string tgt ="", string kin="", int bins=50, int whichRL=2,int 
 
 
 	ofstream xout; xout.open(Form("./yield_output/%s%dbins/xbj/%s_kin%s.dat",cuttype.c_str(),bins,tgt.c_str(),kin.c_str()));
-       	xout << "Xbj\t"<<"Q2\t"<<"Ne\t"<<"Yield\t"<<"Error\n";
+       	xout << "Xbjc\tXbj\t"<<"Q2\t"<<"Ne\t"<<"Yield\t"<<"Error\n";
         ofstream thout; thout.open(Form("./yield_output/%s%dbins/theta/%s_kin%s.dat",cuttype.c_str(),bins,tgt.c_str(),kin.c_str()));
         thout << "theta\t"<<"E`\t"<<"Ne\t"<<"Yield\t"<<"Error\n";
 
@@ -283,7 +289,7 @@ if(debug)cout << "xbj \t" << " yield\t" << "   stat eror"<<endl;
                 double total_error_x= xbj_yield[i]*xbj_stat_error[i];// + pow(tot_lumin_err/total_lumin  ,2) );
 
                 thout << theta_total[i]/theta_ele[i]<<"\t"<<Ep_total[i]/theta_ele[i]<<"\t"<<theta_ele[i]<<"\t"<<theta_yield[i]/(num_G_runs*1.0)<<"\t"<<total_error_th/(num_G_runs*1.0)<<"\n";
-                xout << xbj_total[i]/xbj_ele[i]<<"\t"<<Q_total[i]/xbj_ele[i]<<"\t"<<xbj_ele[i]<<"\t"<<xbj_yield[i]/(num_G_runs*1.0)<<"\t"<<total_error_x/(num_G_runs*1.0)<<"\n";
+                xout << xbj_center[i]<<"\t"<<xbj_total[i]/xbj_ele[i]<<"\t"<<Q_total[i]/xbj_ele[i]<<"\t"<<xbj_ele[i]<<"\t"<<xbj_yield[i]/(num_G_runs*1.0)<<"\t"<<total_error_x/(num_G_runs*1.0)<<"\n";
 	if(xbj_ele[i]>0) cout << xbj_total[i]/xbj_ele[i] <<"\t"<<xbj_yield[i]/(num_G_runs*1.0) <<"\t" <<(total_error_x/(num_G_runs*1.0))/(xbj_yield[i]/(num_G_runs*1.0)) <<endl;
 
         }
