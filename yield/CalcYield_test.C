@@ -68,11 +68,13 @@ void CalcYield_test(string tgt ="", string kin="",int bins =50, int debug=3)
 	//Number of bins and step per kin
 	vector<double> xbj_base(bins,0.0);
 	vector<double> theta_base(bins,0.0);
+	vector<double> xbj_center(bins,0.0);
 	double th_step = (37.7-15)/(bins*1.0);
 	double x_step  = (1.00-0.00)/(bins*1.0);
 	for(int z=0;z<bins;z++){
 		xbj_base[z]  =0.00+z*x_step;
 		theta_base[z]=15.0+z*th_step;
+		xbj_center[z]= (xbj_base[z] + x_step)/2.0;
 	}
 
 
@@ -120,6 +122,26 @@ void CalcYield_test(string tgt ="", string kin="",int bins =50, int debug=3)
 		if(debug) printf("\n\n\tStarting run %d :  %d out of %zu \n",run,j+1, runlist.size());
 		T=LoadRun(run); 	//Load run using rootalias
 
+		if(T==nullptr){
+			vector<int> bruns_v;
+			if(debug)cout << "!!!!No root tree!!!!\n";
+			ifstream bruns; bruns.open("badruns.csv");
+			string bruns_string;
+			if(bruns.is_open())getline(bruns,bruns_string);
+			if(bruns_string.size()>3)
+				bruns_v =parse_csv_int(bruns_string);
+
+			std::vector<int>::iterator it;
+		  it = find (bruns_v.begin(), bruns_v.end(), run);
+		  if (it == bruns_v.end())
+			{
+					ofstream badruns; badruns.open("badruns.csv",std::ofstream::app);
+					badruns<<run<<",";
+			}
+
+			continue;
+		}
+
 		//Use SQL to retrieve run info;
 		CODASetting coda = GetCODASetting(run);
 		RunInfo runinfo  = GetRunInfo(run);
@@ -131,9 +153,11 @@ void CalcYield_test(string tgt ="", string kin="",int bins =50, int debug=3)
 		double run_correction_err;
 		double LT = SQLRunCorrection(run,run_correction_err);
 
-cout<<" :::" << LT<<endl;
+
 		vector<double> RunC =SQLRunCorrection(run);
 		LT=RunC[0];
+		if(debug)cout<<" :::" << LT<<endl;
+// LT=1.0;
 		run_correction_err =RunC[1];
 		total_run_correction_err = sqrt( pow(total_run_correction_err,2)+ pow(run_correction_err*RunC[1],2));
 
@@ -143,7 +167,7 @@ if(debug) cout << "ECC   " << ECC <<endl;
 
 
 		//Calculate the luminosity of this run, sum all the runs up for the total lumin,
-		Run_lumin = Calc_lum(run,0);
+		Run_lumin = Calc_lum(run,1);
 		if(Run_lumin[0]==0 || Run_lumin[1] != Run_lumin[1])
 		{
 			if(debug) printf("Skipping bad lumin \n");
@@ -160,6 +184,8 @@ if(debug) cout << "ECC   " << ECC <<endl;
 if(debug) cout << "Lumin : "<<Run_lumin[0]<< "   err  " <<Run_lumin[1] <<"\n Total so far " << total_lumin<<" err% : "<< total_lumin_err/total_lumin<<endl<<endl;
 
 	 	int totn = T->GetEntries();
+
+
 		//Shorten up the tree to only look at good electron events;
 		TCut total_cut;
 		if(coda.arm=="L")total_cut = layers_electron_cut_L&&acc_cut_L&&L_dnew&&inv_m_L&&track_L;
@@ -198,7 +224,7 @@ if(debug) cout << "Lumin : "<<Run_lumin[0]<< "   err  " <<Run_lumin[1] <<"\n Tot
 			//Need x , the PC class and double pointr
 			double PosCor_Error=0.0;
 			double PosCor = GetPosCorFactor(x_bj,PC,PosCor_Error);
-
+			//PosCor=0.0;
 			//Calculate RC cor from table interpelate between 4 points
 			double RC= 1.0;//RC_factor(intkin,tgt,10.6,eprime,theta);
 			if(RC>=2 || RC<=0.75|| RC!=RC) cout<<"RC issue: "<< RC<<" " <<eprime << " "<<theta <<endl;
@@ -342,11 +368,6 @@ if(debug) cout << "Lumin : "<<Run_lumin[0]<< "   err  " <<Run_lumin[1] <<"\n Tot
 					th_y_error[z] =  sqrt(pow(Yth_err_run[z],2) + pow(th_y_error[z],2));
 				}
 			}
-
-
-
-
-
 	}//End  of run loop!
 
 
@@ -373,7 +394,7 @@ if(debug) cout << "Lumin : "<<Run_lumin[0]<< "   err  " <<Run_lumin[1] <<"\n Tot
 
 	//Print all this info to file for plotting
 	ofstream xout; xout.open(Form("./yield_output/%s%dbins/xbj/%s_kin%s.dat",cuttype.c_str(),bins,tgt.c_str(),kin.c_str()));
-	xout << "Xbj\t"<<"Ne\t"<<"Yield\t"<<"Error\n";
+	xout << "Xbjc\tXbj\t"<<"Ne\t"<<"Yield\t"<<"Error\n";
 	ofstream thout; thout.open(Form("./yield_output/%s%dbins/theta/%s_kin%s.dat",cuttype.c_str(),bins,tgt.c_str(),kin.c_str()));
 	thout << "theta\t"<<"Ne\t"<<"Yield\t"<<"Error\n";
 
@@ -400,7 +421,7 @@ if(xbj_ele[i]>0)cout <<xbj_total[i]/xbj_ele[i]<<" "<<xbj_ele[i]<<" "<< xbj_error
 		//double total_error_x= Xbj_yield[i]*sqrt( pow(Xbj_yield_err[i]/(Xbj_yield[i]*1.0),2) + pow(tot_lumin_err/total_lumin  ,2) );
 
 		thout << theta_total[i]/theta_ele[i] <<"\t"<<theta_ele[i]<<"\t"<<theta_yield[i]<<"\t"<<theta_error[i]<<"\n";
-		xout << xbj_total[i]/xbj_ele[i] <<"\t"<<xbj_ele[i]<<"\t"<<xbj_yield[i]<<"\t"<<xbj_error[i]<<"\n";
+		xout << xbj_center[i]<<"\t"<< xbj_total[i]/xbj_ele[i] <<"\t"<<xbj_ele[i]<<"\t"<<xbj_yield[i]<<"\t"<<xbj_error[i]<<"\n";
 	}
 
 	xout.close();
@@ -409,5 +430,5 @@ if(xbj_ele[i]>0)cout <<xbj_total[i]/xbj_ele[i]<<" "<<xbj_ele[i]<<" "<< xbj_error
 
 
 
-//	exit(1);
+	exit(1);
 }//end of program
