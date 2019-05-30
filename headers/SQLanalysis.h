@@ -47,8 +47,15 @@
 const TString mysql_connection = "mysql://halladb/triton-work";
 const TString mysql_user       = "triton-user";
 const TString mysql_password   = "3He3Hdata";
-const double current_error     = 0.01;
+const double current_error     = 0.005;
 const int Global_debug				 = 0;
+
+bool checknum(string line)
+{
+    char* p;
+    strtod(line.c_str(), &p);
+    return *p == 0;
+}
 
 //Function to take target name abrivations and return the targt table full name;
 string FullTargetName(string tgt){
@@ -333,7 +340,8 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		TargetInfo GetTarget(Int_t run)
 		{
 		  Double_t   position;
-		  TChain*    etree  = LoadRun(run,"E");
+			int debug=0;
+		  TChain*    etree  = LoadRun(run,"E",0);
 		  if(!etree) etree  = LoadOnline(run,"E");
 		  if(!etree) {
 		    cout<<"Can't find rootfile for run "<<run<<", will use target name from runlist!"<<endl;
@@ -396,7 +404,7 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		  return nrows;
 		}
 
-		AnalysisInfo GetAnalysisInfo(Int_t runnum, Int_t current_id=0){
+		AnalysisInfo GetAnalysisInfo(Int_t runnum, Int_t current_id=0, int debug=0){
 		  CODASetting    coda     = GetCODASetting(runnum);
 		  TargetInfo     target   = GetTarget(runnum);
 		  AnalysisInfo   runinfo;
@@ -635,16 +643,23 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			else if(tgt=="CH")  tgt = "Carbon Hole";
 			else if(tgt=="C12") tgt = "Carbon";
 			else if(tgt=="H") tgt = "Hydrogen";
+      else if(tgt=="EM") tgt = "Empty Cell";
 			string under="_";
 			if(tgt=="Carbon"||suf=="all") under="";
 			if(suf!="%") suf+="%";
 //&&tgt!="Carbon"
 			string orstr ="";
+			string posstr = "and kinematic not like '%pos'";
+
 			if(suf =="%" || suf =="1st%") orstr = Form("kinematic = '%s' or",kin.Data());
+			if(checknum(Form("%s",kin.Data())) ){
+					if( atoi(kin) >=7 && suf != "%") orstr ="";
+			}
+
 			if(G_debug)cout <<"suf  " << suf << " orstr " << orstr<<endl;			/////Make a SQL querey in
 			TSQLServer* Server1 = TSQLServer::Connect("mysql://halladb/triton-work","triton-user","3He3Hdata");
 			TString  query1;
-			query1=Form("select run_number from MARATHONrunlist where ( %s kinematic like '%s/_%s' ESCAPE '/' ) and target='%s' and prescale_T2=1 order by run_number asc",orstr.c_str(),kin.Data(),suf.c_str(),tgt.Data());
+			query1=Form("select run_number from MARATHONrunlist where ( %s kinematic like '%s/_%s' ESCAPE '/' )%s and target='%s' and prescale_T2=1 order by run_number asc",orstr.c_str(),kin.Data(),suf.c_str(),posstr.c_str(),tgt.Data());
 		       TSQLResult* result1=Server1->Query(query1.Data());
 		       Server1->Close();
 
@@ -657,7 +672,10 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			TSQLRow *row1;
 			for(int i =0; i<result1->GetRowCount();i++){
 				row1 =  result1->Next();
-				runlist.push_back(atoi(row1->GetField(0)));
+				int run = atoi(row1->GetField(0));
+				AnalysisInfo AI = GetAnalysisInfo(run);
+				if(AI.status==-1)continue;
+				runlist.push_back(run);
 
 			}
 			return runlist;
@@ -731,15 +749,27 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			TSQLRow *row = result->Next();
 		/////I can Add these in as I get more corrections into the DB
 		 int count = result->GetFieldCount();
+		 for( int i =0 ;i<count;i++)
+		 {
+			 if(row->GetField(i)==nullptr)
+			 { correction_vec[0]=-1.0;
+				 return correction_vec;
+			 }
+		 }
+
+//"livetime_eff, livetime_err, trigger_events, PID_cer_eff,  PID_cer_err, PID_sh_eff, PID_sh_err, PID_ps_eff, PID_ps_err,   Tracking_eff, Tracking_err, Trigger_eff, Trigger_err, PID_NE_eff, PID_NE_err";
 
 		//Livetime
 		 correction *= atof(row->GetField(0));
 		 correction_error = atof(row->GetField(1));
+		 		cout << correction <<endl;
 		///
 		// PID efficency electron
+
+
 		double PID_eff = atof(row->GetField(3));
 		PID_eff *= atof(row->GetField(5))*atof(row->GetField(7));
-
+		cout << PID_eff <<endl;
 		double PID_err = sqrt( pow(atof(row->GetField(4)),2) + pow(atof(row->GetField(6)),2) + pow(atof(row->GetField(8)),2) );
 
 		correction *= PID_eff;
@@ -749,18 +779,22 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 		double trck_eff = atof(row->GetField(9));
 		double trck_err = atof(row->GetField(10));
 		correction *= trck_eff;
+		cout << trck_eff<<endl;
+
 		correction_error = sqrt( pow(correction_error,2)+ pow(trck_err,2));
 
 		//Trigger
-		double trig_eff = atof(row->GetField(9));
-		double trig_err = atof(row->GetField(10));
+		double trig_eff = atof(row->GetField(11));
+		double trig_err = atof(row->GetField(12));
 		correction *= trig_eff;
+		cout << trig_eff<<endl;
 		correction_error = sqrt( pow(correction_error,2)+ pow(trig_err,2));
 
 		//PID ineff.
-		double PID_NE_eff = atof(row->GetField(11));
-		double PID_NE_err = atof(row->GetField(12));
+		double PID_NE_eff = atof(row->GetField(13));
+		double PID_NE_err = atof(row->GetField(14));
 		correction *= (1.0/PID_NE_eff);
+		cout << 1.0/PID_NE_eff <<endl;
 		correction_error = sqrt( pow(correction_error,2)+ pow(PID_NE_err,2) );
 
 
@@ -994,6 +1028,7 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 				}
 			dens_cor = TI.dens_par0 + TI.dens_par1*current + TI.dens_par2*pow(current,2);
 			//first term
+			/*
 			double err0 = TI.dens_err0;
 			//second
 			double err10 = TI.dens_err1/pow(TI.dens_par1,2);
@@ -1008,6 +1043,18 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			double CV0 = 2*TI.dens_CV0;
 			double CV1 = 2*TI.dens_CV1;
 			double CV2 = 2*TI.dens_CV2;
+*/
+
+			double err0 = TI.dens_err0;
+			double err1 = TI.dens_err1*pow(current,2);
+			double err2 = TI.dens_err2*pow(current,4);
+			double CV0 = 2*current*TI.dens_CV0;
+			double CV1 = 2*current*current*TI.dens_CV1;
+			double CV2 = 2*pow(current,3)*TI.dens_CV2;
+			//Sum up the error for the fit parameters including covarient terms.
+			//double Cerr1 = err0 + err1 + err2 + CV0 + CV1 + CV2;
+
+
 			//Sum up the error for the fit parameters including covarient terms.
 
 
@@ -1016,7 +1063,7 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			double Cerr2 = pow((TI.dens_par1 + 2* TI.dens_par2 *current),2) * pow(current_error,2);
 			//combind the two
 
-
+			if(debug) cout << "D cor : "<< dens_cor <<"\n";
 			err = Cerr1*dens_cor;
 			return dens_cor;
 		}
@@ -1090,12 +1137,12 @@ TargetInfo GetTargetInfo(TString name, Int_t pos=-999, Int_t runnum=0){
 			return dens_vec;
 		}
 
-		TChain* LoadKin(string tgt, string kin, unsigned int NOR=1)
+		TChain* LoadKin(string tgt, string kin, string suf = "all", int NOR=10)
 		{
-		  vector <int> list= SQL_Kin_Target(kin,tgt);
+		  vector <int> list= SQL_Kin_Target(kin,tgt,suf);
 		  TChain *T = new TChain("T");
 		  unsigned int maxr=NOR;
-		  if(NOR>list.size()) maxr=list.size();
+		  if(NOR>list.size()||NOR==-1) maxr=list.size();
 		  for( unsigned int i=0;i<maxr;i++)
 		  {    T->Add(LoadRun(list[i]));  }
 		  return T;

@@ -50,7 +50,6 @@
 
 
 const char* ROOTPATHS[] = {
-  "/storage/MARATHONRootfiles/",
   "/storage/MARATHONRootfiles/pass2/kin0/",
   "/storage/MARATHONRootfiles/pass2/kin1/",
   "/storage/MARATHONRootfiles/pass2/kin2/",
@@ -74,7 +73,9 @@ const char* ROOTPATHS[] = {
   "/storage/MARATHONRootfiles/pass2/kin11_2nd/",
   "/storage/MARATHONRootfiles/pass2/kin13_2nd/",
   "/storage/MARATHONRootfiles/pass2/kin15_2nd/",
+  "/storage/MARATHONRootfiles/pass2/kin15_3rd/",
   "/storage/MARATHONRootfiles/pass2/kin16_2nd/",
+  "/storage/MARATHONRootfiles/",
   "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2/kin1/",
   "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2/kin4/",
   "/run/media/jbane/Slim/MARATHONRoots/",
@@ -105,6 +106,17 @@ const char* ROOTPATHS[] = {
   "/chafs1/work1/tritium/Rootfiles/",
   "/volatile/halla/triton/shujie/replay/Rootfiles/",
   "/volatile/halla/triton/Tritium_Rootfiles/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2/kin1/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2/kin2/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2/kin3/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2/kin4/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2/kin5/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2/kin7/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2/kin9/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2/kin11/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2/kin13/"
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2/kin15/",
+  "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass2/kin16/",
   "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass1/kin1/",
   "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass1/kin2/",
   "/v/lustre2/expphy/cache/halla/triton/prod/marathon/pass1/kin3/",
@@ -161,12 +173,13 @@ const char* CALPATH[] ={
 };
 
 const char* MCPATHS[] = {
-	"/run/media/jbane/Slim/",
+	"/run/media/jbane/Slim/model0/",
+  "/run/media/jbane/Slim/model1/",
 	"./mcroot/",
 	0
 };
 
-const int    G_debug=1;
+int    G_debug=1;
 const double pi=3.1415926535897932;
 const double rad=pi/180.0;
 const double wsqr=2.5;
@@ -217,7 +230,7 @@ double tg_vz_L=0.09;
 double tg_dp_L_min=-0.035;// -0.04;//
 double tg_th_L_min=-0.04;
 double tg_ph_L_min=-0.025; // -0.03 ;//
-double tg_vz_L_min=-0.09;
+double tg_vz_L_min=-0.07;
 TCut dp_cut_L_max=Form("(L.tr.tg_dp)<%g",tg_dp_L);
 TCut th_cut_L_max=Form("(L.tr.tg_th)<%g",tg_th_L);
 TCut ph_cut_L_max=Form("(L.tr.tg_ph)<%g",tg_ph_L);
@@ -233,7 +246,7 @@ string dp_cut_L_s = Form ("fabs(L.tr.tg_dp)<%g" , tg_dp_L);
 string th_cut_L_s = Form ("fabs(L.tr.tg_th)<%g" , tg_th_L);
 string ph_cut_L_s = Form("fabs(L.tr.tg_ph)<%g" , tg_ph_L);
 TCut spec_L  =Form("%s&&%s&&%s", dp_cut_L_s.c_str(), th_cut_L_s.c_str(), ph_cut_L_s.c_str());
-TCut z_cut_L =Form("fabs(L.tr.vz)<%g",tg_vz_L);
+TCut z_cut_L =Form("(L.tr.vz)<%g && (L.tr.vz)>%g",tg_vz_L,tg_vz_L_min);
 TCut acc_cut_L=dp_cut_L+th_cut_L+ph_cut_L+z_cut_L;//+aperture_L;
 const double tg_dp_L_e=0.035;
 const double tg_th_L_e=0.035;
@@ -311,11 +324,11 @@ TChain* LoadRun(Int_t run, const char* path, const char* tree, Int_t debug)
   }
 
   if (split<=0) {
-   if (debug>0) cout << "Can not find ROOT file for run " << run << endl;
+   if (debug>1) cout << "Can not find ROOT file for run " << run << " at " <<path << endl;
    delete tt;
    tt = 0;
   }
-	else{ if(G_debug)cout << "Using " <<run <<" located at " << path<<endl;}
+	else{ if(G_debug && debug)cout << "Using " <<run <<" located at " << path<<endl;}
   return tt;
 }
 
@@ -323,18 +336,40 @@ TChain* LoadRun(Int_t run, const char* path, const char* tree, Int_t debug)
 // The ROOT files are searched for from the given "ROOTPATHS" array given at the beginning of the file
 //      run  --- run number
 //      tree --- The name of the tree to be loaded
-TChain* LoadRun(Int_t run, const char* tree = "T")
+TChain* LoadRun(Int_t run, const char* tree = "T",int debug=0)
 {
   Int_t   i  = 0;
   TChain* tt = 0;
   while (ROOTPATHS[i]) {
-   tt = LoadRun(run,ROOTPATHS[i++],tree,0);
+   tt = LoadRun(run,ROOTPATHS[i++],tree,debug);
    if (tt) break;
   }
 //    if (!tt)
 //  cerr << "Can not find ROOT file for run " << run << endl;
   return tt;
 }
+
+
+TChain* LoadP1(Int_t run, const char* tree = "T")
+{
+  Int_t   i  = 0;
+  TChain* tt = 0;
+  while (ROOTPATHS[i]) {
+    string pp = Form("%s",ROOTPATHS[i]);
+
+    if( pp.find("pass1")!=pp.npos){
+        tt = LoadRun(run,ROOTPATHS[i],tree,0);
+    }
+    i++;
+    if (tt) break;
+
+  }
+//    if (!tt)
+//  cerr << "Can not find ROOT file for run " << run << endl;
+  return tt;
+}
+
+
 
 //----------------------------
 // Load online replay
@@ -440,14 +475,17 @@ TChain* LoadCalib(Int_t run, const char* tree = "T")
 
 
 
-TChain* LoadMC(Int_t run, int tarid=0, const char* tree = "h9040")
+TChain* LoadMC(Int_t run, int model=0,int tarid=0, const char* tree = "h9040")
 {
 	TString tgt="";
+
+  string mcpth = MCPATHS[model];
+
 	if(tarid>0){ tgt=Form("_%d",tarid);}
 	TChain *tt = new TChain(tree);
-	tt->Add(Form("%smc%d%s.root",MCPATHS[0],run,tgt.Data()));
+	tt->Add(Form("%smc%d%s.root",mcpth.c_str(),run,tgt.Data()));
 	if(tt->GetEntries()==0){return nullptr;}
-	else{cout << "adding " <<Form("%smc%d%s.root",MCPATHS[0],run,tgt.Data())<<"\n";}
+	else{cout << "adding " <<Form("%smc%d%s.root",mcpth.c_str(),run,tgt.Data())<<"\n";}
 	return tt;
 }
 // get rootfile path

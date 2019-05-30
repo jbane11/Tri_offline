@@ -25,6 +25,7 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, 
   	gStyle->SetPadGridY(kTRUE);
 	gStyle->SetOptStat(11111111);
 	std::size_t it; //Used for find
+	std::size_t it2; //Used for find
 
 	//Universal defs
 	vector <int> runs;
@@ -35,6 +36,7 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, 
 	//Used for SQL option
 	string target="";
 	string kin="";
+	string suf="";
 	it=options.find("-r");
 	if( it != string::npos ){
 		//The -r(run) option has been used
@@ -58,10 +60,21 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, 
 		char delim = options[it+4];
 		string substring = options.substr(it+5);
 		if(substring.size()>=3){
+			if(debug>3)cout <<substring<<":" <<endl;
 			it=substring.find(delim);
 			target=substring.substr(0,it);
+			if(debug>3)cout << target << " " <<it<<endl;
 			it=substring.find(delim);
-			kin=substring.substr(target.size()+1);
+			it2=substring.find(delim,it+1);
+			kin=substring.substr(it+1,it2-3);
+			if(debug>3)cout << kin << ": "<<it<<" : " <<it2<<endl;
+			if(substring.size()>=5){
+				if(debug>3)cout << suf << ": " <<it<<":"<<it2<<endl;
+				it=substring.find(delim,it2);
+				it2=substring.find(delim,it+1);
+				suf=substring.substr(it+1,it2-3);
+				if(debug>3)cout << suf << ": " <<it<<":"<<it2<<endl;
+			}
 		}
 		else{
 			cout << "Please enter the target\n";
@@ -72,8 +85,9 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, 
 
 		TString T_tgt= Form("%s",target.c_str());
 		TString T_kin= Form("%s",kin.c_str());
-		vector <RunList> RL = SQL_Kin_Target_RL(T_kin,T_tgt);
-		runs=RLtoint(RL);
+		TString T_suf= Form("%s",suf.c_str());
+		//vector <RunList> RL = SQL_Kin_Target_RL(T_kin,T_tgt);
+		runs=SQL_Kin_Target(T_kin,T_tgt,suf);//RLtoint(RL);
 		ver="sql";
 	}
 
@@ -108,13 +122,13 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, 
 
 	string hist_pre[2] = {"data", "mc"};
 	vector<string> hist_names = { "dp", "ytar", "xfoc", "yfoc", "xpfoc", "ypfoc","xptar","yptar","ztar","xbj"};
-	vector<string> unit = { "dp/p" , "ytar(cm)" , "xfoc" ,"Yfoc", "XP(theta r)","YP(phi r)","XP(theta r)", "YP(phi r)","Reaction z(cm)","xbj"};
+	vector<string> unit = { "dp/p" , "ytar(cm)" , "xfoc" ,"Yfoc", "XPfoc(theta r)","YPfoc(phi r)","XPtar(theta r)", "YPtar(phi t)","Reaction z(cm)","xbj"};
 	vector<string> det_name = {"ex%s.dp","%s.tr.tg_y*100","%s.tr.x","%s.tr.y","%s.tr.th","%s.tr.ph","%s.tr.tg_th","%s.tr.tg_ph","%s.tr.vz*100","EKLx.x_bj"};
   //det_name[1] = "rpl.y*100";
 	//det_name[8] = "rpl.z*100";
 
 	vector<string> mcv_name = {"delta/100.0", "-ytar", "xfoc/100.0", "yfoc/100.0", "xpfoc", "ypfoc","-xptar","yptar","ztar","xbj"};
-	vector< vector<double> > histbininfo = { {30,-0.06,0.06}, {250,-5,5}, {60,-1.0,1.0}, {60,-0.05,0.05},{40,-.2,0.2},{40,-0.05,0.05},{80,-0.08,0.08},{80,-0.08,0.08},{250,-15,15},{50,0,1}};
+	vector< vector<double> > histbininfo = { {30,-0.06,0.06}, {60,-5,5}, {60,-1.0,1.0}, {60,-0.05,0.05},{40,-.2,0.2},{40,-0.05,0.05},{60,-0.08,0.08},{60,-0.08,0.08},{60,-15,15},{50,0,1}};
 	vector<string> hist_titles = {"Dp ", "Y Target", "X focal plane", "Y focal plane", "Xp(dtheta) focal", "Yp(dphi) focal","Xp/theta tar","YP/phi tar","Ztar","Xbj"};
 
 	TH1F *hist[2][hist_names.size()][runs.size()];
@@ -170,7 +184,7 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, 
 				if(runs.size()==1){exit(1);}
 				else{continue;}}
 			mcTree[i]=LoadMC(run,tarid);
-			if(mcTree[i]==nullptr){ if(debug){cout<<"No MC";}
+			if(mcTree[i]==nullptr){ if(debug){cout<<"No MC"; continue;}
 				if(runs.size()==1){exit(1);}
 				else{continue;}}
 		}
@@ -295,7 +309,7 @@ void Acc_comp(string options = "", int rescaling=0, int tarid=0,int weighter=4, 
 			if(weighter==1) weight=Form("1.0/born*(1/%f)",mc_lumin);
 			else if(weighter==2) weight=Form("1.0*yield/%f",nop);
 			else if(weighter==3) weight=Form("(1.0*(born)/%f*12.0)",lumin);
-			else if(weighter==4) weight=Form("(1.0*(yield) *%f*%f*(%f* (1 - %s)) )" ,RunC[0],DC,ECC,pcstr.c_str());
+			else if(weighter==4) weight=Form("(1.0*(yield) *%f*%f/(%f* (1 - %s)) )" ,RunC[0],DC,ECC,pcstr.c_str());
 
 
 			if(weighter1==1)data_w=Form("1.0/%f",lumin);
@@ -411,7 +425,7 @@ if(hnum==8){if(debug)cout << "data " << max_h1 << "  mc "<<max_h2 << "    ratio 
 			RP[i][hnum] = (TH1F*)hist[0][hnum][i]->Clone();
 			RP[i][hnum]->Divide(hist[1][hnum][i]);
  	                RP[i][hnum]->GetYaxis()->SetRangeUser(RP[i][hnum]->GetBinContent(RP[i][hnum]->GetMinimumBin())*0.9,RP[i][hnum]->GetBinContent(RP[i][hnum]->GetMaximumBin())*1.1);
-			if(hnum>=0)
+			if(1)
 			{
 				C_ratio[i]->cd();
 				RP[i][hnum]->SetLineColor(Hcolor[hnum]);
@@ -467,13 +481,13 @@ if(hnum==8){if(debug)cout << "data " << max_h1 << "  mc "<<max_h2 << "    ratio 
 			mc_phth->GetXaxis()->SetTitle("dth");
 			mc_phth->GetYaxis()->SetTitle("dph");
 
-			C_runs[0][i]->Print(Form("images/dp_ytar_%d.png",run));
-			C_runs[1][i]->Print(Form("images/x_y_foc_%d.png",run));
-			C_runs[2][i]->Print(Form("images/xp_yp_foc_%d.png",run));
-			C_runs[3][i]->Print(Form("images/xp_yp_tar_%d.png",run));
-			C_runs[4][i]->Print(Form("images/ztar_%d.png",run));
+			C_runs[0][i]->Print(Form("images/dp_ytar_%d.eps",run));
+			C_runs[1][i]->Print(Form("images/x_y_foc_%d.eps",run));
+			C_runs[2][i]->Print(Form("images/xp_yp_foc_%d.eps",run));
+			C_runs[3][i]->Print(Form("images/xp_yp_tar_%d.eps",run));
+			C_runs[4][i]->Print(Form("images/ztar_%d.eps",run));
 
-			C_d2[i]->Print(Form("images/xpyp_foc_%d.png",run));
+			C_d2[i]->Print(Form("images/xpyp_foc_%d.eps",run));
 
 
 //			C_d2[i]=new TCanvas(Form("Canvas %d",run),Form("2d hists for run -> %d",run),i*200,400,700,500);

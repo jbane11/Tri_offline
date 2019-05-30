@@ -54,6 +54,9 @@
 #include <TRandom3.h>
 #include <TSpectrum.h>
 #include <TRatioPlot.h>
+#include "TPaveStats.h"
+
+
 
 
 
@@ -64,6 +67,8 @@
 using namespace std;
 //	string kin_cor_loc = "/adaqfs/home/a-onl/tritium_work/Bane/Tri_offline/kin_txt/";
 	vector<string> alltgt_names  = { "H3" ,"D2", "H", "He3","C12"};
+	vector<string> alltgt_vect  = { "H3" ,"D2", "H", "He3"};
+	vector<int>goodcolors ={1,2,3,6,7,9,15};
 
 	std::string kin_cor_loc = "/home/jbane/tritium/Tri_offline/kin_txt/";
 	std::string T2_MC_Dir= "/home/jbane/halla_xem/weight_T2/";
@@ -93,6 +98,29 @@ using namespace std;
 	double PI=3.14159265359;
 
   //struct tm last_mc_edit = {0};
+	// varible size bins for x
+	vector< vector<double>> varible_xbase = {{},
+		{0.17,0.19,0.21,0.23,0.25,0.27,0.29,
+		 0.31,0.34,0.37,0.40,0.43,
+		 0.46,0.5,0.54,0.58,0.62,0.68,
+		 0.72,0.77,0.82,0.87},
+		 {0.18,0.20,0.22,0.24,0.26,0.28,0.30,0.32,0.35,0.38,0.41,0.44,0.47,0.51,0.55,0.59,0.63,0.67,0.71,0.76,0.81,0.86},
+		 {0.18,0.21,0.24,0.27,0.30,0.33,0.36,0.39,0.42,0.45,0.48,0.52,0.56,0.60,0.64,0.68,0.72,0.77,0.82,0.87},
+		 {0.17,0.20,0.23,0.26,0.29,0.32,0.35,0.38,0.41,0.44,0.47,0.51,0.55,0.59,0.63,0.68,0.73,0.79,0.86},
+		 {0.14,0.20,0.23,0.26,0.29,0.32,0.35,0.38,0.41,0.44,0.47,0.51,0.55,0.61,0.66,0.71,0.77,0.84}
+
+	};
+	vector< vector<double>> varible_xstep = {{},
+		{0.02,0.02,0.02,0.02,0.02,0.02,0.02,
+		 0.03,0.03,0.03,0.03,0.03,
+		 0.04,0.04,0.04,0.04,0.04,0.04,
+		 0.05,0.05,0.05,0.05},
+		 {0.02,0.02,0.02,0.02,0.02,0.02,0.02,0.03,0.03,0.03,0.03,0.03,0.04,0.04,0.04,0.04,0.04,0.04,0.05,0.05,0.05,0.05},
+		 {0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.04,0.04,0.04,0.04,0.04,0.04,0.05,0.05,0.05,0.05},
+		 {0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.04,0.04,0.04,0.04,0.05,0.05,0.06,0.07,0.08},
+		 {0.06,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.04,0.04,0.06,0.05,0.05,0.06,0.07,0.08}
+	 };
+
 
 
 	vector<vector<double>> ECC_table;
@@ -107,7 +135,7 @@ TStyle* mcStyle = new TStyle("mcStyle","Manuel's Root Styles");
  mcStyle->SetPalette(kViridis); // avoid horrible default color scheme
  mcStyle->SetOptStat(0);
  mcStyle->SetOptTitle(1);
- mcStyle->SetOptDate(0);
+ //mcStyle->SetOptDate(0);
  mcStyle->SetPadGridX(kTRUE);
  mcStyle->SetPadGridY(kTRUE);
  mcStyle->SetLabelSize(0.05,"xyz"); // size of axis value font
@@ -118,12 +146,50 @@ TStyle* mcStyle = new TStyle("mcStyle","Manuel's Root Styles");
  mcStyle->SetLegendBorderSize(0);
  mcStyle->SetGridStyle(0);
  mcStyle->SetGridColor(22);
- //mcStyle->SetLegendFillColor(0);
+ mcStyle->SetLegendFillColor(0);
  mcStyle->SetOptTitle(0);
  //mcStyle->SetLegendFillStyle(0);
  //mcStyle->SetLegendTextSize(22);
 
  gROOT->SetStyle("mcStyle");
+}
+
+void HallA_style() {
+  gROOT->SetStyle("Plain");
+  gStyle->SetPaperSize(TStyle::kUSLetter);
+  gStyle->SetPaperSize(18,22);
+  gStyle->SetOptFit(1111);
+  gStyle->SetPalette(1);
+  gStyle->SetNdivisions(505);
+
+  gStyle->SetCanvasColor(10);
+  gStyle->SetPadTopMargin(.05);
+  gStyle->SetPadLeftMargin(.15);
+  gStyle->SetPadRightMargin(.1);
+  gStyle->SetPadBottomMargin(.15);
+  gStyle->SetTitleYOffset(1.3);
+  gStyle->SetLabelFont(42,"X");
+  gStyle->SetLabelFont(42,"Y");
+
+  // prepare gStyle to be useful
+  //   1 = solid
+  //   2 = long dash (30 10)
+  //   3 = dotted (4 8)
+  //   4 = dash-dot (15 12 4 12)
+  //   5 = short dash ( 15 15 )
+  //   6 = dash-dot-dot
+  gStyle->SetLineStyleString(1,"[]");
+  gStyle->SetLineStyleString(2,"[30 10]");
+  gStyle->SetLineStyleString(3,"[4 8]");
+  gStyle->SetLineStyleString(4,"[15 12 4 12]");
+  gStyle->SetLineStyleString(5,"[15 15]");
+  gStyle->SetLineStyleString(6,"[15 12 4 12 4 12]");
+  gStyle->SetLabelSize(0.045,"X");
+  gStyle->SetLabelSize(0.045,"Y");
+  gStyle->SetNdivisions(505,"Y");
+  gStyle->SetOptDate(0);
+  gStyle->SetDateY(.98);
+  gStyle->SetStripDecimals(kFALSE);
 }
 
 
@@ -880,7 +946,7 @@ vector<double> Calc_lum(int run,int debug=1){
 	thick_err =TI.Thickness_err;
 
      double charge_E = charge / ( Qe*1e6);
-     charge_err = 0.01; //Using 1% for now... Need to fix
+     charge_err = 0.005; //Using 1% for now... Need to fix
      double Ierr = 0.01*current; //Using 1% for now... Need to fix
 
      if(debug)	cout << tgt<<": " << charge <<"  " <<current<<" \n";
@@ -891,7 +957,7 @@ vector<double> Calc_lum(int run,int debug=1){
      else if(tgt == "Hydrogen") atomicMass = 1.007947;
      else if(tgt=="Carbon")	atomicMass = 12.01;
 
-	den_cor = DensityCor(den_cor_err, run, current);
+	den_cor = DensityCor(den_cor_err, run, current,debug);
 
     if(debug) cout <<"\n density cor " << den_cor <<"  " << den_cor_err<<"\n\n";
      lumin = (charge_E*tgt_thick*den_cor*Na/atomicMass)/CMtoNB;
@@ -1396,10 +1462,10 @@ void Drawallbox(double x1, double y1, double x2, double y2, double xx1, double y
 	BoxL->Draw("same");
 }
 
-
-
-
-
+TCanvas *WSC(string var,string name)
+{
+	return new TCanvas(Form("%s",var.c_str()), Form("%s",name.c_str()), 1300,700);
+}
 
 
 /*
