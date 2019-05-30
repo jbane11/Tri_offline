@@ -1,26 +1,27 @@
 #include "../headers/inc1.h"
 #include "../headers/rootalias1.h"
-
+#include <time.h>
 
 
 
 void ped_scan( int run = 0 , int debug=0, int single_det=-1){
 	if(run==0){cout << "Please Enter run number" <<"\n"; cin >> run;}
-	if(debug) cout << "Debug is turn on: if you supply a run number this will be the first statment printed!! "<<"\n";
+	sleep(10);
+	if(debug) cout << "Debug is turn on: if you supply a run number this will be the first statement printed!! "<<"\n";
+
+  	time_t rawtime;
+  	struct tm * timeinfo;
+
+  	time (&rawtime);
+  	timeinfo = localtime (&rawtime);
+  	cout << asctime(timeinfo) << "\n";
+
 	gStyle->SetOptStat(0);
 	std::vector< string> tmp_v(34);
 	std::vector< std::vector<string>> ped_scan(7,tmp_v);
 	ped_scan.begin();
-cout << ped_scan.size() <<"\n";
-
-	for(unsigned int i=0; i<ped_scan.size();i++){
-		for(unsigned int j=0; j<ped_scan[i].size();j++){
-			cout<<ped_scan[i][j] << " ,";}
-		cout<<"\n";
-	}
 	ped_scan.clear();
 
-//	ped_scan.reserve();
 	string image = "./det";
 	//Correct arm varribles
 	string Arm="",ARM="",arm="";
@@ -45,14 +46,17 @@ cout << ped_scan.size() <<"\n";
 	Temp->SetBranchStatus("*",0);
 	////////////////////////////////////
 
-	ofstream output(Form("./ped_table/%d.csv",run));
+	int draw_cnt=0;
+	ofstream output;
+	//make a buffer for the output
+	int mybuffer {131072};
+	vector<char> buf;
+	buf.resize(mybuffer);
+	output.rdbuf()->pubsetbuf(&buf[0],mybuffer);	
+	output.open(Form("./ped_table/%d.csv",run));
 	if(!output.is_open()){
 		cout<<"Ped table not open!"<<"\n";;
 		exit(0);}	
-	//make a buffer for the output
-	
-	char mybuffer [512];
-	output.rdbuf()->pubsetbuf(mybuffer,2048);	
 	//Find the correct name for the detector to ploti
 	string det_array[] ={".s0",".s2",".prl1",".prl2",".cer",".sh",".ps"};
 	string suffix_array[] = {".a",".la",".ra"};
@@ -184,8 +188,13 @@ if(debug)cout<<"Debug: start of pmt loop:  " <<"\n";
 			
 			C[C_select]->cd(pad);
 			//Draw the branch.
+
+			 
+  			time (&rawtime);
+ 			timeinfo = localtime (&rawtime);
+			cout<<"Draw at " << asctime(timeinfo)<<"\n";
 			Temp->Draw(Form("%s[%d]>>hist%d",detector[dets].c_str(),pmt,pmt),"","");
-			
+			draw_cnt++;
 			//Rezise the histogram. 
 			Int_t max_adc_bin = hist[pmt]->FindLastBinAbove(3);
 			Int_t min_adc_bin = hist[pmt]->FindFirstBinAbove(0);
@@ -197,8 +206,8 @@ if(debug)cout<<"Debug: start of pmt loop:  " <<"\n";
 			/////////////////////////////////////////////////////////////////
 
 			//Find up to 2 peaks and store their values into peaks!
-			S[pmt] = new TSpectrum(2);
-			S[pmt]->Search(hist[pmt],1.025,"",0.001);
+			S[pmt] = new TSpectrum(10);
+			S[pmt]->Search(hist[pmt],1.025,"nodraw",0.001);
 			double *peaks = S[pmt]->GetPositionX();
 			int Npeaks = S[pmt]->GetNPeaks();	
 			if(debug) cout<< Npeaks <<" Peaks ";
@@ -326,8 +335,8 @@ if(debug)cout<<"Debug: start of pmt loop:  " <<"\n";
 			t.SetNDC(kTRUE);
 			t.Draw(); 
 
-		//	C[noc]->Print(Form("%s/Pedestals_%s_%d.pdf%s",image.c_str(),
-		//				detector[dets].c_str(),run,opt.c_str()));
+			C[noc]->Print(Form("%s/Pedestals_%s_%d.pdf%s",image.c_str(),
+						detector[dets].c_str(),run,opt.c_str()));
 		}
 		
 		if(single_det>=0)break;
@@ -349,11 +358,13 @@ if(debug)cout<<"Debug: start of pmt loop:  " <<"\n";
 			if(debug)cout<<ped_scan[k][m]<<",";
 			}
 		output<<"\n";
-		if(debug)cout<<"\n";
 	}
+		if(debug)cout<<"\nDrew "<<draw_cnt << " pmts total!"<<"\n";
+  		time (&rawtime);
+  		timeinfo = localtime (&rawtime);
+	 	cout << asctime(timeinfo) << "\n";
 
 	output.close();
-
-}//end of program
-
+	delete(Temp);
+}//end of programemp)
 

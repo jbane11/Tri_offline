@@ -36,7 +36,7 @@ void SQL_PSupdate(int run)
 	if(row->GetField(4)!=nullptr)SQLps5=atoi(row->GetField(4));
 	else SQLps5=-1; 
 
-	if(SQLps2 == -1 || SQLps5 == -1){
+	if(SQLps2 == -1 || SQLps5 == -1 || SQLps2!=Rps2 || SQLps5!=Rps5){
 		cout << "Updateing PS, PS2= " <<Rps2<<"   PS5= "<< Rps5<<endl;	
 		TString update = Form("Update MARATHONrunlist SET prescale_T2 = %d,  prescale_T5=%d where run_number=%d",Rps2,Rps5,run);
 		Server->Query(update.Data());

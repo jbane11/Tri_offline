@@ -7,7 +7,7 @@ rundir="./Runlist"
 
 
 
-for f in $rundir/*kin*; do
+for f in $rundir/Carbon*kin*; do
 
 echo " $f"
 
