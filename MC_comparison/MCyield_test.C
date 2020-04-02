@@ -14,6 +14,7 @@ const string runl_dir = "/home/jbane/tritium/replay/HallA-Online-Tritium/replay/
 
 void MCyield_test(string tgt ="", string kin="",string suf ="1", int bins=50, int clean=0, int model=0, int debug=3)
 {
+	//setcut();
 	//int clean =0;
 	if(kin=="" || tgt ==""){
 		cout << "Please enter the  kin and tgt you would like to use" <<"\n";
@@ -89,7 +90,7 @@ void MCyield_test(string tgt ="", string kin="",string suf ="1", int bins=50, in
 	double emax=tg_dp_L*100;
 	if( kin.find("16") != std::string::npos){cmom=2.9;}
 
-	if(nobs>=varible_xbase.size())
+	if(nobs>=int(varible_xbase.size()))
 	{
 		nobs=bins;
 
@@ -236,7 +237,7 @@ void MCyield_test(string tgt ="", string kin="",string suf ="1", int bins=50, in
 		T->Draw(">>GoodEs",total_cut);
 		gDirectory->GetObject("GoodEs",GoodEs);
 		T->SetEventList(GoodEs);
-
+		cout << total_cut<<endl;
 	//	TH1F *tmp_h; T->Draw(
 
 		float eprime =0;   float theta  =0;
@@ -270,7 +271,7 @@ void MCyield_test(string tgt ="", string kin="",string suf ="1", int bins=50, in
 			//loop through all of the bins, checking both x and theta!
 			for(int i=0;i<nobs;i++)
                         {
-																if(bins<varible_xbase.size())x_step=xbj_step[i];
+																if(bins<int(varible_xbase.size()))x_step=xbj_step[i];
                                 double xbj_diff   = x_bj-xbj_base[i];
                                 double theta_diff= theta-theta_base[i];
 																double e_diff= eprime-e_base[i];
@@ -329,7 +330,7 @@ void MCyield_test(string tgt ="", string kin="",string suf ="1", int bins=50, in
 
 
 
-		if(debug){if(avg_bin>=75000){cout <<" Got enough data "<<endl;break;}}
+		if(debug){if(avg_bin>=85000){cout <<" Got enough data "<<endl;break;}}
 	if(onerun) break;
         }//End  of run loop!
 	if(num_G_runs<1){
@@ -358,10 +359,11 @@ void MCyield_test(string tgt ="", string kin="",string suf ="1", int bins=50, in
                 }
         }
 
+	cout << "Output file ::"<<Form("./yield_output/%s%dbins/xbj/%s_kin%s.dat\n\n",cuttype.c_str(),bins,tgt.c_str(),kin.c_str());
 
 	ofstream xout; xout.open(Form("./yield_output/%s%dbins/xbj/%s_kin%s.dat",cuttype.c_str(),bins,tgt.c_str(),kin.c_str()));
        	xout << "Xbjc\tXbj\t"<<"Q2\t"<<"Ne\t"<<"Yield\t"<<"Error\n";
-        ofstream thout; thout.open(Form("./yield_output/%s%dbins/theta/%s_kin%s.dat",cuttype.c_str(),bins,tgt.c_str(),kin.c_str()));
+  ofstream thout; thout.open(Form("./yield_output/%s%dbins/theta/%s_kin%s.dat",cuttype.c_str(),bins,tgt.c_str(),kin.c_str()));
         thout << "theta\t"<<"E`\t"<<"Ne\t"<<"Yield\t"<<"Error\n";
 
 	ofstream eout; eout.open(Form("./yield_output/%s%dbins/theta/%s_kin%s_e.dat",cuttype.c_str(),bins,tgt.c_str(),kin.c_str()));
@@ -381,7 +383,7 @@ if(debug)cout << "xbjc \t" << " yield\t" << "   stat eror"<<endl;
           	thout << theta_center[i]<<"\t"<<Ep_total[i]/theta_ele[i]<<"\t"<<theta_ele[i]<<"\t"<<theta_yield[i]/(num_G_runs*1.0)<<"\t"<<total_error_th/(num_G_runs*1.0)<<"\n";
 
 						eout << e_center[i] <<"\t"<< e_ele[i] <<"\t"<< e_yield[i] <<"\t"<< total_error_e<<"\n";
-						cout << e_center[i] <<"\t"<< e_ele[i] <<"\t"<< e_yield[i] <<"\t"<< total_error_e<<"\n";
+						//cout << e_center[i] <<"\t"<< e_ele[i] <<"\t"<< e_yield[i] <<"\t"<< total_error_e<<"\n";
 
 					}
 
